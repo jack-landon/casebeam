@@ -1,16 +1,33 @@
-import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 import { streamText, convertToCoreMessages } from "ai";
 
-// Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  const result = await streamText({
-    model: openai("gpt-4-turbo"),
+  // const result = streamText({
+  //   model: google("gemini-1.5-pro-latest"),
+  //   messages: convertToCoreMessages(messages),
+
+  // });
+
+  const result = streamText({
+    model: google("gemini-2.0-flash-001", {
+      useSearchGrounding: true,
+    }),
     messages: convertToCoreMessages(messages),
   });
 
-  return result.toDataStreamResponse();
+  // console.log("generated text", text);
+  // console.log("generated sources", sources);
+
+  // const result = streamText({
+  //   model: google("gemini-1.5-pro-latest"),
+  //   messages: convertToCoreMessages(messages),
+  // });
+
+  return result.toDataStreamResponse({
+    sendSources: true,
+  });
 }

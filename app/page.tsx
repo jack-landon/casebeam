@@ -1,40 +1,188 @@
 "use client";
 
-import {
-  ChatBubble,
-  ChatBubbleAction,
-  ChatBubbleAvatar,
-  ChatBubbleMessage,
-} from "@/components/ui/chat/chat-bubble";
-import { ChatInput } from "@/components/ui/chat/chat-input";
-import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
-import { Button } from "@/components/ui/button";
-import {
-  CopyIcon,
-  CornerDownLeft,
-  Mic,
-  Paperclip,
-  RefreshCcw,
-  Volume2,
-} from "lucide-react";
 import { useChat } from "ai/react";
 import { useEffect, useRef, useState } from "react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import CodeDisplayBlock from "@/components/code-display-block";
+import { sleep } from "./lib/utils";
+import { AnimatePresence } from "motion/react";
+import ResultsPanel from "./components/ResultsPanel";
+import DetailsPanel from "./components/DetailsPanel";
+import ChatPanel from "./components/ChatPanel";
 
-const ChatAiIcons = [
+const panelOptions = ["chat", "results", "details"] as const;
+export type View = (typeof panelOptions)[number];
+
+type JSONValue = null | string | number | boolean | JSONObject | JSONArray;
+type JSONObject = {
+  [key: string]: JSONValue;
+};
+type JSONArray = JSONValue[];
+
+export type SearchResultType = {
+  heading: string;
+  subheading: string;
+  details: string;
+  source?: {
+    sourceType: "url";
+    id: string;
+    url: string;
+    title?: string;
+    providerMetadata?: Record<string, Record<string, JSONValue>>;
+  };
+};
+
+const sampleSearchResults: SearchResultType[] = [
   {
-    icon: CopyIcon,
-    label: "Copy",
+    heading: "Smith v Corporation Ltd [2024] HCA 101",
+    subheading:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.",
+    details: `
+      <div class="legal-case">
+  <h1>Smith v Corporation Ltd [2024] HCA 101</h1>
+
+  <section>
+    <h2>Summary</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+  </section>
+
+  <section>
+    <h3>Key Points</h3>
+    <ul>
+      <li>Ut enim ad minim veniam, quis nostrud exercitation</li>
+      <li>Ullamco laboris nisi ut aliquip ex ea commodo consequat</li>
+      <li>Duis aute irure dolor in reprehenderit</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Background</h2>
+    <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  </section>
+
+  <section>
+    <h3>Legal Principles</h3>
+    <ol>
+      <li><strong>Prima Facie</strong>: Lorem ipsum dolor sit amet</li>
+      <li><strong>Mens Rea</strong>: Consectetur adipiscing elit</li>
+      <li><strong>Actus Reus</strong>: Sed do eiusmod tempor</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Court's Decision</h2>
+    <blockquote>
+      <p>"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."</p>
+      <cite>— Chief Justice Smith</cite>
+    </blockquote>
+  </section>
+
+  <section>
+    <h3>Impact</h3>
+    <p>The decision established three key principles:</p>
+    <ul>
+      <li>Lorem ipsum dolor sit amet</li>
+      <li>Consectetur adipiscing elit</li>
+      <li>Sed do eiusmod tempor incididunt</li>
+    </ul>
+  </section>
+</div>
+    `,
   },
   {
-    icon: RefreshCcw,
-    label: "Refresh",
+    heading: "Brown v State [2024] HCA 102",
+    subheading:
+      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.",
+    details: `
+      <div class="legal-case">
+        <h1>Brown v State [2024] HCA 102</h1>
+        <section>
+          <h2>Background</h2>
+          <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
+        </section>
+        <section>
+          <h2>Decision</h2>
+          <blockquote>
+            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
+            <cite>— Chief Justice Johnson</cite>
+          </blockquote>
+        </section>
+      </div>
+    `,
   },
   {
-    icon: Volume2,
-    label: "Volume",
+    heading: "Johnson v Department [2024] HCA 103",
+    subheading:
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla.",
+    details: `
+      <div class="legal-case">
+        <h1>Johnson v Department [2024] HCA 103</h1>
+        <section>
+          <h2>Legal Principles</h2>
+          <ol>
+            <li><strong>Principle 1:</strong> At vero eos et accusamus et iusto odio dignissimos</li>
+            <li><strong>Principle 2:</strong> Ducimus qui blanditiis praesentium voluptatum</li>
+          </ol>
+        </section>
+      </div>
+    `,
+  },
+  {
+    heading: "Wilson v Council [2024] HCA 104",
+    subheading:
+      "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit.",
+    details: `
+      <div class="legal-case">
+        <h1>Wilson v Council [2024] HCA 104</h1>
+        <section>
+          <h2>Analysis</h2>
+          <p>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat.</p>
+        </section>
+      </div>
+    `,
+  },
+  {
+    heading: "Taylor v Industry Ltd [2024] HCA 105",
+    subheading:
+      "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet.",
+    details: `
+      <div class="legal-case">
+        <h1>Taylor v Industry Ltd [2024] HCA 105</h1>
+        <section>
+          <h2>Findings</h2>
+          <ul>
+            <li>Itaque earum rerum hic tenetur a sapiente delectus</li>
+            <li>Ut aut reiciendis voluptatibus maiores alias consequatur</li>
+          </ul>
+        </section>
+      </div>
+    `,
+  },
+  {
+    heading: "Anderson v Board [2024] HCA 106",
+    subheading:
+      "Et harum quidem rerum facilis est et expedita distinctio nam libero tempore.",
+    details: `
+      <div class="legal-case">
+        <h1>Anderson v Board [2024] HCA 106</h1>
+        <section>
+          <h2>Implications</h2>
+          <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.</p>
+        </section>
+      </div>
+    `,
+  },
+  {
+    heading: "Martin v Institute [2024] HCA 107",
+    subheading:
+      "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae.",
+    details: `
+      <div class="legal-case">
+        <h1>Martin v Institute [2024] HCA 107</h1>
+        <section>
+          <h2>Conclusion</h2>
+          <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.</p>
+        </section>
+      </div>
+    `,
   },
 ];
 
@@ -48,21 +196,60 @@ export default function Home() {
     isLoading,
     reload,
   } = useChat({
+    api: "api/chat",
     onResponse(response) {
       if (response) {
         console.log(response);
         setIsGenerating(false);
+        setIsGettingSearchResults(true);
       }
+    },
+    onFinish(res) {
+      console.log("Res:", res);
+      const sources = res.parts
+        ?.filter((part) => part.type === "source")
+        .map((part) => part.source);
+
+      console.log("Sources:", sources);
+      if (!sources) return;
+
+      if (!openViews.includes("results")) {
+        const newViews = [...openViews];
+        newViews.splice(1, 0, "results");
+        setOpenViews(newViews);
+      }
+
+      const searchResultsToSet: SearchResultType[] = sources
+        .slice(0, sampleSearchResults.length)
+        .map((source, i) => ({
+          heading: sampleSearchResults[i].heading,
+          subheading: sampleSearchResults[i].subheading,
+          details: sampleSearchResults[i].details,
+          source,
+        }));
+
+      setSearchResults(searchResultsToSet);
+      setIsGettingSearchResults(false);
     },
     onError(error) {
       if (error) {
+        console.error("Error:", error);
         setIsGenerating(false);
       }
     },
   });
 
   const messagesRef = useRef<HTMLDivElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [openViews, setOpenViews] = useState<View[]>(["chat"]);
+  const [exitingPanels, setExitingPanels] = useState<View[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResultType[]>([]);
+  const [currentDetails, setCurrentDetails] = useState<string>();
+  const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
+  const [isGettingCurrentDetails, setIsGettingCurrentDetails] = useState(false);
+  const [currentReference, setCurrentReference] = useState<{
+    text: string;
+    url: string;
+  } | null>(null);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -73,7 +260,12 @@ export default function Home() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsGenerating(true);
-    handleSubmit(e);
+    try {
+      await handleSubmit(e);
+    } catch (error) {
+      console.error("Error submitting:", error);
+      setIsGenerating(false);
+    }
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -106,157 +298,112 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    if (searchResults.length > 1) {
+      setOpenViews(["chat", "results"]);
+    }
+  }, [searchResults]);
+
+  async function getArticleDetails(article: string) {
+    setIsGettingCurrentDetails(true);
+    if (!openViews.includes("details")) setOpenViews([...openViews, "details"]);
+    await sleep();
+    setCurrentDetails(article);
+    setIsGettingCurrentDetails(false);
+  }
+
+  useEffect(() => {
+    if (!currentDetails) return;
+    setOpenViews((prev) => {
+      if (!prev.includes("details")) {
+        return [...prev, "details"];
+      }
+      return prev;
+    });
+  }, [currentDetails]);
+
+  function hidePanel(panel: View) {
+    // Add the panel to exitingPanels
+    setExitingPanels((prev) => [...prev, panel]);
+
+    setOpenViews((prev) => {
+      if (panel === "chat") return prev;
+
+      const filtered = prev.filter((view) => view !== panel);
+      const order: Record<View, number> = {
+        chat: 0,
+        results: 1,
+        details: 2,
+      };
+      return filtered.sort((a, b) => order[a] - order[b]);
+    });
+  }
+
   return (
-    <main className="flex h-screen w-full max-w-3xl flex-col items-center mx-auto">
-      <div>
-        {/* <h1 className="text-2xl font-bold text-center text-muted-foreground my-2">
-          Case Beam 🦅
-        </h1> */}
-      </div>
-      <div className="flex-1 w-full overflow-y-auto py-6">
-        <ChatMessageList>
-          {/* Initial Message */}
-          {messages.length === 0 && (
-            <div className="w-full bg-background shadow-sm border rounded-lg p-8 flex flex-col gap-2">
-              <h1 className="font-bold">Welcome to Case Beam 🦅</h1>
-              <p className="text-muted-foreground text-sm">
-                Start chatting with your legal AI. They know all there is to
-                know about case law in Australia.
-              </p>
-              <p className="text-muted-foreground text-sm">
-                Our legal eagle does their best to provide accurate and relevant
-                information, but please remember to reference the original case
-                law for any legal matters.
-              </p>
-            </div>
-          )}
-
-          {/* Messages */}
-          {messages &&
-            messages.map((message, index) => (
-              <ChatBubble
-                key={index}
-                variant={message.role == "user" ? "sent" : "received"}
-              >
-                <ChatBubbleAvatar
-                  src=""
-                  fallback={message.role == "user" ? "👨🏽" : "🤖"}
-                />
-                <ChatBubbleMessage>
-                  {message.content
-                    .split("```")
-                    .map((part: string, index: number) => {
-                      if (index % 2 === 0) {
-                        return (
-                          <Markdown key={index} remarkPlugins={[remarkGfm]}>
-                            {part}
-                          </Markdown>
-                        );
-                      } else {
-                        return (
-                          <pre className="whitespace-pre-wrap pt-2" key={index}>
-                            <CodeDisplayBlock code={part} lang="" />
-                          </pre>
-                        );
-                      }
-                    })}
-
-                  {message.role === "assistant" &&
-                    messages.length - 1 === index && (
-                      <div className="flex items-center mt-1.5 gap-1">
-                        {!isGenerating && (
-                          <>
-                            {ChatAiIcons.map((icon, iconIndex) => {
-                              const Icon = icon.icon;
-                              return (
-                                <ChatBubbleAction
-                                  variant="outline"
-                                  className="size-5"
-                                  key={iconIndex}
-                                  icon={<Icon className="size-3" />}
-                                  onClick={() =>
-                                    handleActionClick(icon.label, index)
-                                  }
-                                />
-                              );
-                            })}
-                          </>
-                        )}
-                      </div>
-                    )}
-                </ChatBubbleMessage>
-              </ChatBubble>
-            ))}
-
-          {/* Loading */}
-          {isGenerating && (
-            <ChatBubble variant="received">
-              <ChatBubbleAvatar src="" fallback="🤖" />
-              <ChatBubbleMessage isLoading />
-            </ChatBubble>
-          )}
-        </ChatMessageList>
-      </div>
-
-      {/* Form and Footer fixed at the bottom */}
-      <div className="w-full px-4 pb-4">
-        <form
-          ref={formRef}
-          onSubmit={onSubmit}
-          className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
+    <main className="flex h-[calc(100vh-4rem)] w-full max-w-7xl flex-col items-center mx-auto">
+      <div
+        className={`flex-1 w-full h-full overflow-y-auto grid ${
+          openViews.length + exitingPanels.length == 1
+            ? "grid-cols-1"
+            : openViews.length + exitingPanels.length == 2
+            ? "grid-cols-2"
+            : "grid-cols-3"
+        } place-items-center gap-4`}
+      >
+        <AnimatePresence
+          onExitComplete={() => {
+            setExitingPanels((prev) => {
+              const [, ...rest] = prev;
+              return rest;
+            });
+          }}
         >
-          <ChatInput
-            value={input}
-            onKeyDown={onKeyDown}
-            onChange={handleInputChange}
-            placeholder="Type your message here..."
-            className="rounded-lg bg-background border-0 shadow-none focus-visible:ring-0"
-          />
-          <div className="flex items-center p-3 pt-0">
-            <Button variant="ghost" size="icon">
-              <Paperclip className="size-4" />
-              <span className="sr-only">Attach file</span>
-            </Button>
+          {panelOptions.map((view) => {
+            if (!openViews.includes(view)) return null;
 
-            <Button variant="ghost" size="icon">
-              <Mic className="size-4" />
-              <span className="sr-only">Use Microphone</span>
-            </Button>
-
-            <Button
-              disabled={!input || isLoading}
-              type="submit"
-              size="sm"
-              className="ml-auto gap-1.5"
-            >
-              Send Message
-              <CornerDownLeft className="size-3.5" />
-            </Button>
-          </div>
-        </form>
-        {/* <div className="pt-4 flex gap-2 items-center justify-center">
-          <GitHubLogoIcon className="size-4" />
-          <p className="text-xs">
-            <a
-              href="https://github.com/jakobhoeg/shadcn-chat"
-              className="font-bold inline-flex flex-1 justify-center gap-1 leading-4 hover:underline"
-            >
-              shadcn-chat
-              <svg
-                aria-hidden="true"
-                height="7"
-                viewBox="0 0 6 6"
-                width="7"
-                className="opacity-70"
-              >
-                <path
-                  d="M1.25215 5.54731L0.622742 4.9179L3.78169 1.75597H1.3834L1.38936 0.890915H5.27615V4.78069H4.40513L4.41109 2.38538L1.25215 5.54731Z"
-                  fill="currentColor"
-                ></path>
-              </svg>
-            </a>
-          </p>
-        </div> */}
+            switch (view) {
+              case "chat":
+                return (
+                  <ChatPanel
+                    key={view}
+                    openViews={openViews}
+                    messages={messages}
+                    input={input}
+                    view={view}
+                    handleActionClick={handleActionClick}
+                    handleInputChange={handleInputChange}
+                    isGenerating={isGenerating}
+                    isLoading={isLoading}
+                    onKeyDown={onKeyDown}
+                    onSubmit={onSubmit}
+                  />
+                );
+              case "results":
+                return (
+                  <ResultsPanel
+                    key={view}
+                    view={view}
+                    searchResults={searchResults}
+                    getArticleDetails={getArticleDetails}
+                    isGettingSearchResults={isGettingSearchResults}
+                    hidePanel={hidePanel}
+                    setCurrentReference={setCurrentReference}
+                  />
+                );
+              case "details":
+                return (
+                  <DetailsPanel
+                    key={view}
+                    view={view}
+                    currentDetails={currentDetails}
+                    isGettingCurrentDetails={isGettingCurrentDetails}
+                    hidePanel={hidePanel}
+                    currentReference={currentReference}
+                  />
+                );
+            }
+          })}
+        </AnimatePresence>
       </div>
     </main>
   );

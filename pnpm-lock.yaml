@@ -8,9 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@ai-sdk/deepinfra':
+        specifier: ^0.2.9
+        version: 0.2.9(zod@3.24.2)
+      '@ai-sdk/google':
+        specifier: ^1.2.10
+        version: 1.2.10(zod@3.24.2)
       '@ai-sdk/openai':
         specifier: ^1.3.7
         version: 1.3.7(zod@3.24.2)
+      '@ai-sdk/react':
+        specifier: ^1.2.8
+        version: 1.2.8(react@19.1.0)(zod@3.24.2)
       '@radix-ui/react-avatar':
         specifier: ^1.1.3
         version: 1.1.3(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -32,6 +41,9 @@ importers:
       lucide-react:
         specifier: ^0.487.0
         version: 0.487.0(react@19.1.0)
+      motion:
+        specifier: ^12.6.3
+        version: 12.6.3(@emotion/is-prop-valid@1.2.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next:
         specifier: 15.2.4
         version: 15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -62,6 +74,9 @@ importers:
       tw-animate-css:
         specifier: ^1.2.5
         version: 1.2.5
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
@@ -93,6 +108,24 @@ importers:
 
 packages:
 
+  '@ai-sdk/deepinfra@0.2.9':
+    resolution: {integrity: sha512-eqHia22a+YEBDJNbtoBA2DUI0aw0cCa+eJzoogAXtZsbK37LWGJY3xvQTz5OAJrmO6SLB8u21y5xPGSzYuyHOg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.0.0
+
+  '@ai-sdk/google@1.2.10':
+    resolution: {integrity: sha512-YmZ9DIO6Un0+RU9PtjM9TfoExmUQg2fk8vTlwT+NOaARyhv8eskRCUTne0zf5uUOazPIJuBEv2I6YE9XnS+tUg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.0.0
+
+  '@ai-sdk/openai-compatible@0.2.8':
+    resolution: {integrity: sha512-o1CrhTrXnMj72G44oBqlDDBtunw6iwONysXj7EYN/Fx27rhP7YTcWwVeKs5gMx/u/8TIho9iZ9rkqXXc2xg8Bg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.0.0
+
   '@ai-sdk/openai@1.3.7':
     resolution: {integrity: sha512-JjjEulfMgH5kGyCWKdyhxNLSIs2qBkUr6LtzNJtYlV23e5RbOHA5qgbbxn6IbGxeZs4xpPhpGmOnUVzh7GZwcg==}
     engines: {node: '>=18'}
@@ -105,8 +138,18 @@ packages:
     peerDependencies:
       zod: ^3.23.8
 
+  '@ai-sdk/provider-utils@2.2.6':
+    resolution: {integrity: sha512-sUlZ7Gnq84DCGWMQRIK8XVbkzIBnvPR1diV4v6JwPgpn5armnLI/j+rqn62MpLrU5ZCQZlDKl/Lw6ed3ulYqaA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.23.8
+
   '@ai-sdk/provider@1.1.0':
     resolution: {integrity: sha512-0M+qjp+clUD0R1E5eWQFhxEvWLNaOtGQRUaBn8CUABnSKredagq92hUS9VjOzGsTm37xLfpaxl97AVtbeOsHew==}
+    engines: {node: '>=18'}
+
+  '@ai-sdk/provider@1.1.2':
+    resolution: {integrity: sha512-ITdgNilJZwLKR7X5TnUr1BsQW6UTX5yFp0h66Nfx8XjBYkWD9W3yugr50GOz3CnE9m/U/Cd5OyEbTMI0rgi6ZQ==}
     engines: {node: '>=18'}
 
   '@ai-sdk/react@1.2.6':
@@ -119,8 +162,24 @@ packages:
       zod:
         optional: true
 
+  '@ai-sdk/react@1.2.8':
+    resolution: {integrity: sha512-S2FzCSi4uTF0JuSN6zYMXyiAWVAzi/Hho8ISYgHpGZiICYLNCP2si4DuXQOsnWef3IXzQPLVoE11C63lILZIkw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      react: ^18 || ^19 || ^19.0.0-rc
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      zod:
+        optional: true
+
   '@ai-sdk/ui-utils@1.2.5':
     resolution: {integrity: sha512-XDgqnJcaCkDez7qolvk+PDbs/ceJvgkNkxkOlc9uDWqxfDJxtvCZ+14MP/1qr4IBwGIgKVHzMDYDXvqVhSWLzg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.23.8
+
+  '@ai-sdk/ui-utils@1.2.7':
+    resolution: {integrity: sha512-OVRxa4SDj0wVsMZ8tGr/whT89oqNtNoXBKmqWC2BRv5ZG6azL2LYZ5ZK35u3lb4l1IE7cWGsLlmq0py0ttsL7A==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.23.8
@@ -1238,6 +1297,20 @@ packages:
     resolution: {integrity: sha512-wzsgA6WOq+09wrU1tsJ09udeR/YZRaeArL9e1wPbFg3GG2yDnC2ldKpxs4xunpFF9DgqCqOIra3bc1HWrJ37Ww==}
     engines: {node: '>=0.4.x'}
 
+  framer-motion@12.6.3:
+    resolution: {integrity: sha512-2hsqknz23aloK85bzMc9nSR2/JP+fValQ459ZTVElFQ0xgwR2YqNjYSuDZdFBPOwVCt4Q9jgyTt6hg6sVOALzw==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
 
@@ -1785,6 +1858,26 @@ packages:
 
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
+
+  motion-dom@12.6.3:
+    resolution: {integrity: sha512-gRY08RjcnzgFYLemUZ1lo/e9RkBxR+6d4BRvoeZDSeArG4XQXERSPapKl3LNQRu22Sndjf1h+iavgY0O4NrYqA==}
+
+  motion-utils@12.6.3:
+    resolution: {integrity: sha512-R/b3Ia2VxtTNZ4LTEO5pKYau1OUNHOuUfxuP0WFCTDYdHkeTBR9UtxR1cc8mDmKr8PEhmmfnTKGz3rSMjNRoRg==}
+
+  motion@12.6.3:
+    resolution: {integrity: sha512-zw/vqUgv5F5m9fkvOl/eCv2AF1+tkeZl3fu2uIlisIaip8sm5e0CouAl6GkdiRoF+G7s29CjqMdIyPMirwUGHA==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -2360,6 +2453,25 @@ packages:
 
 snapshots:
 
+  '@ai-sdk/deepinfra@0.2.9(zod@3.24.2)':
+    dependencies:
+      '@ai-sdk/openai-compatible': 0.2.8(zod@3.24.2)
+      '@ai-sdk/provider': 1.1.2
+      '@ai-sdk/provider-utils': 2.2.6(zod@3.24.2)
+      zod: 3.24.2
+
+  '@ai-sdk/google@1.2.10(zod@3.24.2)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.2
+      '@ai-sdk/provider-utils': 2.2.6(zod@3.24.2)
+      zod: 3.24.2
+
+  '@ai-sdk/openai-compatible@0.2.8(zod@3.24.2)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.2
+      '@ai-sdk/provider-utils': 2.2.6(zod@3.24.2)
+      zod: 3.24.2
+
   '@ai-sdk/openai@1.3.7(zod@3.24.2)':
     dependencies:
       '@ai-sdk/provider': 1.1.0
@@ -2373,7 +2485,18 @@ snapshots:
       secure-json-parse: 2.7.0
       zod: 3.24.2
 
+  '@ai-sdk/provider-utils@2.2.6(zod@3.24.2)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.2
+      nanoid: 3.3.11
+      secure-json-parse: 2.7.0
+      zod: 3.24.2
+
   '@ai-sdk/provider@1.1.0':
+    dependencies:
+      json-schema: 0.4.0
+
+  '@ai-sdk/provider@1.1.2':
     dependencies:
       json-schema: 0.4.0
 
@@ -2387,10 +2510,27 @@ snapshots:
     optionalDependencies:
       zod: 3.24.2
 
+  '@ai-sdk/react@1.2.8(react@19.1.0)(zod@3.24.2)':
+    dependencies:
+      '@ai-sdk/provider-utils': 2.2.6(zod@3.24.2)
+      '@ai-sdk/ui-utils': 1.2.7(zod@3.24.2)
+      react: 19.1.0
+      swr: 2.3.3(react@19.1.0)
+      throttleit: 2.1.0
+    optionalDependencies:
+      zod: 3.24.2
+
   '@ai-sdk/ui-utils@1.2.5(zod@3.24.2)':
     dependencies:
       '@ai-sdk/provider': 1.1.0
       '@ai-sdk/provider-utils': 2.2.4(zod@3.24.2)
+      zod: 3.24.2
+      zod-to-json-schema: 3.24.5(zod@3.24.2)
+
+  '@ai-sdk/ui-utils@1.2.7(zod@3.24.2)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.2
+      '@ai-sdk/provider-utils': 2.2.6(zod@3.24.2)
       zod: 3.24.2
       zod-to-json-schema: 3.24.5(zod@3.24.2)
 
@@ -3581,6 +3721,16 @@ snapshots:
 
   format@0.2.2: {}
 
+  framer-motion@12.6.3(@emotion/is-prop-valid@1.2.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      motion-dom: 12.6.3
+      motion-utils: 12.6.3
+      tslib: 2.8.1
+    optionalDependencies:
+      '@emotion/is-prop-valid': 1.2.2
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
   function-bind@1.1.2: {}
 
   function.prototype.name@1.1.8:
@@ -4349,6 +4499,21 @@ snapshots:
       brace-expansion: 2.0.1
 
   minimist@1.2.8: {}
+
+  motion-dom@12.6.3:
+    dependencies:
+      motion-utils: 12.6.3
+
+  motion-utils@12.6.3: {}
+
+  motion@12.6.3(@emotion/is-prop-valid@1.2.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      framer-motion: 12.6.3(@emotion/is-prop-valid@1.2.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      tslib: 2.8.1
+    optionalDependencies:
+      '@emotion/is-prop-valid': 1.2.2
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   ms@2.1.3: {}
 
