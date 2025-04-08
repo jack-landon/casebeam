@@ -24,6 +24,7 @@ import CodeDisplayBlock from "@/components/code-display-block";
 import { motion } from "motion/react";
 import { View } from "@/page";
 import { UIMessage } from "ai";
+import { useUser } from "@clerk/nextjs";
 
 const ChatAiIcons = [
   {
@@ -65,6 +66,7 @@ export default function ChatPanel({
   onSubmit,
   view,
 }: ChatPanelProps) {
+  const { user } = useUser();
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -111,8 +113,8 @@ export default function ChatPanel({
                 variant={message.role == "user" ? "sent" : "received"}
               >
                 <ChatBubbleAvatar
-                  src=""
-                  fallback={message.role == "user" ? "👨🏽" : "🤖"}
+                  src={message.role == "user" ? user?.imageUrl : undefined}
+                  fallback={message.role == "user" ? "👤" : "👨‍⚖️"}
                 />
                 <ChatBubbleMessage>
                   {message.content
@@ -163,7 +165,7 @@ export default function ChatPanel({
           {/* Loading */}
           {isGenerating && (
             <ChatBubble variant="received">
-              <ChatBubbleAvatar src="" fallback="🤖" />
+              <ChatBubbleAvatar src="" fallback="👨‍⚖️" />
               <ChatBubbleMessage isLoading />
             </ChatBubble>
           )}
