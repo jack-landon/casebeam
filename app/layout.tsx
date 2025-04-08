@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import ChatSupport from "@/components/chat-support";
+// import ChatSupport from "@/components/chat-support";
 import Header from "./components/Header";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,16 +26,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-muted/30`}>
-        <ThemeProvider attribute="class" defaultTheme="system">
-          <>
-            <Header />
-            {children}
-          </>
-          <ChatSupport />
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${inter.className} bg-muted/30`}>
+          <ThemeProvider attribute="class" defaultTheme="system">
+            <>
+              <Header />
+              {children}
+            </>
+            {/* <ChatSupport /> */}
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

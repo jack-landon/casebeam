@@ -70,7 +70,7 @@ export default function ChatSupport() {
   return (
     <ExpandableChat size="md" position="bottom-right">
       <ExpandableChatHeader className="bg-muted/60 flex-col text-center justify-center">
-        <h1 className="text-xl font-semibold">Chat with our AI ✨</h1>
+        <h1 className="text-xl font-semibold">Chat with us ✨</h1>
         <p>Ask any question for our AI to answer</p>
         <div className="flex gap-2 items-center pt-2">
           <Button variant="secondary" onClick={() => setMessages([])}>

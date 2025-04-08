@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Bird } from "lucide-react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function Header() {
   return (
@@ -32,15 +33,26 @@ export default function Header() {
           >
             Notes
           </Link>
-          <Button
-            variant="outline"
-            className="justify-self-end px-2 py-1 text-xs cursor-pointer"
-          >
-            Sign in
-          </Button>
-          <Button className="justify-self-end px-2 py-1 text-xs cursor-pointer">
-            Sign Up
-          </Button>
+
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+
+          <SignedOut>
+            <Button
+              asChild
+              variant="outline"
+              className="justify-self-end px-2 py-1 text-xs cursor-pointer"
+            >
+              <Link href="/sign-in">Login</Link>
+            </Button>
+            <Button
+              asChild
+              className="justify-self-end px-2 py-1 text-xs cursor-pointer"
+            >
+              <Link href="/sign-up">Sign Up</Link>
+            </Button>
+          </SignedOut>
         </div>
       </header>
     </div>
