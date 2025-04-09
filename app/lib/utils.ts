@@ -8,3 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const sleep = (ms = 2000): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
+export function capitalizeFirstLetter(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}

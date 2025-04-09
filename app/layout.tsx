@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 // import ChatSupport from "@/components/chat-support";
 import Header from "./components/Header";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,7 @@ export default function RootLayout({
               <Header />
               {children}
             </>
+            <Toaster />
             {/* <ChatSupport /> */}
           </ThemeProvider>
         </body>

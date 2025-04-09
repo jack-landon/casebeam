@@ -92,7 +92,10 @@ export default function ChatPanel({
           {/* Initial Message */}
           {messages.length === 0 && (
             <div className="w-full bg-background shadow-sm border rounded-lg p-8 flex flex-col gap-2">
-              <h1 className="font-bold">Welcome to Case Beam 🦅</h1>
+              <h1 className="font-bold">
+                {user && `Hey ${user.firstName}, `}
+                Welcome to Case Beam 🦅
+              </h1>
               <p className="text-muted-foreground text-sm">
                 Start chatting with your legal AI. They know all there is to
                 know about case law in Australia.
@@ -145,7 +148,7 @@ export default function ChatPanel({
                               return (
                                 <ChatBubbleAction
                                   variant="outline"
-                                  className="size-5"
+                                  className="size-5 cursor-pointer"
                                   key={iconIndex}
                                   icon={<Icon className="size-3" />}
                                   onClick={() =>
