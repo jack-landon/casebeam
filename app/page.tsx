@@ -1,12 +1,17 @@
 "use client";
 
 import { useChat } from "ai/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { sleep } from "./lib/utils";
 import { AnimatePresence } from "motion/react";
 import ResultsPanel from "./components/ResultsPanel";
 import DetailsPanel from "./components/DetailsPanel";
 import ChatPanel from "./components/ChatPanel";
+import { SelectChat } from "./lib/db/schema";
+import { getChat, getUserChats } from "./lib/db/queries/select";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { useAuth } from "@clerk/nextjs";
 
 const panelOptions = ["chat", "results", "details"] as const;
 export type View = (typeof panelOptions)[number];
@@ -186,7 +191,12 @@ const sampleSearchResults: SearchResultType[] = [
   },
 ];
 
-export default function Home() {
+function HomeContent() {
+  const { userId } = useAuth();
+
+  const searchParams = useSearchParams();
+  const chatId = searchParams.get("id");
+
   const [isGenerating, setIsGenerating] = useState(false);
   const {
     messages,
@@ -195,8 +205,10 @@ export default function Home() {
     handleSubmit,
     isLoading,
     reload,
+    setMessages,
   } = useChat({
     api: "api/chat",
+    id: chatId ?? undefined,
     onResponse(response) {
       if (response) {
         console.log(response);
@@ -246,6 +258,7 @@ export default function Home() {
   const [currentDetails, setCurrentDetails] = useState<string>();
   const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
   const [isGettingCurrentDetails, setIsGettingCurrentDetails] = useState(false);
+  const [userChats, setUserChats] = useState<SelectChat[]>([]);
   const [currentReference, setCurrentReference] = useState<{
     text: string;
     url: string;
@@ -256,6 +269,30 @@ export default function Home() {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const fetchMessages = useCallback(
+    async (chatId: number) => {
+      const chat = await getChat(chatId);
+      if (!chat) return;
+
+      const transformedMessages = chat.messages.map((msg) => ({
+        id: msg.id.toString(),
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      }));
+
+      setMessages(transformedMessages);
+    },
+    [setMessages]
+  );
+
+  useEffect(() => {
+    function fetchChat() {
+      if (!chatId) return;
+      fetchMessages(parseInt(chatId));
+    }
+    fetchChat();
+  }, [chatId, fetchMessages]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -339,6 +376,16 @@ export default function Home() {
     });
   }
 
+  useEffect(() => {
+    if (!userId) return;
+
+    async function fetchUserChats() {
+      const chats = await getUserChats();
+      setUserChats(chats);
+    }
+    fetchUserChats();
+  }, [userId]);
+
   return (
     <main className="flex h-[calc(100vh-4rem)] w-full max-w-7xl flex-col items-center mx-auto">
       <div
@@ -376,6 +423,7 @@ export default function Home() {
                     isLoading={isLoading}
                     onKeyDown={onKeyDown}
                     onSubmit={onSubmit}
+                    userChats={userChats}
                   />
                 );
               case "results":
@@ -406,5 +454,19 @@ export default function Home() {
         </AnimatePresence>
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
+          <div className="animate-pulse">Loading...</div>
+        </div>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }

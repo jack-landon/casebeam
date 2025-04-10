@@ -48,6 +48,32 @@ export const relatedCasesTable = sqliteTable("related_cases", {
   relatedCaseId: integer("related_case_id").notNull(),
 });
 
+export const chatsTable = sqliteTable("chats", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  createdAt: text("created_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  lastMessageAt: text("last_message_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+});
+
+export const messagesTable = sqliteTable("messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  chatId: integer("chat_id")
+    .notNull()
+    .references(() => chatsTable.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), // 'user' or 'assistant'
+  content: text("content").notNull(),
+  createdAt: text("created_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+});
+
 export type InsertUser = typeof usersTable.$inferInsert;
 export type SelectUser = typeof usersTable.$inferSelect;
 export type InsertProject = typeof projectsTable.$inferInsert;
@@ -56,3 +82,7 @@ export type InsertNote = typeof notesTable.$inferInsert;
 export type SelectNote = typeof notesTable.$inferSelect;
 export type InsertCase = typeof projectsTable.$inferInsert;
 export type SelectCase = typeof projectsTable.$inferSelect;
+export type InsertChat = typeof chatsTable.$inferInsert;
+export type SelectChat = typeof chatsTable.$inferSelect;
+export type InsertMessage = typeof messagesTable.$inferInsert;
+export type SelectMessage = typeof messagesTable.$inferSelect;

@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Bird } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import FloatingWindow from "./FloatingWindow";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isNotepadOpen, setIsNotepadOpen] = useState(false);
+  const [notepadValue, setNotepadValue] = useState("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,6 +63,15 @@ export default function Header() {
           <div className="ml-auto flex gap-2">
             <SignedIn>
               <UserButton />
+              <Button
+                variant="outline"
+                className="justify-self-end px-2 py-1 text-xs cursor-pointer"
+                onClick={() => {
+                  setIsNotepadOpen(!isNotepadOpen);
+                }}
+              >
+                {isNotepadOpen ? "Hide Notepad" : "Open Notepad"}
+              </Button>
             </SignedIn>
 
             <SignedOut>
@@ -80,6 +92,21 @@ export default function Header() {
           </div>
         </header>
       </div>
+      <FloatingWindow
+        initialWidth={400}
+        initialHeight={300}
+        isNotepadOpen={isNotepadOpen}
+        setIsNotepadOpen={setIsNotepadOpen}
+      >
+        <textarea
+          className="w-full h-full p-2 outline-none rounded text-sm resize-none"
+          placeholder="Take notes here..."
+          value={notepadValue}
+          onChange={(e) => setNotepadValue(e.target.value)}
+          rows={4}
+          cols={50}
+        ></textarea>
+      </FloatingWindow>
     </div>
   );
 }

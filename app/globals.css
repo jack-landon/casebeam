@@ -170,4 +170,8 @@
     font-size: 0.875rem;
     color: #64748b;
   }
+
+  .resizing {
+    cursor: nwse-resize !important;
+  }
 }

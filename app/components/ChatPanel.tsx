@@ -24,7 +24,9 @@ import CodeDisplayBlock from "@/components/code-display-block";
 import { motion } from "motion/react";
 import { View } from "@/page";
 import { UIMessage } from "ai";
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, useUser } from "@clerk/nextjs";
+import { ChatHistoryDrawer } from "./ChatHistoryDrawer";
+import { SelectChat } from "@/lib/db/schema";
 
 const ChatAiIcons = [
   {
@@ -52,6 +54,7 @@ type ChatPanelProps = {
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  userChats: SelectChat[];
 };
 
 export default function ChatPanel({
@@ -65,6 +68,7 @@ export default function ChatPanel({
   onKeyDown,
   onSubmit,
   view,
+  userChats,
 }: ChatPanelProps) {
   const { user } = useUser();
   const formRef = useRef<HTMLFormElement>(null);
@@ -81,8 +85,9 @@ export default function ChatPanel({
       }`}
     >
       {messages.length > 0 && (
-        <div className="p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-3xl font-bold">Chat</h2>
+          <ChatHistoryDrawer chats={userChats} text="View Other Chats" />
         </div>
       )}
 
@@ -92,10 +97,15 @@ export default function ChatPanel({
           {/* Initial Message */}
           {messages.length === 0 && (
             <div className="w-full bg-background shadow-sm border rounded-lg p-8 flex flex-col gap-2">
-              <h1 className="font-bold">
-                {user && `Hey ${user.firstName}, `}
-                Welcome to Case Beam 🦅
-              </h1>
+              <div className="flex items-center justify-between w-full pb-2">
+                <h1 className="font-bold">
+                  {user && `Hey ${user.firstName}, `}
+                  Welcome to Case Beam 🦅
+                </h1>
+                <SignedIn>
+                  <ChatHistoryDrawer chats={userChats} />
+                </SignedIn>
+              </div>
               <p className="text-muted-foreground text-sm">
                 Start chatting with your legal AI. They know all there is to
                 know about case law in Australia.
