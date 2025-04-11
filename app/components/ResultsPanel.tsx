@@ -84,7 +84,7 @@ export default function ResultsPanel({
               key={i}
               heading={"The first section of Mabo mentions Terra Nullius"}
               subheading={result.heading}
-              tags={["hooks", "state management", "functional components"]}
+              tags={["case law", "land law", "property law"]}
               userProjects={userProjects}
               userCategories={userCategories}
               summary={result.subheading}
