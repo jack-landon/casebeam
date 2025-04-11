@@ -6,11 +6,11 @@ import { Bird } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import FloatingWindow from "./FloatingWindow";
+import Notepad from "./wysiwyg/Notepad";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
-  const [notepadValue, setNotepadValue] = useState("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -98,14 +98,7 @@ export default function Header() {
         isNotepadOpen={isNotepadOpen}
         setIsNotepadOpen={setIsNotepadOpen}
       >
-        <textarea
-          className="w-full h-full p-2 outline-none rounded text-sm resize-none"
-          placeholder="Take notes here..."
-          value={notepadValue}
-          onChange={(e) => setNotepadValue(e.target.value)}
-          rows={4}
-          cols={50}
-        ></textarea>
+        <Notepad />
       </FloatingWindow>
     </div>
   );

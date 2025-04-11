@@ -166,9 +166,7 @@ const FloatingWindow = ({
               </Button>
             </div>
           </div>
-          <div className="p-2.5 h-[calc(100%-37px)] bg-secondary">
-            {children}
-          </div>
+          <div className="p-2.5 h-[calc(100%-37px)]">{children}</div>
 
           <div
             className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize"
