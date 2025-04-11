@@ -120,30 +120,24 @@
     @apply bg-background text-foreground;
   }
 
-  .legal-case {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
   .legal-case h1 {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-  }
-
-  .legal-case h2 {
     font-size: 1.5rem;
     font-weight: bold;
-    margin-top: 2rem;
     margin-bottom: 1rem;
   }
 
-  .legal-case h3 {
+  .legal-case h2 {
     font-size: 1.25rem;
     font-weight: bold;
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     margin-bottom: 0.75rem;
+  }
+
+  .legal-case h3 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .legal-case p {

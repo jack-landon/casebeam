@@ -85,13 +85,19 @@ export const searchResultsTable = sqliteTable("search_results", {
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  heading: text("heading").notNull(),
-  subheading: text("subheading"),
-  summary: text("summary"),
-  details: text("details"),
-  sourceTitle: text("source_title"),
-  sourceUrl: text("source_url"),
+  title: text("title").notNull(),
+  docTitle: text("doc_title"),
+  docSummary: text("doc_summary"),
+  relevanceSummary: text("relevance_summary"),
+  url: text("url").notNull(),
   tags: text("tags"), // Store as JSON string
+  excerpts: text("excerpts"), // Store as JSON string
+  //   excerpts: {
+  //     title: string;
+  //     caseName: string;
+  //     content: string;
+  //     url: string;
+  //   }[];
   createdAt: text("created_at")
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),

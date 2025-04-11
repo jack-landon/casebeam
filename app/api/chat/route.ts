@@ -17,45 +17,45 @@ export async function POST(req: Request) {
 
   if (!user) chatId = null;
 
-  // If user is signed in, store the chat and message in the database
-  if (user.userId) {
-    const messageToStore = messages[messages.length - 1];
-
-    // Check if new chat
-    if (messages.length == 1) {
-      // Will have to create new chat
-      // Generate summary title
-      const { text } = await generateText({
-        model: google("gemini-2.0-flash-001"),
-        prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${messageToStore.content}`,
-      });
-
-      const chat = await createChat({
-        userId: user.userId,
-        name: text,
-        createdAt: new Date().toISOString(),
-        lastMessageAt: new Date().toISOString(),
-      });
-
-      chatId = chat.id;
-    }
-
-    if (!chatId) throw new Error("Chat ID is required");
-
-    await createMessage({
-      chatId,
-      content: messageToStore.content,
-      role: messageToStore.role,
-      createdAt: new Date().toISOString(),
-    });
-  }
-
   const result = streamText({
     model: google("gemini-2.0-flash-001", {
       useSearchGrounding: true,
     }),
     messages: convertToCoreMessages(messages),
     onFinish: async (data) => {
+      // If user is signed in, store the chat and message in the database
+      if (user.userId) {
+        const messageToStore = messages[messages.length - 1];
+
+        // Check if new chat
+        if (messages.length == 1) {
+          // Will have to create new chat
+          // Generate summary title
+          const { text } = await generateText({
+            model: google("gemini-2.0-flash-001"),
+            prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${data.text}`,
+          });
+
+          const chat = await createChat({
+            userId: user.userId,
+            name: text,
+            createdAt: new Date().toISOString(),
+            lastMessageAt: new Date().toISOString(),
+          });
+
+          chatId = chat.id;
+        }
+
+        if (!chatId) throw new Error("Chat ID is required");
+
+        await createMessage({
+          chatId,
+          content: messageToStore.content,
+          role: messageToStore.role,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
       if (chatId) {
         await createMessage({
           chatId,

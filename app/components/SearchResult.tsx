@@ -1,6 +1,5 @@
 "use client";
 
-import { SearchResultType } from "@/page";
 import { useState } from "react";
 import { Star } from "lucide-react";
 
@@ -24,28 +23,21 @@ import { toast } from "sonner";
 import { SelectCategory, SelectProject } from "@/lib/db/schema";
 import { colorList } from "@/lib/utils";
 import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
+import { InsertSearchResultWithExcerpts } from "@/lib/types";
 
-export default function SearchResult({
-  heading,
-  subheading,
-  summary,
-  details,
-  source,
-  tags,
-  getArticleDetails,
-  setCurrentReference,
-  userProjects,
-  userCategories,
-}: SearchResultType & {
-  summary: string;
-  tags: string[];
+type SearchResultProps = {
+  searchResult: InsertSearchResultWithExcerpts;
+  getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
   userProjects: SelectProject[];
   userCategories: SelectCategory[];
-  getArticleDetails: (details: string) => void;
-  setCurrentReference: (
-    reference: { text: string; url: string } | null
-  ) => void;
-}) {
+};
+
+export default function SearchResult({
+  searchResult,
+  getArticleDetails,
+  userProjects,
+  userCategories,
+}: SearchResultProps) {
   const [saved, setSaved] = useState(false);
 
   async function handleSave(
@@ -55,25 +47,21 @@ export default function SearchResult({
   ) {
     e.stopPropagation();
     toast(`Saving to ${type}`, {
-      id: heading,
+      id: searchResult.title,
     });
     await saveSearchResultWithAssociations({
       searchResult: {
-        heading,
-        subheading,
-        details,
-        summary,
-        sourceTitle: details.length.toString(),
-        sourceUrl: details.length.toString(),
-        tags: JSON.stringify(tags),
+        ...searchResult,
+        excerpts: JSON.stringify(searchResult.excerpts),
+        tags: JSON.stringify(searchResult.tags),
       },
       projectIds: type == "project" ? [itemId] : [],
       categoryIds: type == "category" ? [itemId] : [],
     });
     setSaved(true);
     toast(`Saved to ${type}`, {
-      id: heading,
-      description: `"${heading}" has been saved to ${type}`,
+      id: searchResult.title,
+      description: `"${searchResult.title}" has been saved to ${type}`,
     });
   }
 
@@ -84,18 +72,15 @@ export default function SearchResult({
           <div>
             <CardTitle
               onClick={() => {
-                getArticleDetails(details);
-                if (!source) return;
-                setCurrentReference({
-                  text: source.title ?? "Source",
-                  url: source.url,
-                });
+                getArticleDetails(searchResult);
               }}
               className="cursor-pointer group-hover:underline text-xl text-primary hover:underline"
             >
-              <p>{heading}</p>
+              <p>{searchResult.title}</p>
             </CardTitle>
-            <CardDescription className="text-sm">{subheading}</CardDescription>
+            <CardDescription className="text-sm">
+              {searchResult.docTitle}
+            </CardDescription>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -152,17 +137,21 @@ export default function SearchResult({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">{summary}</p>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {searchResult.docSummary}
+        </p>
+        {searchResult.tags && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {searchResult.tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

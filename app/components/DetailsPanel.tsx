@@ -2,13 +2,17 @@ import { motion } from "motion/react";
 import { Button } from "./ui/button";
 import { View } from "@/page";
 import Link from "next/link";
+import Loader from "./Loader";
+import { ExcerptsAccordion } from "./ExcerptsAccordion";
+import { Separator } from "./ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { InsertSearchResultWithExcerpts } from "@/lib/types";
 
 type DetailsPanelProps = {
-  currentDetails?: string;
+  currentDetails?: InsertSearchResultWithExcerpts;
   isGettingCurrentDetails: boolean;
   hidePanel: (panel: View) => void;
   view: View;
-  currentReference: { text: string; url: string } | null;
 };
 
 export default function DetailsPanel({
@@ -16,7 +20,6 @@ export default function DetailsPanel({
   isGettingCurrentDetails,
   hidePanel,
   view,
-  currentReference,
 }: DetailsPanelProps) {
   return (
     <motion.div
@@ -29,7 +32,9 @@ export default function DetailsPanel({
     >
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between">
-        <p className="text-3xl font-bold group-hover:underline">Case Details</p>
+        <p className="text-3xl font-bold group-hover:underline">
+          Document Details
+        </p>
 
         <Button
           onClick={() => hidePanel("details")}
@@ -42,37 +47,58 @@ export default function DetailsPanel({
       </div>
 
       {/* Scrollable Content */}
-      <div className="relative flex-1 overflow-y-auto">
+      <div className="relative flex-1 overflow-y-auto py-4">
         {isGettingCurrentDetails && (
-          <div className="absolute inset-0 z-50 bg-gray-900/30 backdrop-blur-xs">
+          <div className="absolute inset-0 z-50 bg-secondary/30 backdrop-blur-xs">
             <div
               role="status"
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
             >
-              <svg
-                aria-hidden="true"
-                className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-                viewBox="0 0 100 101"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                  fill="currentFill"
-                />
-              </svg>
+              <Loader />
               <span className="font-bold mt-2 animate-pulse">Loading</span>
             </div>
           </div>
         )}
-        <article
-          className="prose prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: currentDetails || "" }}
-        />
+
+        {currentDetails && (
+          <>
+            <Card className="w-full m-0 p-0 border-none">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold">
+                  {currentDetails.title}
+                </CardTitle>
+                <h3 className="text-lg font-semibold text-muted-foreground">
+                  {currentDetails.docTitle}
+                </h3>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">In A Nutshell</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {currentDetails.docSummary}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">How It Is Relevant</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {currentDetails.relevanceSummary}
+                  </p>
+                </div>
+
+                <Separator className="my-4" />
+
+                <div>
+                  <h3 className="text-lg font-bold">Relavent Excerpts</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Here are some related cases that might be of interest:
+                  </p>
+
+                  <ExcerptsAccordion excerpts={currentDetails.excerpts} />
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Fixed Bottom Bar */}
@@ -80,10 +106,10 @@ export default function DetailsPanel({
         <Button variant="outline" size="sm" className="cursor-pointer">
           Download PDF
         </Button>
-        {currentReference && (
+        {currentDetails?.url && (
           <Button asChild size="sm" className="cursor-pointer">
-            <Link href={currentReference?.url ?? "#"} target="_blank">
-              Visit {currentReference?.text ?? "Source"}
+            <Link href={currentDetails.url ?? "#"} target="_blank">
+              View Full Document
             </Link>
           </Button>
         )}

@@ -2,7 +2,6 @@
 
 import { useChat } from "ai/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { sleep } from "./lib/utils";
 import { AnimatePresence } from "motion/react";
 import ResultsPanel from "./components/ResultsPanel";
 import DetailsPanel from "./components/DetailsPanel";
@@ -13,6 +12,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { getProjectsFromDb, getUserCategoriesFromDb } from "./lib/actions";
+import { InsertSearchResultWithExcerpts } from "./lib/types";
 
 const panelOptions = ["chat", "results", "details"] as const;
 export type View = (typeof panelOptions)[number];
@@ -23,172 +23,84 @@ type JSONObject = {
 };
 type JSONArray = JSONValue[];
 
-export type SearchResultType = {
-  heading: string;
-  subheading: string;
-  details: string;
-  source?: {
-    sourceType: "url";
-    id: string;
-    url: string;
-    title?: string;
-    providerMetadata?: Record<string, Record<string, JSONValue>>;
-  };
-};
-
-const sampleSearchResults: SearchResultType[] = [
+const sampleSearchResults: InsertSearchResultWithExcerpts[] = [
   {
-    heading: "Smith v Corporation Ltd [2024] HCA 101",
-    subheading:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.",
-    details: `
-      <div class="legal-case">
-  <h1>Smith v Corporation Ltd [2024] HCA 101</h1>
-
-  <section>
-    <h2>Summary</h2>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-  </section>
-
-  <section>
-    <h3>Key Points</h3>
-    <ul>
-      <li>Ut enim ad minim veniam, quis nostrud exercitation</li>
-      <li>Ullamco laboris nisi ut aliquip ex ea commodo consequat</li>
-      <li>Duis aute irure dolor in reprehenderit</li>
-    </ul>
-  </section>
-
-  <section>
-    <h2>Background</h2>
-    <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-  </section>
-
-  <section>
-    <h3>Legal Principles</h3>
-    <ol>
-      <li><strong>Prima Facie</strong>: Lorem ipsum dolor sit amet</li>
-      <li><strong>Mens Rea</strong>: Consectetur adipiscing elit</li>
-      <li><strong>Actus Reus</strong>: Sed do eiusmod tempor</li>
-    </ol>
-  </section>
-
-  <section>
-    <h2>Court's Decision</h2>
-    <blockquote>
-      <p>"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."</p>
-      <cite>— Chief Justice Smith</cite>
-    </blockquote>
-  </section>
-
-  <section>
-    <h3>Impact</h3>
-    <p>The decision established three key principles:</p>
-    <ul>
-      <li>Lorem ipsum dolor sit amet</li>
-      <li>Consectetur adipiscing elit</li>
-      <li>Sed do eiusmod tempor incididunt</li>
-    </ul>
-  </section>
-</div>
-    `,
+    title: "Director's Duties in Corporate Governance",
+    docTitle: "ASIC v Hellicar [2012] HCA 17",
+    docSummary:
+      "Landmark case establishing the scope of directors' duties in Australia, particularly regarding due diligence and disclosure obligations in corporate communications.",
+    relevanceSummary:
+      "This case sets the standard for director responsibility in board decisions and corporate statements, emphasizing collective board responsibility.",
+    url: "https://www.austlii.edu.au/cgi-bin/viewdoc/au/other/HCASum/2012/17.html",
+    tags: ["directors duties", "corporate governance", "board responsibility"],
+    excerpts: [
+      {
+        title: "Standard of Care Required from Directors",
+        caseName: "Australian Securities and Investments Commission v Hellicar",
+        content:
+          "The High Court emphasized that directors cannot delegate their core responsibilities to management or advisers. Each director must apply their own mind to important corporate matters and exercise independent judgment.",
+        url: "https://www.austlii.edu.au/cgi-bin/viewdoc/au/other/HCASum/2012/17.html#standard-of-care",
+      },
+      {
+        title: "Board Minutes and Corporate Memory",
+        caseName: "Australian Securities and Investments Commission v Hellicar",
+        content:
+          "The Court established that board minutes, once approved, serve as a prime record of board decisions and create a presumption about what occurred at meetings that directors must actively rebut if they dispute their accuracy.",
+        url: "https://www.austlii.edu.au/cgi-bin/viewdoc/au/other/HCASum/2012/17.html#board-minutes",
+      },
+    ],
   },
   {
-    heading: "Brown v State [2024] HCA 102",
-    subheading:
-      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.",
-    details: `
-      <div class="legal-case">
-        <h1>Brown v State [2024] HCA 102</h1>
-        <section>
-          <h2>Background</h2>
-          <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
-        </section>
-        <section>
-          <h2>Decision</h2>
-          <blockquote>
-            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
-            <cite>— Chief Justice Johnson</cite>
-          </blockquote>
-        </section>
-      </div>
-    `,
+    title: "Trust Property and Fiduciary Obligations",
+    docTitle: "Bofinger v Kingsway Group Ltd [2009] HCA 44",
+    docSummary:
+      "Key decision on the nature of trust property and the duties owed by trustees in complex financial arrangements.",
+    relevanceSummary:
+      "Important for understanding how courts treat trust assets and the obligations of trustees when dealing with third parties.",
+    url: "https://www8.austlii.edu.au/cgi-bin/viewdoc/au/other/HCASum/2009/42.html",
+    tags: ["trusts", "fiduciary duties", "property law"],
+    excerpts: [
+      {
+        title: "Nature of Trust Property",
+        caseName: "Bofinger v Kingsway Group Ltd",
+        content:
+          "The High Court confirmed that trust property retains its character as trust property even when dealing with third parties who have notice of the trust. This principle applies regardless of the complexity of the financial arrangements involved.",
+        url: "https://www8.austlii.edu.au/cgi-bin/viewdoc/au/other/HCASum/2009/42.html#trust-property",
+      },
+      {
+        title: "Trustee Obligations",
+        caseName: "Bofinger v Kingsway Group Ltd",
+        content:
+          "Trustees must act with strict adherence to their duties when dealing with trust property, including maintaining proper accounts and ensuring clear separation of trust assets from personal assets.",
+        url: "https://www8.austlii.edu.au/cgi-bin/viewdoc/au/other/HCASum/2009/42.html#obligations",
+      },
+    ],
   },
   {
-    heading: "Johnson v Department [2024] HCA 103",
-    subheading:
-      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla.",
-    details: `
-      <div class="legal-case">
-        <h1>Johnson v Department [2024] HCA 103</h1>
-        <section>
-          <h2>Legal Principles</h2>
-          <ol>
-            <li><strong>Principle 1:</strong> At vero eos et accusamus et iusto odio dignissimos</li>
-            <li><strong>Principle 2:</strong> Ducimus qui blanditiis praesentium voluptatum</li>
-          </ol>
-        </section>
-      </div>
-    `,
-  },
-  {
-    heading: "Wilson v Council [2024] HCA 104",
-    subheading:
-      "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit.",
-    details: `
-      <div class="legal-case">
-        <h1>Wilson v Council [2024] HCA 104</h1>
-        <section>
-          <h2>Analysis</h2>
-          <p>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat.</p>
-        </section>
-      </div>
-    `,
-  },
-  {
-    heading: "Taylor v Industry Ltd [2024] HCA 105",
-    subheading:
-      "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet.",
-    details: `
-      <div class="legal-case">
-        <h1>Taylor v Industry Ltd [2024] HCA 105</h1>
-        <section>
-          <h2>Findings</h2>
-          <ul>
-            <li>Itaque earum rerum hic tenetur a sapiente delectus</li>
-            <li>Ut aut reiciendis voluptatibus maiores alias consequatur</li>
-          </ul>
-        </section>
-      </div>
-    `,
-  },
-  {
-    heading: "Anderson v Board [2024] HCA 106",
-    subheading:
-      "Et harum quidem rerum facilis est et expedita distinctio nam libero tempore.",
-    details: `
-      <div class="legal-case">
-        <h1>Anderson v Board [2024] HCA 106</h1>
-        <section>
-          <h2>Implications</h2>
-          <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.</p>
-        </section>
-      </div>
-    `,
-  },
-  {
-    heading: "Martin v Institute [2024] HCA 107",
-    subheading:
-      "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae.",
-    details: `
-      <div class="legal-case">
-        <h1>Martin v Institute [2024] HCA 107</h1>
-        <section>
-          <h2>Conclusion</h2>
-          <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.</p>
-        </section>
-      </div>
-    `,
+    title: "Contract Formation in Digital Environments",
+    docTitle: "Smythe v Thomas [2017] NSWSC 547",
+    docSummary:
+      "Modern case examining contract formation through online platforms and electronic communications.",
+    relevanceSummary:
+      "Sets precedent for how courts approach contract formation in digital contexts, particularly relevant for e-commerce and online transactions.",
+    url: "https://www.mondaq.com/australia/contracts-and-commercial-law/56372/going-going-gone-online-auctions-and-smythe-v-thomas-2007-nswsc-844",
+    tags: ["contract law", "digital contracts", "e-commerce"],
+    excerpts: [
+      {
+        title: "Electronic Acceptance",
+        caseName: "Smythe v Thomas",
+        content:
+          "The Court held that clicking an 'accept' button on a website can constitute valid acceptance of an offer, provided the terms are clearly displayed and the acceptance process is unambiguous.",
+        url: "https://www.mondaq.com/australia/contracts-and-commercial-law/56372/going-going-gone-online-auctions-and-smythe-v-thomas-2007-nswsc-844#electronic-acceptance",
+      },
+      {
+        title: "Notice Requirements",
+        caseName: "Smythe v Thomas",
+        content:
+          "For digital contracts to be binding, reasonable steps must be taken to bring key terms to the user's attention before acceptance. Mere hyperlinks to terms may be insufficient without additional prominence.",
+        url: "https://www.mondaq.com/australia/contracts-and-commercial-law/56372/going-going-gone-online-auctions-and-smythe-v-thomas-2007-nswsc-844#notice",
+      },
+    ],
   },
 ];
 
@@ -232,16 +144,7 @@ function HomeContent() {
         setOpenViews(newViews);
       }
 
-      const searchResultsToSet: SearchResultType[] = sources
-        .slice(0, sampleSearchResults.length)
-        .map((source, i) => ({
-          heading: sampleSearchResults[i].heading,
-          subheading: sampleSearchResults[i].subheading,
-          details: sampleSearchResults[i].details,
-          source,
-        }));
-
-      setSearchResults(searchResultsToSet);
+      setSearchResults(sampleSearchResults);
       setIsGettingSearchResults(false);
     },
     onError(error) {
@@ -255,18 +158,16 @@ function HomeContent() {
   const messagesRef = useRef<HTMLDivElement>(null);
   const [openViews, setOpenViews] = useState<View[]>(["chat"]);
   const [exitingPanels, setExitingPanels] = useState<View[]>([]);
-  const [searchResults, setSearchResults] = useState<SearchResultType[]>([]);
-  const [currentDetails, setCurrentDetails] = useState<string>();
+  const [searchResults, setSearchResults] = useState<
+    InsertSearchResultWithExcerpts[]
+  >([]);
+  const [currentDetails, setCurrentDetails] =
+    useState<InsertSearchResultWithExcerpts>();
   const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
   const [isGettingCurrentDetails, setIsGettingCurrentDetails] = useState(false);
   const [userChats, setUserChats] = useState<SelectChat[]>([]);
   const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
   const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
-
-  const [currentReference, setCurrentReference] = useState<{
-    text: string;
-    url: string;
-  } | null>(null);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -366,11 +267,12 @@ function HomeContent() {
     }
   }, [searchResults]);
 
-  async function getArticleDetails(article: string) {
+  async function getArticleDetails(
+    searchResult: InsertSearchResultWithExcerpts
+  ) {
     setIsGettingCurrentDetails(true);
     if (!openViews.includes("details")) setOpenViews([...openViews, "details"]);
-    await sleep();
-    setCurrentDetails(article);
+    setCurrentDetails(searchResult);
     setIsGettingCurrentDetails(false);
   }
 
@@ -460,7 +362,6 @@ function HomeContent() {
                     getArticleDetails={getArticleDetails}
                     isGettingSearchResults={isGettingSearchResults}
                     hidePanel={hidePanel}
-                    setCurrentReference={setCurrentReference}
                     userProjects={userProjects}
                     userCategories={userCategories}
                   />
@@ -470,10 +371,9 @@ function HomeContent() {
                   <DetailsPanel
                     key={view}
                     view={view}
-                    currentDetails={currentDetails}
+                    currentDetails={searchResults[0]}
                     isGettingCurrentDetails={isGettingCurrentDetails}
                     hidePanel={hidePanel}
-                    currentReference={currentReference}
                   />
                 );
             }

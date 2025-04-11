@@ -38,6 +38,7 @@ import { useUser } from "@clerk/nextjs";
 import { SelectProject, SelectSearchResult } from "@/lib/db/schema";
 import { getProjectByIdFromDb } from "@/lib/actions";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ExcerptsAccordion } from "@/components/ExcerptsAccordion";
 
 interface PageProps {
   params: Promise<{
@@ -138,9 +139,9 @@ export default function ProjectPage({ params }: PageProps) {
             <Tabs defaultValue="summary">
               <TabsList className="mb-4">
                 <TabsTrigger value="summary">Summary</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
+                {/* <TabsTrigger value="documents">Documents</TabsTrigger>
                 <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                <TabsTrigger value="billing">Billing</TabsTrigger>
+                <TabsTrigger value="billing">Billing</TabsTrigger> */}
               </TabsList>
 
               <TabsContent value="summary" className="space-y-6">
@@ -317,6 +318,76 @@ export default function ProjectPage({ params }: PageProps) {
                 <Card>
                   <CardHeader className="flex flex-row items-center">
                     <div>
+                      <CardTitle>Saved Search Results</CardTitle>
+                      <CardDescription>
+                        You added these search results to this project.
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {searchResults.map((result) => (
+                        <Card key={result.id}>
+                          <CardHeader className="flex flex-row items-center">
+                            <div>
+                              <CardTitle className="text-xl underline mb-1">
+                                {result.title}
+                              </CardTitle>
+                              <CardDescription>
+                                {result.docTitle} -{" "}
+                                {dayjs(result.createdAt).format("MMM DD, YYYY")}{" "}
+                                at {dayjs(result.createdAt).format("h:mm A")}
+                              </CardDescription>
+
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {result.tags &&
+                                  JSON.parse(result.tags).map((tag: string) => (
+                                    <Badge
+                                      key={tag}
+                                      // variant="outline"
+                                      className="mr-2 mt-2"
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            <div>
+                              <h3 className="text-lg font-semibold">
+                                Case Summary
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {result.docSummary}
+                              </p>
+                            </div>
+
+                            <div>
+                              <h3 className="text-lg font-semibold">{`How It's Relevant`}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {result.relevanceSummary}
+                              </p>
+                            </div>
+
+                            {result.excerpts && (
+                              <div>
+                                <h3 className="text-lg font-semibold">
+                                  Excerpts
+                                </h3>
+                                <ExcerptsAccordion excerpts={result.excerpts} />
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center">
+                    <div>
                       <CardTitle>Case Notes</CardTitle>
                       <CardDescription>
                         Notes and updates about this case
@@ -382,38 +453,6 @@ export default function ProjectPage({ params }: PageProps) {
                       </Button>
                     </div>
                   </CardFooter>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center">
-                    <div>
-                      <CardTitle>Saved Search Results</CardTitle>
-                      <CardDescription>
-                        You added these search results to this project.
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {searchResults.map((result) => (
-                        <Card key={result.id}>
-                          <CardHeader className="flex flex-row items-center">
-                            <div>
-                              <CardTitle>{result.heading}</CardTitle>
-                              <CardDescription>
-                                {result.subheading} -{" "}
-                                {dayjs(result.createdAt).format("MMM DD, YYYY")}{" "}
-                                at {dayjs(result.createdAt).format("h:mm A")}
-                              </CardDescription>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-sm">{result.summary}</div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </CardContent>
                 </Card>
               </TabsContent>
 

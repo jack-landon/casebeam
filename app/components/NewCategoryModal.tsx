@@ -59,7 +59,7 @@ export function NewCategoryModal({
 
       await createCategory(formData);
 
-      toast("Project created", {
+      toast("Category created", {
         description: "Your new category has been successfully created.",
       });
 
