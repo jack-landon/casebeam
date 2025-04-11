@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,8 @@ import { SelectCategory, SelectProject } from "@/lib/db/schema";
 import { colorList } from "@/lib/utils";
 import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
+import { NewProjectModal } from "./NewProjectModal";
+import { NewCategoryModal } from "./NewCategoryModal";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerpts;
@@ -39,6 +41,8 @@ export default function SearchResult({
   userCategories,
 }: SearchResultProps) {
   const [saved, setSaved] = useState(false);
+  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
+  const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
 
   async function handleSave(
     e: React.MouseEvent,
@@ -100,37 +104,70 @@ export default function SearchResult({
                 Save to project
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {userProjects.map((project) => (
-                <DropdownMenuItem
-                  key={project.id}
-                  onClick={(e) => handleSave(e, "project", project.id)}
-                  className="cursor-pointer font-normal hover:bg-neutral-800"
-                >
-                  {project.name}
-                </DropdownMenuItem>
-              ))}
-              {userCategories.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="font-bold">
-                    Save to category
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {userCategories.map((category) => (
-                    <DropdownMenuItem
-                      key={category.id}
-                      onClick={(e) => handleSave(e, "category", category.id)}
-                      className="cursor-pointer font-normal hover:bg-neutral-800"
-                    >
-                      <div
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          colorList[category.id % colorList.length]
-                        }`}
-                      />
-                      {category.name}
-                    </DropdownMenuItem>
-                  ))}
-                </>
+              {userProjects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-1">
+                  <p className="text-muted-foreground italic font-light text-sm mb-3">
+                    You have no projects
+                  </p>
+
+                  <Button
+                    onClick={() => setIsNewProjectModalOpen(true)}
+                    size="sm"
+                    className="h-8 gap-1 cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">New Project</span>
+                  </Button>
+                </div>
+              ) : (
+                userProjects.map((project) => (
+                  <DropdownMenuItem
+                    key={project.id}
+                    onClick={(e) => handleSave(e, "project", project.id)}
+                    className="cursor-pointer font-normal hover:bg-neutral-800"
+                  >
+                    {project.name}
+                  </DropdownMenuItem>
+                ))
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="font-bold">
+                Save to category
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {userCategories.length == 0 ? (
+                <div className="flex flex-col items-center justify-center p-1">
+                  <p className="text-muted-foreground italic font-light text-sm mb-3">
+                    You have no categories
+                  </p>
+                  <Button
+                    onClick={() => setIsNewCategoryModalOpen(true)}
+                    size="sm"
+                    className="h-8 gap-1 cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">New Category</span>
+                  </Button>
+                </div>
+              ) : (
+                userCategories.length > 0 && (
+                  <>
+                    {userCategories.map((category) => (
+                      <DropdownMenuItem
+                        key={category.id}
+                        onClick={(e) => handleSave(e, "category", category.id)}
+                        className="cursor-pointer font-normal hover:bg-neutral-800"
+                      >
+                        <div
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            colorList[category.id % colorList.length]
+                          }`}
+                        />
+                        {category.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -153,6 +190,14 @@ export default function SearchResult({
           </div>
         )}
       </CardContent>
+      <NewProjectModal
+        open={isNewProjectModalOpen}
+        onOpenChange={setIsNewProjectModalOpen}
+      />
+      <NewCategoryModal
+        open={isNewCategoryModalOpen}
+        onOpenChange={setIsNewCategoryModalOpen}
+      />
     </Card>
   );
 }
