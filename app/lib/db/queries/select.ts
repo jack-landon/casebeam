@@ -33,11 +33,11 @@ export async function getPostsForLast24Hours(page = 1, pageSize = 5) {
   return db
     .select({
       id: projectsTable.id,
-      title: projectsTable.title,
+      name: projectsTable.name,
     })
     .from(projectsTable)
     .where(gt(projectsTable.createdAt, sql`(datetime('now','-24 hour'))`))
-    .orderBy(asc(projectsTable.title), asc(projectsTable.id))
+    .orderBy(asc(projectsTable.name), asc(projectsTable.id))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
 }

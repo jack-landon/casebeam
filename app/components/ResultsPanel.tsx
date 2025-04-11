@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { Button } from "./ui/button";
 import SearchResult from "./SearchResult";
 import { SearchResultType, View } from "@/page";
+import { SelectCategory, SelectProject } from "@/lib/db/schema";
 
 type ResultsPanelProps = {
   searchResults: SearchResultType[];
@@ -12,6 +13,8 @@ type ResultsPanelProps = {
   setCurrentReference: (
     reference: { text: string; url: string } | null
   ) => void;
+  userProjects: SelectProject[];
+  userCategories: SelectCategory[];
 };
 
 export default function ResultsPanel({
@@ -21,6 +24,8 @@ export default function ResultsPanel({
   hidePanel,
   view,
   setCurrentReference,
+  userProjects,
+  userCategories,
 }: ResultsPanelProps) {
   return (
     <motion.div
@@ -77,8 +82,12 @@ export default function ResultsPanel({
           {searchResults.map((result, i) => (
             <SearchResult
               key={i}
-              heading={result.heading}
-              subheading={result.subheading}
+              heading={"The first section of Mabo mentions Terra Nullius"}
+              subheading={result.heading}
+              tags={["hooks", "state management", "functional components"]}
+              userProjects={userProjects}
+              userCategories={userCategories}
+              summary={result.subheading}
               details={result.details}
               source={result.source}
               getArticleDetails={getArticleDetails}

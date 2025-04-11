@@ -36,7 +36,7 @@ import dayjs from "dayjs";
 import { useAuth } from "@clerk/nextjs";
 
 type FormData = {
-  title: string;
+  name: string;
   caseNumber: string;
   client: string;
   caseType: string;
@@ -60,8 +60,8 @@ export function NewProjectModal({
   const { userId } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
     caseNumber: "",
     client: "",
     caseType: "",
@@ -137,8 +137,8 @@ export function NewProjectModal({
                 </Label>
                 <Input
                   id="title"
-                  value={formData.title}
-                  onChange={(e) => handleChange("title", e.target.value)}
+                  value={formData.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
                   required
                 />
               </div>

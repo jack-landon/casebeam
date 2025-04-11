@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
       const chat = await createChat({
         userId: user.userId,
-        title: text,
+        name: text,
         createdAt: new Date().toISOString(),
         lastMessageAt: new Date().toISOString(),
       });

@@ -35,7 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import dayjs from "dayjs";
 import { useUser } from "@clerk/nextjs";
-import { SelectProject } from "@/lib/db/schema";
+import { SelectProject, SelectSearchResult } from "@/lib/db/schema";
 import { getProjectByIdFromDb } from "@/lib/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -50,11 +50,13 @@ export default function ProjectPage({ params }: PageProps) {
   const [newNote, setNewNote] = useState("");
   const resolvedParams = use(params);
   const [project, setProject] = useState<SelectProject | null>(null);
+  const [searchResults, setSearchResults] = useState<SelectSearchResult[]>([]);
 
   const fetchProject = useCallback(async () => {
     const { data } = await getProjectByIdFromDb(resolvedParams.id);
     if (!data) return;
-    setProject(data);
+    setProject(data.project);
+    setSearchResults(data.searchResults);
   }, [resolvedParams.id]);
 
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function ProjectPage({ params }: PageProps) {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">{project.title}</h1>
+                <h1 className="text-2xl font-bold">{project.name}</h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>{project.caseNumber}</span>
                   <span>•</span>
@@ -380,6 +382,38 @@ export default function ProjectPage({ params }: PageProps) {
                       </Button>
                     </div>
                   </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center">
+                    <div>
+                      <CardTitle>Saved Search Results</CardTitle>
+                      <CardDescription>
+                        You added these search results to this project.
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {searchResults.map((result) => (
+                        <Card key={result.id}>
+                          <CardHeader className="flex flex-row items-center">
+                            <div>
+                              <CardTitle>{result.heading}</CardTitle>
+                              <CardDescription>
+                                {result.subheading} -{" "}
+                                {dayjs(result.createdAt).format("MMM DD, YYYY")}{" "}
+                                at {dayjs(result.createdAt).format("h:mm A")}
+                              </CardDescription>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-sm">{result.summary}</div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
                 </Card>
               </TabsContent>
 

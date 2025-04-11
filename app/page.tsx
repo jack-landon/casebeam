@@ -7,11 +7,12 @@ import { AnimatePresence } from "motion/react";
 import ResultsPanel from "./components/ResultsPanel";
 import DetailsPanel from "./components/DetailsPanel";
 import ChatPanel from "./components/ChatPanel";
-import { SelectChat } from "./lib/db/schema";
+import { SelectCategory, SelectChat, SelectProject } from "./lib/db/schema";
 import { getChat, getUserChats } from "./lib/db/queries/select";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { getProjectsFromDb, getUserCategoriesFromDb } from "./lib/actions";
 
 const panelOptions = ["chat", "results", "details"] as const;
 export type View = (typeof panelOptions)[number];
@@ -259,6 +260,9 @@ function HomeContent() {
   const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
   const [isGettingCurrentDetails, setIsGettingCurrentDetails] = useState(false);
   const [userChats, setUserChats] = useState<SelectChat[]>([]);
+  const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
+  const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
+
   const [currentReference, setCurrentReference] = useState<{
     text: string;
     url: string;
@@ -273,6 +277,7 @@ function HomeContent() {
   const fetchMessages = useCallback(
     async (chatId: number) => {
       const chat = await getChat(chatId);
+
       if (!chat) return;
 
       const transformedMessages = chat.messages.map((msg) => ({
@@ -286,6 +291,18 @@ function HomeContent() {
     [setMessages]
   );
 
+  const fetchUserData = useCallback(async () => {
+    const [projects, categories] = await Promise.all([
+      getProjectsFromDb(),
+      getUserCategoriesFromDb(),
+    ]);
+
+    if (!projects.data || !categories.data) return;
+
+    setUserProjects(projects.data);
+    setUserCategories(categories.data);
+  }, [setUserProjects, setUserCategories]);
+
   useEffect(() => {
     function fetchChat() {
       if (!chatId) return;
@@ -293,6 +310,14 @@ function HomeContent() {
     }
     fetchChat();
   }, [chatId, fetchMessages]);
+
+  useEffect(() => {
+    function fetchUserInfo() {
+      if (!userId) return;
+      fetchUserData();
+    }
+    fetchUserInfo();
+  }, [userId, fetchUserData]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -436,6 +461,8 @@ function HomeContent() {
                     isGettingSearchResults={isGettingSearchResults}
                     hidePanel={hidePanel}
                     setCurrentReference={setCurrentReference}
+                    userProjects={userProjects}
+                    userCategories={userCategories}
                   />
                 );
               case "details":

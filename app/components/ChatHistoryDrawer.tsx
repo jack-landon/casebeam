@@ -55,7 +55,7 @@ export function ChatHistoryDrawer({
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
-                <span className="text-sm font-medium">{chat.title}</span>
+                <span className="text-sm font-medium">{chat.name}</span>
               </Link>
             ))}
           </div>

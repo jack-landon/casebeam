@@ -139,7 +139,7 @@ const FloatingWindow = ({
       return (
         <div
           ref={windowRef}
-          className="absolute bg-neutral-900 border border-neutral-800 rounded shadow-lg overflow-hidden"
+          className="absolute bg-neutral-900 border border-neutral-500 rounded shadow-lg overflow-hidden"
           style={{
             left: position.x,
             top: position.y,
@@ -151,7 +151,7 @@ const FloatingWindow = ({
           //   onMouseLeave={handleMouseUp}
         >
           <div
-            className="drag-handle bg-neutral-800 p-2 cursor-move border-b border-neutral-700 select-none"
+            className="drag-handle bg-neutral-900 p-2 cursor-move border-b border-neutral-700 select-none"
             onMouseDown={handleMouseDown}
           >
             <div className="px-2 flex items-center justify-between">
@@ -166,10 +166,12 @@ const FloatingWindow = ({
               </Button>
             </div>
           </div>
-          <div className="p-2.5 h-[calc(100%-37px)]">{children}</div>
+          <div className="p-2.5 h-[calc(100%-37px)] bg-secondary">
+            {children}
+          </div>
 
           <div
-            className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
+            className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize"
             onMouseDown={handleResizeMouseDown}
             style={{
               background:

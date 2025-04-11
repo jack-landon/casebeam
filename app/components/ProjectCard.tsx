@@ -44,7 +44,7 @@ export default function ProjectCard({ caseItem }: { caseItem: SelectProject }) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle>{caseItem.title}</CardTitle>
+              <CardTitle>{caseItem.name}</CardTitle>
               <CardDescription className="mt-1">
                 {caseItem.caseNumber} • {caseItem.client}
               </CardDescription>

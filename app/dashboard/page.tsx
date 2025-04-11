@@ -16,12 +16,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import { NewProjectModal } from "@/components/NewProjectModal";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SelectProject } from "@/lib/db/schema";
+import { SelectCategory, SelectProject } from "@/lib/db/schema";
 import { useUser } from "@clerk/nextjs";
-import { getProjectsFromDb } from "@/lib/actions";
+import { getProjectsFromDb, getUserCategoriesFromDb } from "@/lib/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProjectCard from "@/components/ProjectCard";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import { NewCategoryModal } from "@/components/NewCategoryModal";
 
 function DashboardContent() {
   const { user } = useUser();
@@ -31,7 +32,10 @@ function DashboardContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
+  const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
+
   const [projects, setProjects] = useState<SelectProject[]>([]);
+  const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
 
   useEffect(() => {
     if (!searchParams.get("tab")) router.push("?tab=projects");
@@ -40,11 +44,13 @@ function DashboardContent() {
   const getProjects = useCallback(async () => {
     try {
       setIsLoadingProjects(true);
-      const { data } = await getProjectsFromDb();
-      if (!data) return;
-      setProjects(data);
+      const { data: userProjects } = await getProjectsFromDb();
+      const { data: userCategories } = await getUserCategoriesFromDb();
+      if (!userProjects || !userCategories) return;
+      setProjects(userProjects);
+      setUserCategories(userCategories);
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      console.error("Error fetching user data:", error);
     } finally {
       setIsLoadingProjects(false);
     }
@@ -58,7 +64,7 @@ function DashboardContent() {
   // Filter cases based on search query
   const filteredCases = projects.filter(
     (caseItem) =>
-      caseItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      caseItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       caseItem.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
       caseItem.caseNumber.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -66,7 +72,7 @@ function DashboardContent() {
   return (
     <div className="flex min-h-screen flex-col border-t">
       <div className="grid flex-1 md:grid-cols-[240px_1fr]">
-        <DashboardSidebar />
+        <DashboardSidebar userCategories={userCategories} />
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
           <div className="flex items-center gap-4">
             <h1 className="flex-1 text-2xl font-semibold">
@@ -87,7 +93,15 @@ function DashboardContent() {
                 className="h-8 gap-1 cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">New Case</span>
+                <span className="hidden sm:inline">New Project</span>
+              </Button>
+              <Button
+                onClick={() => setIsNewCategoryModalOpen(true)}
+                size="sm"
+                className="h-8 gap-1 cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">New Category</span>
               </Button>
             </div>
           </div>
@@ -190,6 +204,10 @@ function DashboardContent() {
       <NewProjectModal
         open={isNewProjectModalOpen}
         onOpenChange={setIsNewProjectModalOpen}
+      />
+      <NewCategoryModal
+        open={isNewCategoryModalOpen}
+        onOpenChange={setIsNewCategoryModalOpen}
       />
     </div>
   );
