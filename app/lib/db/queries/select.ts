@@ -53,7 +53,7 @@ export async function getUserChats() {
     .orderBy(asc(chatsTable.createdAt));
 }
 
-export async function getChat(chatId: number) {
+export async function getChat(chatId: string) {
   const chat = await db
     .select()
     .from(chatsTable)

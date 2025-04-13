@@ -29,14 +29,15 @@ import { NewCategoryModal } from "./NewCategoryModal";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerpts;
-  getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
+  setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
+  // getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
   userProjects: SelectProject[];
   userCategories: SelectCategory[];
 };
 
 export default function SearchResult({
   searchResult,
-  getArticleDetails,
+  setCurrentArticle,
   userProjects,
   userCategories,
 }: SearchResultProps) {
@@ -76,7 +77,7 @@ export default function SearchResult({
           <div>
             <CardTitle
               onClick={() => {
-                getArticleDetails(searchResult);
+                setCurrentArticle(searchResult);
               }}
               className="cursor-pointer group-hover:underline text-xl text-primary hover:underline"
             >

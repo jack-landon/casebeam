@@ -50,7 +50,7 @@ export function ChatHistoryDrawer({
                 key={chat.id}
                 href={`/?id=${chat.id}`}
                 className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
-                  chatId && parseInt(chatId) == chat.id
+                  chatId && chatId == chat.id
                     ? "bg-accent text-accent-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}

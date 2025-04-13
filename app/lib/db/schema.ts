@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const usersTable = sqliteTable("users", {
@@ -43,7 +43,7 @@ export const notesTable = sqliteTable("notes", {
 });
 
 export const chatsTable = sqliteTable("chats", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
@@ -58,11 +58,12 @@ export const chatsTable = sqliteTable("chats", {
 
 export const messagesTable = sqliteTable("messages", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  chatId: integer("chat_id")
+  chatId: text("chat_id")
     .notNull()
     .references(() => chatsTable.id, { onDelete: "cascade" }),
   role: text("role").notNull(), // 'user' or 'assistant'
   content: text("content").notNull(),
+  responseToMsgId: integer("response_to_id"), // ID of the message this response is replying to (if assistant)
   createdAt: text("created_at")
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
@@ -98,6 +99,12 @@ export const searchResultsTable = sqliteTable("search_results", {
   //     content: string;
   //     url: string;
   //   }[];
+  messageId: integer("message_id").references(() => messagesTable.id, {
+    onDelete: "cascade",
+  }),
+  chatId: text("chat_id").references(() => chatsTable.id, {
+    onDelete: "cascade",
+  }),
   createdAt: text("created_at")
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
@@ -136,6 +143,121 @@ export const searchResultCategories = sqliteTable("search_result_categories", {
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
 });
+
+// Relations
+
+export const usersRelations = relations(usersTable, ({ many }) => ({
+  projects: many(projectsTable),
+  chats: many(chatsTable),
+  categories: many(categoriesTable),
+  searchResults: many(searchResultsTable),
+}));
+
+export const projectsRelations = relations(projectsTable, ({ one, many }) => ({
+  user: one(usersTable, {
+    fields: [projectsTable.userId],
+    references: [usersTable.id],
+  }),
+  notes: many(notesTable),
+  searchResultProjects: many(searchResultProjects),
+}));
+
+export const notesRelations = relations(notesTable, ({ one }) => ({
+  project: one(projectsTable, {
+    fields: [notesTable.caseId],
+    references: [projectsTable.id],
+  }),
+}));
+
+export const chatsRelations = relations(chatsTable, ({ one, many }) => ({
+  user: one(usersTable, {
+    fields: [chatsTable.userId],
+    references: [usersTable.id],
+  }),
+  messages: many(messagesTable),
+  searchResults: many(searchResultsTable),
+}));
+
+// You already have messagesRelations, but let's enhance it
+export const messagesRelations = relations(messagesTable, ({ one }) => ({
+  chat: one(chatsTable, {
+    fields: [messagesTable.chatId],
+    references: [chatsTable.id],
+  }),
+  botResponse: one(messagesTable, {
+    fields: [messagesTable.responseToMsgId],
+    references: [messagesTable.id],
+  }),
+}));
+
+export const categoriesRelations = relations(
+  categoriesTable,
+  ({ one, many }) => ({
+    user: one(usersTable, {
+      fields: [categoriesTable.userId],
+      references: [usersTable.id],
+    }),
+    searchResultCategories: many(searchResultCategories),
+  })
+);
+
+export const searchResultsRelations = relations(
+  searchResultsTable,
+  ({ one, many }) => ({
+    user: one(usersTable, {
+      fields: [searchResultsTable.userId],
+      references: [usersTable.id],
+    }),
+    message: one(messagesTable, {
+      fields: [searchResultsTable.messageId],
+      references: [messagesTable.id],
+    }),
+    chat: one(chatsTable, {
+      fields: [searchResultsTable.chatId],
+      references: [chatsTable.id],
+    }),
+    searchResultProjects: many(searchResultProjects),
+    searchResultCategories: many(searchResultCategories),
+  })
+);
+
+export const searchResultProjectsRelations = relations(
+  searchResultProjects,
+  ({ one }) => ({
+    user: one(usersTable, {
+      fields: [searchResultProjects.userId],
+      references: [usersTable.id],
+    }),
+    searchResult: one(searchResultsTable, {
+      fields: [searchResultProjects.searchResultId],
+      references: [searchResultsTable.id],
+    }),
+    project: one(projectsTable, {
+      fields: [searchResultProjects.projectId],
+      references: [projectsTable.id],
+    }),
+  })
+);
+
+export const searchResultCategoriesRelations = relations(
+  searchResultCategories,
+  ({ one }) => ({
+    user: one(usersTable, {
+      fields: [searchResultCategories.userId],
+      references: [usersTable.id],
+    }),
+    searchResult: one(searchResultsTable, {
+      fields: [searchResultCategories.searchResultId],
+      references: [searchResultsTable.id],
+    }),
+    category: one(categoriesTable, {
+      fields: [searchResultCategories.categoryId],
+      references: [categoriesTable.id],
+    }),
+  })
+);
+
+// Type inference
 
 export type InsertUser = typeof usersTable.$inferInsert;
 export type SelectUser = typeof usersTable.$inferSelect;

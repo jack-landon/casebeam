@@ -18,6 +18,7 @@ import {
   searchResultsTable,
   usersTable,
 } from "../schema";
+import { eq } from "drizzle-orm";
 
 export async function createUser(data: InsertUser) {
   const [user] = await db.insert(usersTable).values(data).returning();
@@ -38,6 +39,21 @@ export async function createMessage(data: InsertMessage) {
   return message;
 }
 
+export async function updateMessage(
+  data: Partial<InsertMessage> & { id: number }
+) {
+  const [updatedMessage] = await db
+    .update(messagesTable)
+    .set(data)
+    .where(eq(messagesTable.id, data.id))
+    .returning();
+  return updatedMessage;
+}
+
+export async function createMessageBulk(data: InsertMessage[]) {
+  return await db.insert(messagesTable).values(data).returning();
+}
+
 export async function createCategory(
   data: Pick<InsertCategory, "name" | "description">
 ) {
@@ -54,12 +70,16 @@ export async function createCategory(
   return category;
 }
 
-export async function saveSearchResult(data: InsertSearchResult) {
+export async function createSearchResult(data: InsertSearchResult) {
   const [searchResult] = await db
     .insert(searchResultsTable)
     .values(data)
     .returning();
   return searchResult;
+}
+
+export async function createSearchResultsBulk(data: InsertSearchResult[]) {
+  return await db.insert(searchResultsTable).values(data).returning();
 }
 
 export async function saveSearchResultWithAssociations(data: {

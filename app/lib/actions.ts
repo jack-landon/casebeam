@@ -43,8 +43,10 @@ import {
 } from "./db/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { createProject, createUser } from "./db/queries/insert";
+import { createChat, createProject, createUser } from "./db/queries/insert";
 import { getUserById } from "./db/queries/select";
+import { generateText } from "ai";
+import { google } from "@ai-sdk/google";
 
 export async function createUserInDb() {
   const { userId } = await auth();
@@ -178,6 +180,28 @@ export async function getProjectByIdFromDb(projectId: string) {
     console.error("Error fetching projects:", error);
     return { success: false, error: "Problem getting projects" };
   }
+}
+
+export async function createNewChatInDb(id: string, topic: string) {
+  console.log("Creating new chat in DB with topic:", topic);
+  const user = await auth();
+
+  if (!user.userId) throw new Error("User not found");
+
+  const { text: chatTitle } = await generateText({
+    model: google("gemini-2.0-flash-001"),
+    prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${topic}`,
+  });
+
+  const chat = await createChat({
+    id,
+    userId: user.userId,
+    name: chatTitle,
+  });
+
+  console.log("New Chat Id:", chat.id);
+
+  return chat.id;
 }
 
 // export async function deleteUserMessage() {

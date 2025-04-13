@@ -5,10 +5,11 @@ import { View } from "@/page";
 import { SelectCategory, SelectProject } from "@/lib/db/schema";
 import Loader from "./Loader";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
+import { useContext } from "react";
+import { CurrentSearchResultsContext } from "./ChatContext";
 
 type ResultsPanelProps = {
-  searchResults: InsertSearchResultWithExcerpts[];
-  getArticleDetails: (searchResult: InsertSearchResultWithExcerpts) => void;
+  setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
   isGettingSearchResults: boolean;
   hidePanel: (panel: View) => void;
   view: View;
@@ -17,14 +18,15 @@ type ResultsPanelProps = {
 };
 
 export default function ResultsPanel({
-  searchResults,
-  getArticleDetails,
+  setCurrentArticle,
   isGettingSearchResults,
   hidePanel,
   view,
   userProjects,
   userCategories,
 }: ResultsPanelProps) {
+  const currentSearchResults = useContext(CurrentSearchResultsContext);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -62,13 +64,13 @@ export default function ResultsPanel({
           </div>
         )}
         <div className="relative min-h-full">
-          {searchResults.map((result, i) => (
+          {currentSearchResults.map((result, i) => (
             <SearchResult
               key={i}
               searchResult={result}
               userProjects={userProjects}
               userCategories={userCategories}
-              getArticleDetails={getArticleDetails}
+              setCurrentArticle={setCurrentArticle}
             />
           ))}
         </div>
