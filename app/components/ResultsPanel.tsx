@@ -15,6 +15,7 @@ type ResultsPanelProps = {
   view: View;
   userProjects: SelectProject[];
   userCategories: SelectCategory[];
+  setIsHidingSearchResults: (isHiding: boolean) => void;
 };
 
 export default function ResultsPanel({
@@ -24,6 +25,7 @@ export default function ResultsPanel({
   view,
   userProjects,
   userCategories,
+  setIsHidingSearchResults,
 }: ResultsPanelProps) {
   const currentSearchResults = useContext(CurrentSearchResultsContext);
   const [amountOfResults, setAmountOfResults] = useState<number>(0);
@@ -52,7 +54,10 @@ export default function ResultsPanel({
         </div>
 
         <Button
-          onClick={() => hidePanel("results")}
+          onClick={() => {
+            hidePanel("results");
+            setIsHidingSearchResults(true);
+          }}
           variant="outline"
           size="sm"
           className="cursor-pointer"

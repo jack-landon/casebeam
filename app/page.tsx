@@ -18,9 +18,9 @@ import {
   CurrentArticleContext,
   CurrentSearchResultsContext,
 } from "./components/ChatContext";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-const panelOptions = ["chat", "results", "details"] as const;
-export type View = (typeof panelOptions)[number];
+export type View = "chat" | "results" | "details";
 
 type JSONValue = null | string | number | boolean | JSONObject | JSONArray;
 type JSONObject = {
@@ -54,6 +54,7 @@ function HomeContent() {
       if (response) {
         console.log(response);
         setIsGenerating(false);
+        setIsHidingSearchResults(false);
         setIsGettingSearchResults(true);
         if (!openViews.includes("results")) {
           const newViews = [...openViews];
@@ -94,7 +95,6 @@ function HomeContent() {
 
   const messagesRef = useRef<HTMLDivElement>(null);
   const [openViews, setOpenViews] = useState<View[]>(["chat"]);
-  const [exitingPanels, setExitingPanels] = useState<View[]>([]);
   const [currentSearchResults, setCurrentSearchResults] = useState<
     InsertSearchResultWithExcerpts[]
   >([]);
@@ -104,6 +104,7 @@ function HomeContent() {
   const [userChats, setUserChats] = useState<SelectChat[]>([]);
   const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
   const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
+  const [isHidingSearchResults, setIsHidingSearchResults] = useState(true);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -219,8 +220,6 @@ function HomeContent() {
 
   function hidePanel(panel: View) {
     // Add the panel to exitingPanels
-    setExitingPanels((prev) => [...prev, panel]);
-
     setOpenViews((prev) => {
       if (panel === "chat") return prev;
 
@@ -248,7 +247,7 @@ function HomeContent() {
     <CurrentSearchResultsContext.Provider value={currentSearchResults}>
       <CurrentArticleContext.Provider value={currentArticle}>
         <main className="flex h-[calc(100vh-4rem)] w-full max-w-7xl flex-col items-center mx-auto">
-          <div
+          {/* <div
             className={`flex-1 w-full h-full overflow-y-auto grid ${
               openViews.length + exitingPanels.length == 1
                 ? "grid-cols-1"
@@ -256,60 +255,58 @@ function HomeContent() {
                 ? "grid-cols-2"
                 : "grid-cols-3"
             } place-items-center gap-4`}
-          >
-            <AnimatePresence
-              onExitComplete={() => {
-                setExitingPanels((prev) => {
-                  const [, ...rest] = prev;
-                  return rest;
-                });
-              }}
-            >
-              {panelOptions.map((view) => {
-                if (!openViews.includes(view)) return null;
-
-                switch (view) {
-                  case "chat":
-                    return (
-                      <ChatPanel
-                        key={view}
-                        openViews={openViews}
-                        messages={messages}
-                        input={input}
-                        view={view}
-                        handleActionClick={handleActionClick}
-                        handleInputChange={handleInputChange}
-                        isGenerating={isGenerating}
-                        isLoading={isLoading}
-                        onKeyDown={onKeyDown}
-                        onSubmit={onSubmit}
-                        userChats={userChats}
-                      />
-                    );
-                  case "results":
-                    return (
-                      <ResultsPanel
-                        key={view}
-                        view={view}
-                        setCurrentArticle={setCurrentArticle}
-                        isGettingSearchResults={isGettingSearchResults}
-                        hidePanel={hidePanel}
-                        userProjects={userProjects}
-                        userCategories={userCategories}
-                      />
-                    );
-                  case "details":
-                    return (
-                      <DetailsPanel
-                        key={view}
-                        view={view}
-                        hidePanel={hidePanel}
-                      />
-                    );
-                }
-              })}
-            </AnimatePresence>
-          </div>
+          > */}
+          <AnimatePresence>
+            <PanelGroup direction="horizontal">
+              <Panel defaultSize={30} minSize={20}>
+                <ChatPanel
+                  key={"chat"}
+                  openViews={openViews}
+                  messages={messages}
+                  input={input}
+                  view={"chat"}
+                  handleActionClick={handleActionClick}
+                  handleInputChange={handleInputChange}
+                  isGenerating={isGenerating}
+                  isLoading={isLoading}
+                  onKeyDown={onKeyDown}
+                  onSubmit={onSubmit}
+                  userChats={userChats}
+                />
+              </Panel>
+              {!isHidingSearchResults && (
+                <>
+                  <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
+                  <Panel defaultSize={30} minSize={20}>
+                    <ResultsPanel
+                      key={"results"}
+                      view={"results"}
+                      setCurrentArticle={setCurrentArticle}
+                      isGettingSearchResults={isGettingSearchResults}
+                      hidePanel={hidePanel}
+                      userProjects={userProjects}
+                      userCategories={userCategories}
+                      setIsHidingSearchResults={setIsHidingSearchResults}
+                    />
+                  </Panel>
+                </>
+              )}
+              {currentArticle && (
+                <>
+                  <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
+                  <Panel defaultSize={30} minSize={20}>
+                    <DetailsPanel
+                      key={"details"}
+                      view={"details"}
+                      hidePanel={hidePanel}
+                      setCurrentArticle={setCurrentArticle}
+                    />
+                  </Panel>
+                </>
+              )}
+            </PanelGroup>
+          </AnimatePresence>
+          {/* </div> */}
         </main>
       </CurrentArticleContext.Provider>
     </CurrentSearchResultsContext.Provider>
@@ -328,4 +325,56 @@ export default function Home() {
       <HomeContent />
     </Suspense>
   );
+}
+
+{
+  /* {panelOptions.map((view) => {
+                  if (!openViews.includes(view)) return null;
+
+                  switch (view) {
+                    case "chat":
+                      return (
+                        <Panel defaultSize={30} minSize={20}>
+                          <ChatPanel
+                            key={view}
+                            openViews={openViews}
+                            messages={messages}
+                            input={input}
+                            view={view}
+                            handleActionClick={handleActionClick}
+                            handleInputChange={handleInputChange}
+                            isGenerating={isGenerating}
+                            isLoading={isLoading}
+                            onKeyDown={onKeyDown}
+                            onSubmit={onSubmit}
+                            userChats={userChats}
+                          />
+                        </Panel>
+                      );
+                    case "results":
+                      return (
+                        <Panel defaultSize={30} minSize={20}>
+                          <ResultsPanel
+                            key={view}
+                            view={view}
+                            setCurrentArticle={setCurrentArticle}
+                            isGettingSearchResults={isGettingSearchResults}
+                            hidePanel={hidePanel}
+                            userProjects={userProjects}
+                            userCategories={userCategories}
+                          />
+                        </Panel>
+                      );
+                    case "details":
+                      return (
+                        <Panel defaultSize={30} minSize={20}>
+                          <DetailsPanel
+                            key={view}
+                            view={view}
+                            hidePanel={hidePanel}
+                          />
+                        </Panel>
+                      );
+                  }
+                })} */
 }

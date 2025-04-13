@@ -7,13 +7,19 @@ import { Separator } from "./ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useContext } from "react";
 import { CurrentArticleContext } from "./ChatContext";
+import { InsertSearchResultWithExcerpts } from "@/lib/types";
 
 type DetailsPanelProps = {
   hidePanel: (panel: View) => void;
   view: View;
+  setCurrentArticle: (article: InsertSearchResultWithExcerpts | null) => void;
 };
 
-export default function DetailsPanel({ hidePanel, view }: DetailsPanelProps) {
+export default function DetailsPanel({
+  hidePanel,
+  view,
+  setCurrentArticle,
+}: DetailsPanelProps) {
   const currentArticle = useContext(CurrentArticleContext);
 
   if (currentArticle) {
@@ -33,7 +39,10 @@ export default function DetailsPanel({ hidePanel, view }: DetailsPanelProps) {
           </p>
 
           <Button
-            onClick={() => hidePanel("details")}
+            onClick={() => {
+              setCurrentArticle(null);
+              hidePanel("details");
+            }}
             variant="outline"
             size="sm"
             className="cursor-pointer"

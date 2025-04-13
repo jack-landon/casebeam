@@ -8,18 +8,6 @@ import { match } from "ts-pattern";
 export const runtime = "edge";
 
 export async function POST(req: Request): Promise<Response> {
-  // Check if the OPENAI_API_KEY is set, if not return 400
-  if (
-    !process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY === ""
-  ) {
-    return new Response(
-      "Missing GOOGLE_GENERATIVE_AI_API_KEY - make sure to add it to your .env file.",
-      {
-        status: 400,
-      }
-    );
-  }
   // if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
   //   const ip = req.headers.get("x-forwarded-for");
   //   const ratelimit = new Ratelimit({
