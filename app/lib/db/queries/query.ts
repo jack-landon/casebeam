@@ -10,6 +10,11 @@ export async function getChat(id: string) {
   return await db.query.chatsTable.findFirst({
     where: (chatsTable, { eq }) => eq(chatsTable.id, id),
     with: {
+      // messages: {
+      //   with: {
+      //     searchResults: true,
+      //   },
+      // },
       messages: true,
       searchResults: true,
       user: true,

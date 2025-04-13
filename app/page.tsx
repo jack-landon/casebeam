@@ -7,18 +7,19 @@ import ResultsPanel from "./components/ResultsPanel";
 import DetailsPanel from "./components/DetailsPanel";
 import ChatPanel from "./components/ChatPanel";
 import { SelectCategory, SelectChat, SelectProject } from "./lib/db/schema";
-import { getChat, getUserChats } from "./lib/db/queries/select";
+import { getUserChats } from "./lib/db/queries/select";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { getProjectsFromDb, getUserCategoriesFromDb } from "./lib/actions";
 import { InsertSearchResultWithExcerpts } from "./lib/types";
-import { getSearchResults } from "./lib/db/queries/query";
+import { getChat, getSearchResults } from "./lib/db/queries/query";
 import {
   CurrentArticleContext,
   CurrentSearchResultsContext,
 } from "./components/ChatContext";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { ListCollapse } from "lucide-react";
 
 export type View = "chat" | "results" | "details";
 
@@ -125,6 +126,14 @@ function HomeContent() {
       }));
 
       setMessages(transformedMessages);
+      setCurrentSearchResults(
+        chat.searchResults.map((result) => ({
+          ...result,
+          excerpts: JSON.parse(result.excerpts ?? "[]"),
+          tags: JSON.parse(result.tags ?? "[]"),
+        }))
+      );
+      setIsShowingSearchResults(true);
     },
     [setMessages]
   );
@@ -250,7 +259,7 @@ function HomeContent() {
                   userChats={userChats}
                 />
               </Panel>
-              {isShowingSearchResults && (
+              {isShowingSearchResults ? (
                 <>
                   <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
                   <Panel defaultSize={30} minSize={20}>
@@ -265,7 +274,24 @@ function HomeContent() {
                     />
                   </Panel>
                 </>
-              )}
+              ) : currentSearchResults.length > 0 ? (
+                <Panel
+                  className="bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setIsShowingSearchResults(true);
+                  }}
+                  defaultSize={5}
+                  minSize={5}
+                  maxSize={5}
+                >
+                  <div className="flex items-center justify-center h-full">
+                    <p className="flex items-center gap-4 transform rotate-90 origin-center whitespace-nowrap font-medium">
+                      <ListCollapse />
+                      Show Search Results
+                    </p>
+                  </div>
+                </Panel>
+              ) : null}
               {currentArticle && (
                 <>
                   <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />

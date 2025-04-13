@@ -178,7 +178,6 @@ export const chatsRelations = relations(chatsTable, ({ one, many }) => ({
   searchResults: many(searchResultsTable),
 }));
 
-// You already have messagesRelations, but let's enhance it
 export const messagesRelations = relations(messagesTable, ({ one }) => ({
   chat: one(chatsTable, {
     fields: [messagesTable.chatId],
@@ -188,6 +187,7 @@ export const messagesRelations = relations(messagesTable, ({ one }) => ({
     fields: [messagesTable.responseToMsgId],
     references: [messagesTable.id],
   }),
+  // searchResults: many(searchResultsTable),
 }));
 
 export const categoriesRelations = relations(
