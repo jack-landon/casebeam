@@ -10,13 +10,11 @@ import { CurrentArticleContext } from "./ChatContext";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
 
 type DetailsPanelProps = {
-  hidePanel: (panel: View) => void;
   view: View;
   setCurrentArticle: (article: InsertSearchResultWithExcerpts | null) => void;
 };
 
 export default function DetailsPanel({
-  hidePanel,
   view,
   setCurrentArticle,
 }: DetailsPanelProps) {
@@ -41,7 +39,6 @@ export default function DetailsPanel({
           <Button
             onClick={() => {
               setCurrentArticle(null);
-              hidePanel("details");
             }}
             variant="outline"
             size="sm"

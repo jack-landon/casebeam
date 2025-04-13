@@ -44,21 +44,27 @@ export function ChatHistoryDrawer({
               Kick off where you left off by selecting a chat from your history.
             </SheetDescription>
           </SheetHeader>
-          <div className="flex h-full flex-col gap-2 p-2">
-            {chats.map((chat) => (
-              <Link
-                key={chat.id}
-                href={`/?id=${chat.id}`}
-                className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
-                  chatId && chatId == chat.id
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
-              >
-                <span className="text-sm font-medium">{chat.name}</span>
-              </Link>
-            ))}
-          </div>
+          {chats.length === 0 ? (
+            <div className="flex items-center justify-center w-full h-full p-4 text-sm text-muted-foreground">
+              No chats found.
+            </div>
+          ) : (
+            <div className="flex flex-1 flex-col gap-2 p-2 overflow-y-auto border-y">
+              {chats.map((chat) => (
+                <Link
+                  key={chat.id}
+                  href={`/?id=${chat.id}`}
+                  className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
+                    chatId && chatId == chat.id
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  <span className="text-sm font-medium">{chat.name}</span>
+                </Link>
+              ))}
+            </div>
+          )}
           <SheetFooter>
             <SheetClose asChild>
               <Button asChild size="sm" className="cursor-pointer">

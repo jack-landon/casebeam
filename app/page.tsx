@@ -54,7 +54,7 @@ function HomeContent() {
       if (response) {
         console.log(response);
         setIsGenerating(false);
-        setIsHidingSearchResults(false);
+        setIsShowingSearchResults(true);
         setIsGettingSearchResults(true);
         if (!openViews.includes("results")) {
           const newViews = [...openViews];
@@ -104,7 +104,7 @@ function HomeContent() {
   const [userChats, setUserChats] = useState<SelectChat[]>([]);
   const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
   const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
-  const [isHidingSearchResults, setIsHidingSearchResults] = useState(true);
+  const [isShowingSearchResults, setIsShowingSearchResults] = useState(false);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -218,21 +218,6 @@ function HomeContent() {
     });
   }, [currentArticle]);
 
-  function hidePanel(panel: View) {
-    // Add the panel to exitingPanels
-    setOpenViews((prev) => {
-      if (panel === "chat") return prev;
-
-      const filtered = prev.filter((view) => view !== panel);
-      const order: Record<View, number> = {
-        chat: 0,
-        results: 1,
-        details: 2,
-      };
-      return filtered.sort((a, b) => order[a] - order[b]);
-    });
-  }
-
   useEffect(() => {
     if (!userId) return;
 
@@ -247,15 +232,6 @@ function HomeContent() {
     <CurrentSearchResultsContext.Provider value={currentSearchResults}>
       <CurrentArticleContext.Provider value={currentArticle}>
         <main className="flex h-[calc(100vh-4rem)] w-full max-w-7xl flex-col items-center mx-auto">
-          {/* <div
-            className={`flex-1 w-full h-full overflow-y-auto grid ${
-              openViews.length + exitingPanels.length == 1
-                ? "grid-cols-1"
-                : openViews.length + exitingPanels.length == 2
-                ? "grid-cols-2"
-                : "grid-cols-3"
-            } place-items-center gap-4`}
-          > */}
           <AnimatePresence>
             <PanelGroup direction="horizontal">
               <Panel defaultSize={30} minSize={20}>
@@ -274,7 +250,7 @@ function HomeContent() {
                   userChats={userChats}
                 />
               </Panel>
-              {!isHidingSearchResults && (
+              {isShowingSearchResults && (
                 <>
                   <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
                   <Panel defaultSize={30} minSize={20}>
@@ -283,10 +259,9 @@ function HomeContent() {
                       view={"results"}
                       setCurrentArticle={setCurrentArticle}
                       isGettingSearchResults={isGettingSearchResults}
-                      hidePanel={hidePanel}
                       userProjects={userProjects}
                       userCategories={userCategories}
-                      setIsHidingSearchResults={setIsHidingSearchResults}
+                      setIsShowingSearchResults={setIsShowingSearchResults}
                     />
                   </Panel>
                 </>
@@ -298,7 +273,6 @@ function HomeContent() {
                     <DetailsPanel
                       key={"details"}
                       view={"details"}
-                      hidePanel={hidePanel}
                       setCurrentArticle={setCurrentArticle}
                     />
                   </Panel>
@@ -306,7 +280,6 @@ function HomeContent() {
               )}
             </PanelGroup>
           </AnimatePresence>
-          {/* </div> */}
         </main>
       </CurrentArticleContext.Provider>
     </CurrentSearchResultsContext.Provider>
@@ -325,56 +298,4 @@ export default function Home() {
       <HomeContent />
     </Suspense>
   );
-}
-
-{
-  /* {panelOptions.map((view) => {
-                  if (!openViews.includes(view)) return null;
-
-                  switch (view) {
-                    case "chat":
-                      return (
-                        <Panel defaultSize={30} minSize={20}>
-                          <ChatPanel
-                            key={view}
-                            openViews={openViews}
-                            messages={messages}
-                            input={input}
-                            view={view}
-                            handleActionClick={handleActionClick}
-                            handleInputChange={handleInputChange}
-                            isGenerating={isGenerating}
-                            isLoading={isLoading}
-                            onKeyDown={onKeyDown}
-                            onSubmit={onSubmit}
-                            userChats={userChats}
-                          />
-                        </Panel>
-                      );
-                    case "results":
-                      return (
-                        <Panel defaultSize={30} minSize={20}>
-                          <ResultsPanel
-                            key={view}
-                            view={view}
-                            setCurrentArticle={setCurrentArticle}
-                            isGettingSearchResults={isGettingSearchResults}
-                            hidePanel={hidePanel}
-                            userProjects={userProjects}
-                            userCategories={userCategories}
-                          />
-                        </Panel>
-                      );
-                    case "details":
-                      return (
-                        <Panel defaultSize={30} minSize={20}>
-                          <DetailsPanel
-                            key={view}
-                            view={view}
-                            hidePanel={hidePanel}
-                          />
-                        </Panel>
-                      );
-                  }
-                })} */
 }

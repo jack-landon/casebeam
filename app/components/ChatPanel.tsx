@@ -81,7 +81,7 @@ export default function ChatPanel({
       transition={{ duration: 0.2 }}
       custom={view}
       className={`flex flex-col w-full h-full overflow-hidden ${
-        openViews.length == 1 ? "max-w-3xl" : "border"
+        openViews.length == 1 ? "max-w-3xl mx-auto" : "border"
       }`}
     >
       {messages.length > 0 && (

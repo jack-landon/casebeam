@@ -11,21 +11,19 @@ import { CurrentSearchResultsContext } from "./ChatContext";
 type ResultsPanelProps = {
   setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
   isGettingSearchResults: boolean;
-  hidePanel: (panel: View) => void;
   view: View;
   userProjects: SelectProject[];
   userCategories: SelectCategory[];
-  setIsHidingSearchResults: (isHiding: boolean) => void;
+  setIsShowingSearchResults: (isHShowing: boolean) => void;
 };
 
 export default function ResultsPanel({
   setCurrentArticle,
   isGettingSearchResults,
-  hidePanel,
   view,
   userProjects,
   userCategories,
-  setIsHidingSearchResults,
+  setIsShowingSearchResults,
 }: ResultsPanelProps) {
   const currentSearchResults = useContext(CurrentSearchResultsContext);
   const [amountOfResults, setAmountOfResults] = useState<number>(0);
@@ -55,8 +53,7 @@ export default function ResultsPanel({
 
         <Button
           onClick={() => {
-            hidePanel("results");
-            setIsHidingSearchResults(true);
+            setIsShowingSearchResults(false);
           }}
           variant="outline"
           size="sm"
