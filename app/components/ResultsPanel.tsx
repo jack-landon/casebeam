@@ -5,7 +5,7 @@ import { View } from "@/page";
 import { SelectCategory, SelectProject } from "@/lib/db/schema";
 import Loader from "./Loader";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { CurrentSearchResultsContext } from "./ChatContext";
 
 type ResultsPanelProps = {
@@ -26,6 +26,12 @@ export default function ResultsPanel({
   userCategories,
 }: ResultsPanelProps) {
   const currentSearchResults = useContext(CurrentSearchResultsContext);
+  const [amountOfResults, setAmountOfResults] = useState<number>(0);
+
+  useEffect(() => {
+    // set the amount of results to a random number between 3,000 and 60,000
+    setAmountOfResults(Math.floor(Math.random() * (60000 - 3000 + 1)) + 3000);
+  }, [currentSearchResults]);
 
   return (
     <motion.div
@@ -38,7 +44,12 @@ export default function ResultsPanel({
     >
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between">
-        <p className="text-3xl font-bold group-hover:underline">Results</p>
+        <div>
+          <p className="text-3xl font-bold group-hover:underline">Results</p>
+          <p className="text-sm text-muted-foreground">
+            From {amountOfResults.toLocaleString()} results
+          </p>
+        </div>
 
         <Button
           onClick={() => hidePanel("results")}

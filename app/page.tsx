@@ -55,6 +55,11 @@ function HomeContent() {
         console.log(response);
         setIsGenerating(false);
         setIsGettingSearchResults(true);
+        if (!openViews.includes("results")) {
+          const newViews = [...openViews];
+          newViews.splice(1, 0, "results");
+          setOpenViews(newViews);
+        }
       }
     },
     async onFinish(res) {
@@ -65,12 +70,6 @@ function HomeContent() {
 
       console.log("Sources:", sources);
       if (!sources) return;
-
-      if (!openViews.includes("results")) {
-        const newViews = [...openViews];
-        newViews.splice(1, 0, "results");
-        setOpenViews(newViews);
-      }
 
       if (!chatId) return setIsGettingSearchResults(false);
 
