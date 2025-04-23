@@ -3,6 +3,9 @@
 import { useState, useRef, MouseEvent, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Minus } from "lucide-react";
+import { NotepadMenuBar } from "./FloatingWindowMenuBar";
+import { SelectNote } from "@/lib/db/schema";
+// import { CurrentNoteContext } from "./CurrentNoteProvider";
 
 type FloatingWindowProps = {
   children: React.ReactNode;
@@ -10,6 +13,7 @@ type FloatingWindowProps = {
   initialHeight?: number;
   isNotepadOpen: boolean;
   setIsNotepadOpen: (isOpen: boolean) => void;
+  setCurrentNote: (note: SelectNote | null) => void;
 };
 
 const FloatingWindow = ({
@@ -18,6 +22,7 @@ const FloatingWindow = ({
   initialHeight = 200,
   isNotepadOpen,
   setIsNotepadOpen,
+  setCurrentNote,
 }: FloatingWindowProps) => {
   const [position, setPosition] = useState({ x: 100, y: 100 });
   const [size, setSize] = useState({
@@ -155,7 +160,10 @@ const FloatingWindow = ({
             onMouseDown={handleMouseDown}
           >
             <div className="px-2 flex items-center justify-between">
-              <p className="font-bold">Notepad</p>
+              <div className="flex items-center space-x-2">
+                <NotepadMenuBar setCurrentNote={setCurrentNote} />
+                {/* <p className="font-bold text-lg">Notepad</p> */}
+              </div>
               <Button
                 variant="outline"
                 size="icon"

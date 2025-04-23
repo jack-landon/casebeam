@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, real } from "drizzle-orm/sqlite-core";
+import { generateRandomColor } from "../utils";
 
 export const usersTable = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -34,12 +35,21 @@ export const projectsTable = sqliteTable("projects", {
 
 export const notesTable = sqliteTable("notes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  caseId: integer("case_id").notNull(),
-  authorName: text("author_name").notNull(),
-  authorAvatar: text("author_avatar"),
-  timestamp: integer("timestamp").notNull(),
+  name: text("name").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projectsTable.id, {
+    onDelete: "cascade",
+  }),
   content: text("content").notNull(),
-  attachments: text("attachments"),
+  color: text("color").notNull().default(generateRandomColor()),
+  createdAt: text("created_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  updatedAt: text("update_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
 });
 
 export const chatsTable = sqliteTable("chats", {
@@ -90,6 +100,7 @@ export const searchResultsTable = sqliteTable("search_results", {
   docTitle: text("doc_title"),
   docSummary: text("doc_summary"),
   relevanceSummary: text("relevance_summary"),
+  similarityScore: real(),
   url: text("url").notNull(),
   tags: text("tags"), // Store as JSON string
   excerpts: text("excerpts"), // Store as JSON string
@@ -164,8 +175,16 @@ export const projectsRelations = relations(projectsTable, ({ one, many }) => ({
 
 export const notesRelations = relations(notesTable, ({ one }) => ({
   project: one(projectsTable, {
-    fields: [notesTable.caseId],
+    fields: [notesTable.projectId],
     references: [projectsTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [notesTable.userId],
+    references: [usersTable.id],
+  }),
+  searchResult: one(searchResultsTable, {
+    fields: [notesTable.id],
+    references: [searchResultsTable.id],
   }),
 }));
 
@@ -178,7 +197,7 @@ export const chatsRelations = relations(chatsTable, ({ one, many }) => ({
   searchResults: many(searchResultsTable),
 }));
 
-export const messagesRelations = relations(messagesTable, ({ one }) => ({
+export const messagesRelations = relations(messagesTable, ({ one, many }) => ({
   chat: one(chatsTable, {
     fields: [messagesTable.chatId],
     references: [chatsTable.id],
@@ -187,7 +206,7 @@ export const messagesRelations = relations(messagesTable, ({ one }) => ({
     fields: [messagesTable.responseToMsgId],
     references: [messagesTable.id],
   }),
-  // searchResults: many(searchResultsTable),
+  searchResults: many(searchResultsTable),
 }));
 
 export const categoriesRelations = relations(
@@ -283,3 +302,9 @@ export type InsertSearchResultCategory =
   typeof searchResultCategories.$inferInsert;
 export type SelectSearchResultCategory =
   typeof searchResultCategories.$inferSelect;
+export type Excerpt = {
+  title: string;
+  caseName: string;
+  content: string;
+  url: string | null;
+};

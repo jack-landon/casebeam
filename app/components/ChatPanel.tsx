@@ -10,23 +10,43 @@ import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { Button } from "@/components/ui/button";
 import {
+  BookText,
+  Check,
+  ChevronDown,
   CopyIcon,
   CornerDownLeft,
+  Landmark,
+  MapPin,
   Mic,
   Paperclip,
   RefreshCcw,
   Volume2,
+  X,
 } from "lucide-react";
 import { useRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeDisplayBlock from "@/components/code-display-block";
 import { motion } from "motion/react";
-import { View } from "@/page";
+import { FilterOption, View } from "@/page";
 import { UIMessage } from "ai";
 import { SignedIn, useUser } from "@clerk/nextjs";
 import { ChatHistoryDrawer } from "./ChatHistoryDrawer";
 import { SelectChat } from "@/lib/db/schema";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import {
+  colorList,
+  DOC_JURISDICTIONS,
+  DOC_SOURCES,
+  DOC_TYPES,
+  formatColumnNames,
+} from "@/lib/utils";
+import { Badge } from "./ui/badge";
 
 const ChatAiIcons = [
   {
@@ -55,7 +75,16 @@ type ChatPanelProps = {
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   userChats: SelectChat[];
+  filters: FilterOption[];
+  setFilters: React.Dispatch<React.SetStateAction<FilterOption[]>>;
+  chatName?: string;
 };
+
+const filterIcons = {
+  types: Landmark,
+  jurisdictions: MapPin,
+  sources: BookText,
+} as const;
 
 export default function ChatPanel({
   openViews,
@@ -69,9 +98,36 @@ export default function ChatPanel({
   onSubmit,
   view,
   userChats,
+  filters,
+  setFilters,
+  chatName,
 }: ChatPanelProps) {
   const { user } = useUser();
   const formRef = useRef<HTMLFormElement>(null);
+
+  const toggleFilter = (
+    key: FilterOption["key"],
+    value: FilterOption["value"]
+  ) => {
+    setFilters((current) => {
+      const exists = current.some(
+        (filter) => filter.key === key && filter.value === value
+      );
+
+      if (exists) {
+        return current.filter(
+          (filter) => !(filter.key === key && filter.value === value)
+        );
+      }
+
+      return [...current, { key, value }];
+    });
+  };
+
+  const isFilterActive = (
+    key: FilterOption["key"],
+    value: FilterOption["value"]
+  ) => filters.some((f) => f.key === key && f.value === value);
 
   return (
     <motion.div
@@ -86,7 +142,9 @@ export default function ChatPanel({
     >
       {messages.length > 0 && (
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-3xl font-bold">Chat</h2>
+          <h2 className={`${chatName ? "text-xl" : "text-3xl"} font-bold`}>
+            {chatName ?? "Chat"}
+          </h2>
           <ChatHistoryDrawer chats={userChats} text="View Other Chats" />
         </div>
       )}
@@ -192,6 +250,27 @@ export default function ChatPanel({
           onSubmit={onSubmit}
           className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
         >
+          {filters.length > 0 && (
+            <div className="flex items-center gap-2 p-2 flex-wrap">
+              {filters.map((filter, i) => {
+                const FilterIcon = filterIcons[filter.key];
+                return (
+                  <Badge key={i} variant="outline" className="group">
+                    <div className="relative w-3 h-3">
+                      <FilterIcon className="absolute inset-0 size-3 group-hover:opacity-0 transition-opacity" />
+                      <X
+                        className="absolute inset-0 size-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        onClick={() => toggleFilter(filter.key, filter.value)}
+                      />
+                    </div>
+                    <span className="ml-1">
+                      {formatColumnNames(filter.value)}
+                    </span>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
           <ChatInput
             value={input}
             onKeyDown={onKeyDown}
@@ -200,15 +279,118 @@ export default function ChatPanel({
             className="rounded-lg bg-background border-0 shadow-none focus-visible:ring-0"
           />
           <div className="flex items-center p-3 pt-0">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="cursor-pointer">
               <Paperclip className="size-4" />
               <span className="sr-only">Attach file</span>
             </Button>
 
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="cursor-pointer">
               <Mic className="size-4" />
               <span className="sr-only">Use Microphone</span>
             </Button>
+
+            <div className="flex items-center space-x-2 ml-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                  >
+                    <filterIcons.types className="size-4 mr-2" />
+                    Type <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {DOC_TYPES.map((type, i) => (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => toggleFilter("types", type)}
+                      className="flex items-center cursor-pointer"
+                    >
+                      {isFilterActive("types", type) ? (
+                        <div>
+                          <Check className="size-3 mr-2" />
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-3 h-3 rounded-full mr-2 ${colorList[i]}`}
+                        />
+                      )}
+                      <span>{formatColumnNames(type)}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                  >
+                    <filterIcons.jurisdictions className="size-4 mr-2" />
+                    Jurisdiction <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {DOC_JURISDICTIONS.map((jurisdiction, i) => (
+                    <DropdownMenuItem
+                      key={jurisdiction}
+                      onClick={() =>
+                        toggleFilter("jurisdictions", jurisdiction)
+                      }
+                      className="flex items-center cursor-pointer"
+                    >
+                      {isFilterActive("jurisdictions", jurisdiction) ? (
+                        <div>
+                          <Check className="size-3 mr-2" />
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-3 h-3 rounded-full mr-2 ${colorList[i]}`}
+                        />
+                      )}
+                      <span>{formatColumnNames(jurisdiction)}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                  >
+                    <filterIcons.sources className="size-4 mr-2" />
+                    Source <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {DOC_SOURCES.map((source, i) => (
+                    <DropdownMenuItem
+                      key={source}
+                      onClick={() => toggleFilter("sources", source)}
+                      className="flex items-center cursor-pointer"
+                    >
+                      {isFilterActive("sources", source) ? (
+                        <div>
+                          <Check className="size-3 mr-2" />
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-3 h-3 rounded-full mr-2 ${colorList[i]}`}
+                        />
+                      )}
+                      <span>{formatColumnNames(source)}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             <Button
               disabled={!input || isLoading}

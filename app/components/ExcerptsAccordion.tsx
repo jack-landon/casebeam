@@ -56,7 +56,7 @@ export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    View Excert <ExternalLink className="ml-1 h-3 w-3" />
+                    View Excerpt <ExternalLink className="ml-1 h-3 w-3" />
                   </Link>
                 </Button>
               </div>

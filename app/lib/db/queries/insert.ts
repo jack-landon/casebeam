@@ -8,10 +8,12 @@ import {
   InsertCategory,
   InsertChat,
   InsertMessage,
+  InsertNote,
   InsertProject,
   InsertSearchResult,
   InsertUser,
   messagesTable,
+  notesTable,
   projectsTable,
   searchResultCategories,
   searchResultProjects,
@@ -37,6 +39,29 @@ export async function createChat(data: InsertChat) {
 export async function createMessage(data: InsertMessage) {
   const [message] = await db.insert(messagesTable).values(data).returning();
   return message;
+}
+
+export async function createNewNote(data: Omit<InsertNote, "userId">) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("User not found");
+
+  const [note] = await db
+    .insert(notesTable)
+    .values({
+      ...data,
+      userId,
+    })
+    .returning();
+  return note;
+}
+
+export async function updateNote(data: Partial<InsertNote> & { id: number }) {
+  const [updatedNote] = await db
+    .update(notesTable)
+    .set(data)
+    .where(eq(notesTable.id, data.id))
+    .returning();
+  return updatedNote;
 }
 
 export async function updateMessage(

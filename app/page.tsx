@@ -20,6 +20,7 @@ import {
 } from "./components/ChatContext";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ListCollapse } from "lucide-react";
+import { DOC_JURISDICTIONS, DOC_SOURCES, DOC_TYPES } from "./lib/utils";
 
 export type View = "chat" | "results" | "details";
 
@@ -29,6 +30,14 @@ type JSONObject = {
 };
 type JSONArray = JSONValue[];
 
+export type FilterOption = {
+  key: "types" | "jurisdictions" | "sources";
+  value:
+    | (typeof DOC_TYPES)[number]
+    | (typeof DOC_JURISDICTIONS)[number]
+    | (typeof DOC_SOURCES)[number];
+};
+
 function HomeContent() {
   const { userId } = useAuth();
   const router = useRouter();
@@ -36,6 +45,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   let chatId = searchParams.get("id");
 
+  const [filters, setFilters] = useState<FilterOption[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const {
@@ -51,6 +61,9 @@ function HomeContent() {
     api: `api/chat`,
     id: chatId ?? undefined,
     key: chatId ?? undefined,
+    body: {
+      filters,
+    },
     onResponse(response) {
       if (response) {
         console.log(response);
@@ -75,7 +88,12 @@ function HomeContent() {
 
       if (!chatId) return setIsGettingSearchResults(false);
 
-      const fetchedSearchResults = await getSearchResults(chatId);
+      const [chat, fetchedSearchResults] = await Promise.all([
+        getChat(chatId),
+        getSearchResults(chatId),
+      ]);
+
+      if (chat) setChatName(chat.name);
 
       setCurrentSearchResults(
         fetchedSearchResults.map((result) => ({
@@ -106,6 +124,7 @@ function HomeContent() {
   const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
   const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
   const [isShowingSearchResults, setIsShowingSearchResults] = useState(false);
+  const [chatName, setChatName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -118,6 +137,8 @@ function HomeContent() {
       const chat = await getChat(chatId);
 
       if (!chat) return;
+
+      setChatName(chat.name);
 
       const transformedMessages = chat.messages.map((msg) => ({
         id: msg.id.toString(),
@@ -174,7 +195,9 @@ function HomeContent() {
         router.push(`?id=${generatedChatId}`);
         chatId = generatedChatId;
       }
-      await handleSubmit(e);
+      await handleSubmit(e, {
+        allowEmptySubmit: false,
+      });
     } catch (error) {
       console.error("Error submitting:", error);
       setIsGenerating(false);
@@ -257,6 +280,9 @@ function HomeContent() {
                   onKeyDown={onKeyDown}
                   onSubmit={onSubmit}
                   userChats={userChats}
+                  filters={filters}
+                  setFilters={setFilters}
+                  chatName={chatName}
                 />
               </Panel>
               {isShowingSearchResults ? (

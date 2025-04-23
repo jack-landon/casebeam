@@ -10,12 +10,11 @@ export async function getChat(id: string) {
   return await db.query.chatsTable.findFirst({
     where: (chatsTable, { eq }) => eq(chatsTable.id, id),
     with: {
-      // messages: {
-      //   with: {
-      //     searchResults: true,
-      //   },
-      // },
-      messages: true,
+      messages: {
+        with: {
+          searchResults: true,
+        },
+      },
       searchResults: true,
       user: true,
     },
@@ -36,4 +35,23 @@ export async function getSearchResults(chatId: string) {
   });
 
   return searchResults;
+}
+
+export async function getNote(noteId: number) {
+  const user = await auth();
+
+  if (!user.userId) throw new Error("User not authenticated");
+  return await db.query.notesTable.findFirst({
+    where: (notesTable, { eq }) => eq(notesTable.id, noteId),
+  });
+}
+
+export async function getUserNotes() {
+  const user = await auth();
+  if (!user.userId) throw new Error("User not authenticated");
+  const userNotes = await db.query.notesTable.findMany({
+    where: (notesTable, { eq }) => eq(notesTable.userId, user.userId),
+    orderBy: (notesTable, { desc }) => desc(notesTable.updatedAt),
+  });
+  return userNotes;
 }
