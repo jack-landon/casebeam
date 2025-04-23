@@ -132,7 +132,7 @@ export async function findRelevantContent(
 
   const relevantDocuments = collection.find(formattedFilters, {
     sort: { $vectorize: userQuery },
-    limit: 6,
+    limit: 5,
     projection: {
       _id: true,
       doc_id: true,

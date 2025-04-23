@@ -26,6 +26,7 @@ import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
 import { NewProjectModal } from "./NewProjectModal";
 import { NewCategoryModal } from "./NewCategoryModal";
+import StarRating from "./StarRating";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerpts;
@@ -75,6 +76,12 @@ export default function SearchResult({
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
+            {searchResult.similarityScore && (
+              // <p className="text-xs text-yellow-500">
+              //   Relevance: {Math.floor(searchResult.similarityScore * 100)}%
+              // </p>
+              <StarRating percentage={searchResult.similarityScore * 100} />
+            )}
             <CardTitle
               onClick={() => {
                 setCurrentArticle(searchResult);
