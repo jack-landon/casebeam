@@ -77,15 +77,17 @@ export default function ResultsPanel({
           </div>
         )}
         <div className="relative min-h-full">
-          {currentSearchResults.map((result, i) => (
-            <SearchResult
-              key={i}
-              searchResult={result}
-              userProjects={userProjects}
-              userCategories={userCategories}
-              setCurrentArticle={setCurrentArticle}
-            />
-          ))}
+          {currentSearchResults
+            .sort((a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0))
+            .map((result, i) => (
+              <SearchResult
+                key={i}
+                searchResult={result}
+                userProjects={userProjects}
+                userCategories={userCategories}
+                setCurrentArticle={setCurrentArticle}
+              />
+            ))}
         </div>
       </div>
 

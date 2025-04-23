@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   const {
     id: chatId,
     messages,
-    filters,
+    filters = [],
   } = (await req.json()) as {
     messages: Array<Omit<Message, "id">>;
     id?: string;
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       jurisdiction: string;
       type: string;
       source: string;
-      date: string;
+      date: string | undefined;
       url: string;
       similarityScore: number | null;
       $vectorize: string;
@@ -214,7 +214,8 @@ export async function POST(req: Request) {
           The title should be a short overall explanation of how the document relates to the user query in 14 words or less.
           The docSummary should be an overall summary of the document itself.
           The relevanceSummary should extend on the title and provide a 100 - 200 word summary of how the document relates to the user query.
-          The tags should be a list of short 1-2 word tags that are relevant to the document.
+          The tags should be a 2-3 list of short 1-2 word tags that are relevant to the document.
+          If the document is not relevant to the user query, do not say "Irrelevant to query". Just summarize what the document is.
           The user query you are finding relevance for is this: [START OF USER MESSAGE]${
             messageToStore.content
           }.[END OF USER MESSAGE]
@@ -248,6 +249,23 @@ export async function POST(req: Request) {
               (result) =>
                 result.docId.toLowerCase() === doc.doc_id.toLowerCase()
             );
+            if (searchResult?.tags) {
+              if (doc.source) {
+                searchResult.tags.unshift(
+                  doc.source.toLowerCase().replace(/_/g, " ")
+                );
+              }
+              if (doc.jurisdiction) {
+                searchResult.tags.unshift(
+                  doc.jurisdiction.toLowerCase().replace(/_/g, " ")
+                );
+              }
+              if (doc.type) {
+                searchResult.tags.unshift(
+                  doc.type.toLowerCase().replace(/_/g, " ")
+                );
+              }
+            }
             const updatedExcerpts = doc.excerpts.map((excert) => ({
               ...excert,
               title: !searchResult ? excert.title : searchResult.title,
@@ -259,6 +277,7 @@ export async function POST(req: Request) {
               docSummary: searchResult?.docSummary ?? "",
               relevanceSummary: searchResult?.relevanceSummary ?? "",
               url: doc.url,
+              docDate: doc.date ?? null,
               similarityScore: doc.similarityScore,
               tags: JSON.stringify(searchResult?.tags ?? []),
               excerpts: JSON.stringify(updatedExcerpts),

@@ -100,6 +100,7 @@ export const searchResultsTable = sqliteTable("search_results", {
   docTitle: text("doc_title"),
   docSummary: text("doc_summary"),
   relevanceSummary: text("relevance_summary"),
+  docDate: text("doc_date"),
   similarityScore: real(),
   url: text("url").notNull(),
   tags: text("tags"), // Store as JSON string

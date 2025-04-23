@@ -27,6 +27,7 @@ import { InsertSearchResultWithExcerpts } from "@/lib/types";
 import { NewProjectModal } from "./NewProjectModal";
 import { NewCategoryModal } from "./NewCategoryModal";
 import StarRating from "./StarRating";
+import dayjs from "dayjs";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerpts;
@@ -76,10 +77,12 @@ export default function SearchResult({
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
+            {searchResult.docDate && (
+              <span className="text-xs text-muted-foreground mb-2">
+                {dayjs(searchResult.docDate).format("MMM D, YYYY")}
+              </span>
+            )}
             {searchResult.similarityScore && (
-              // <p className="text-xs text-yellow-500">
-              //   Relevance: {Math.floor(searchResult.similarityScore * 100)}%
-              // </p>
               <StarRating percentage={searchResult.similarityScore * 100} />
             )}
             <CardTitle

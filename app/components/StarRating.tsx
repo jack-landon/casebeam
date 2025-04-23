@@ -51,7 +51,7 @@ export default function StarRating({ percentage }: StarRatingProps) {
   };
 
   return (
-    <div className="flex items-center mb-1">
+    <div className="flex items-center mb-2">
       <div className="flex items-center gap-1">{renderStars()}</div>
       <p className="text-xs font-medium ml-2">({starRating.toFixed(2)} / 5)</p>
     </div>
