@@ -56,15 +56,22 @@ export async function POST(req: Request) {
 
   const coreMessages = convertToCoreMessages(messages); // Get last 5 messages
 
-  const contextWindow = coreMessages // Get last 5 messages
-    .map((msg) => msg.content)
-    .join("\n");
+  // const contextWindow = coreMessages // Get last 5 messages
+  //   .map((msg) => msg.content)
+  //   .join("\n");
 
-  console.log("ABout to get retrieved excerpts");
+  // Get last 5 messages
+  const contextWindow =
+    messages.length == 1
+      ? messageToStore.content
+      : messages
+          .slice(-5)
+          .map((msg) => `[${msg.role.toUpperCase()} MESSAGE]: ${msg.content}`)
+          .join();
+
+  console.log("Context window:", contextWindow);
 
   const retrievedExcerpts = await findRelevantContent(contextWindow, filters);
-
-  console.log("Retrieved excerpts:", retrievedExcerpts);
 
   const docIdSet = new Set<string>();
   for (const excerpt of retrievedExcerpts) {
@@ -215,7 +222,7 @@ export async function POST(req: Request) {
           The docSummary should be an overall summary of the document itself.
           The relevanceSummary should extend on the title and provide a 100 - 200 word summary of how the document relates to the user query.
           The tags should be a 2-3 list of short 1-2 word tags that are relevant to the document.
-          If the document is not relevant to the user query, do not say "Irrelevant to query". Just summarize what the document is.
+          NEVER mention in the title that the document is not relevant or related to the query.
           The user query you are finding relevance for is this: [START OF USER MESSAGE]${
             messageToStore.content
           }.[END OF USER MESSAGE]

@@ -73,6 +73,9 @@ export default function ResultsPanel({
             >
               <Loader />
               <span className="font-bold mt-2 animate-pulse">Loading</span>
+              <span className="mt-2 animate-pulse">
+                This can take up to 15 seconds...
+              </span>
             </div>
           </div>
         )}

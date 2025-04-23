@@ -122,22 +122,6 @@ export async function findRelevantContent(
     .filter((filter) => filter.key === "sources")
     .map((filter) => filter.value);
 
-  // const formattedFilters: Filter<Document> = {
-  //   $and: [
-  //     { jurisdiction: { $in: jurisdictionFilters } },
-  //     { type: { $in: typeFilters } },
-  //     { source: { $in: sourceFilters } },
-  //   ],
-  // };
-
-  // const formattedFilters: Filter<Document> = {
-  //   $and: [
-  //     jurisdictionFilters.length > 0 && { jurisdiction: { $in: jurisdictionFilters } },
-  //     typeFilters.length > 0 && { type: { $in: typeFilters } },
-  //     sourceFilters.length > 0 && { source: { $in: sourceFilters } }
-  //   ].filter(Boolean)
-  // };
-
   const formattedFilters: Filter<Document> = {
     $and: [
       ...(jurisdictionFilters.length > 0

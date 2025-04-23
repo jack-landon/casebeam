@@ -76,7 +76,7 @@ export default function DetailsPanel({
               <Separator className="my-4" />
 
               <div>
-                <h3 className="text-lg font-bold">Relavent Excerpts</h3>
+                <h3 className="text-lg font-bold">Relevant Excerpts</h3>
                 <p className="text-sm text-muted-foreground mb-2">
                   Here are some related cases that might be of interest:
                 </p>

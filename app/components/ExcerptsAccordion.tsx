@@ -24,7 +24,7 @@ export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
   return (
     <Accordion type="single" collapsible className="w-full">
       {parsedExcerpts.map((excerpt, i) => (
-        <AccordionItem key={i} value={excerpt.title}>
+        <AccordionItem key={i} value={`${excerpt.url}-item-${i}`}>
           <AccordionTrigger
             className={`flex justify-between text-left rounded-none no-underline data-[state=open]:underline`}
           >
