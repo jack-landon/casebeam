@@ -139,7 +139,7 @@ export async function POST(req: Request) {
   //   Important: DO NOT generate any response before getting the tool results.`;
 
   const result = streamText({
-    model: google("gemini-2.0-flash-001"),
+    model: google("gemini-2.0-flash-lite-preview-02-05"),
     system: `You are a helpful legal assistant. You MUST answer the question using ONLY the information provided in this context: ${JSON.stringify(
       docObject
     )}`,
@@ -233,7 +233,7 @@ export async function POST(req: Request) {
         `;
 
         const { object: searchResults } = await generateObject({
-          model: google("gemini-2.0-flash-001"),
+          model: google("gemini-2.0-flash-lite-preview-02-05"),
           system: searchResultSummarySystemPrompt,
           messages: convertToCoreMessages(messages),
           schema: searchResultsSchema,

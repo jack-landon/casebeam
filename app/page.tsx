@@ -6,18 +6,14 @@ import { AnimatePresence } from "motion/react";
 import ResultsPanel from "./components/ResultsPanel";
 import DetailsPanel from "./components/DetailsPanel";
 import ChatPanel from "./components/ChatPanel";
-import { SelectCategory, SelectChat, SelectProject } from "./lib/db/schema";
-import { getUserChats } from "./lib/db/queries/select";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { getProjectsFromDb, getUserCategoriesFromDb } from "./lib/actions";
 import { InsertSearchResultWithExcerpts } from "./lib/types";
 import { getChat, getSearchResults } from "./lib/db/queries/query";
 import {
   CurrentArticleContext,
   CurrentSearchResultsContext,
-} from "./components/ChatContext";
+} from "./components/contexts/ChatContext";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ListCollapse } from "lucide-react";
 import { DOC_JURISDICTIONS, DOC_SOURCES, DOC_TYPES } from "./lib/utils";
@@ -39,7 +35,6 @@ export type FilterOption = {
 };
 
 function HomeContent() {
-  const { userId } = useAuth();
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -120,9 +115,8 @@ function HomeContent() {
   const [currentArticle, setCurrentArticle] =
     useState<InsertSearchResultWithExcerpts | null>(null);
   const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
-  const [userChats, setUserChats] = useState<SelectChat[]>([]);
-  const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
-  const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
+  // const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
+  // const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
   const [isShowingSearchResults, setIsShowingSearchResults] = useState(false);
   const [chatName, setChatName] = useState<string | undefined>(undefined);
 
@@ -159,18 +153,6 @@ function HomeContent() {
     [setMessages]
   );
 
-  const fetchUserData = useCallback(async () => {
-    const [projects, categories] = await Promise.all([
-      getProjectsFromDb(),
-      getUserCategoriesFromDb(),
-    ]);
-
-    if (!projects.data || !categories.data) return;
-
-    setUserProjects(projects.data);
-    setUserCategories(categories.data);
-  }, [setUserProjects, setUserCategories]);
-
   useEffect(() => {
     function fetchChat() {
       if (!chatId) return;
@@ -178,14 +160,6 @@ function HomeContent() {
     }
     fetchChat();
   }, [chatId, fetchMessages]);
-
-  useEffect(() => {
-    function fetchUserInfo() {
-      if (!userId) return;
-      fetchUserData();
-    }
-    fetchUserInfo();
-  }, [userId, fetchUserData]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -250,16 +224,6 @@ function HomeContent() {
     });
   }, [currentArticle]);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    async function fetchUserChats() {
-      const chats = await getUserChats();
-      setUserChats(chats);
-    }
-    fetchUserChats();
-  }, [userId]);
-
   return (
     <CurrentSearchResultsContext.Provider value={currentSearchResults}>
       <CurrentArticleContext.Provider value={currentArticle}>
@@ -279,7 +243,6 @@ function HomeContent() {
                   isLoading={isLoading}
                   onKeyDown={onKeyDown}
                   onSubmit={onSubmit}
-                  userChats={userChats}
                   filters={filters}
                   setFilters={setFilters}
                   chatName={chatName}
@@ -294,8 +257,6 @@ function HomeContent() {
                       view={"results"}
                       setCurrentArticle={setCurrentArticle}
                       isGettingSearchResults={isGettingSearchResults}
-                      userProjects={userProjects}
-                      userCategories={userCategories}
                       setIsShowingSearchResults={setIsShowingSearchResults}
                     />
                   </Panel>

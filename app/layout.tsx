@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Header from "./components/Header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
+import { UserDataProvider } from "./components/contexts/UserDataContext";
+import { getUserData } from "./lib/db/queries/query";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,22 +23,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const userData = await getUserData();
+
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={`${inter.className} bg-muted/30`}>
           <ThemeProvider attribute="class" defaultTheme="system">
-            <>
-              <Header />
-              {children}
-            </>
-            <Toaster />
-            {/* <ChatSupport /> */}
+            <UserDataProvider initialUserData={userData}>
+              <>
+                <Header />
+                {children}
+              </>
+              <Toaster />
+              {/* <ChatSupport /> */}
+            </UserDataProvider>
           </ThemeProvider>
         </body>
       </html>

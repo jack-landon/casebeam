@@ -6,7 +6,7 @@ import { ExcerptsAccordion } from "./ExcerptsAccordion";
 import { Separator } from "./ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useContext } from "react";
-import { CurrentArticleContext } from "./ChatContext";
+import { CurrentArticleContext } from "./contexts/ChatContext";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
 
 type DetailsPanelProps = {

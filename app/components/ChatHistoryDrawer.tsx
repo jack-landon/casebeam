@@ -12,27 +12,38 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { SelectChat } from "@/lib/db/schema";
+import { sleep } from "@/lib/utils";
+import dayjs from "dayjs";
 import { History, Plus } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 type ChatHistoryDrawerProps = {
   chats: SelectChat[];
   text?: string;
+  className?: string;
 };
 
 export function ChatHistoryDrawer({
   chats,
   text = "History",
+  className,
 }: ChatHistoryDrawerProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
   const chatId = searchParams.get("id");
 
+  async function closeDrawer() {
+    await sleep(1300);
+    setIsOpen(false);
+  }
+
   return (
     <div className="">
-      <Sheet>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button className="cursor-pointer" variant="outline">
+          <Button className={`cursor-pointer ${className}`} variant="outline">
             <History />
             {text}
           </Button>
@@ -50,19 +61,26 @@ export function ChatHistoryDrawer({
             </div>
           ) : (
             <div className="flex flex-1 flex-col gap-2 p-2 overflow-y-auto border-y">
-              {chats.map((chat) => (
-                <Link
-                  key={chat.id}
-                  href={`/?id=${chat.id}`}
-                  className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
-                    chatId && chatId == chat.id
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  <span className="text-sm font-medium">{chat.name}</span>
-                </Link>
-              ))}
+              {chats
+                .sort(
+                  (a, b) =>
+                    dayjs(b.lastMessageAt).unix() -
+                    dayjs(a.lastMessageAt).unix()
+                )
+                .map((chat) => (
+                  <Link
+                    key={chat.id}
+                    href={`/?id=${chat.id}`}
+                    onClick={closeDrawer}
+                    className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
+                      chatId && chatId == chat.id
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{chat.name}</span>
+                  </Link>
+                ))}
             </div>
           )}
           <SheetFooter>

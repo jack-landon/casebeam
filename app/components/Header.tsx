@@ -9,11 +9,17 @@ import FloatingWindow from "./FloatingWindow";
 import Notepad from "./wysiwyg/Notepad";
 import { CurrentNoteContext } from "./CurrentNoteProvider";
 import { SelectNote } from "@/lib/db/schema";
+import { ChatHistoryDrawer } from "./ChatHistoryDrawer";
+import { useUserData } from "./contexts/UserDataContext";
+import { useSearchParams } from "next/navigation";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState<SelectNote | null>(null);
+  const { userData } = useUserData();
+  const searchParams = useSearchParams();
+  const currentChatId = searchParams.get("id");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,6 +82,13 @@ export default function Header() {
                 >
                   {isNotepadOpen ? "Hide Notepad" : "Open Notepad"}
                 </Button>
+                {userData?.chats && currentChatId && (
+                  <ChatHistoryDrawer
+                    chats={userData?.chats}
+                    text={`Past Chats`}
+                    className="text-xs"
+                  />
+                )}
               </SignedIn>
 
               <SignedOut>

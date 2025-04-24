@@ -29,12 +29,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { sendFeedbackEmail } from "@/lib/email";
-import { getResponse } from "@/lib/serverActions/getResultsFromAstro";
-
-async function getStuffFromAstro() {
-  const astroResponse = await getResponse();
-  console.log("Astro response:", astroResponse);
-}
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -102,14 +96,6 @@ export default function FeedbackPage() {
     <main className="container mx-auto py-10 px-4 md:px-6">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">We Value Your Feedback</h1>
-        <button
-          onClick={() => {
-            getStuffFromAstro();
-          }}
-          className="mb-4 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Get ASTRO
-        </button>
         <p className="text-muted-foreground mb-8">
           Please take a moment to let us know about your experience. Your
           feedback helps us improve our services.

@@ -9,7 +9,6 @@ import {
   projectsTable,
   usersTable,
 } from "../schema";
-import { auth } from "@clerk/nextjs/server";
 
 export async function getUserById(id: SelectUser["id"]) {
   return db.select().from(usersTable).where(eq(usersTable.id, id)).get();
@@ -40,17 +39,6 @@ export async function getPostsForLast24Hours(page = 1, pageSize = 5) {
     .orderBy(asc(projectsTable.name), asc(projectsTable.id))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
-}
-
-export async function getUserChats() {
-  const user = await auth();
-  if (!user.userId) throw new Error("User not authenticated");
-
-  return db
-    .select()
-    .from(chatsTable)
-    .where(eq(chatsTable.userId, user.userId))
-    .orderBy(asc(chatsTable.createdAt));
 }
 
 export async function getChat(chatId: string) {

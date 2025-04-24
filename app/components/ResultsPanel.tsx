@@ -2,18 +2,15 @@ import { motion } from "motion/react";
 import { Button } from "./ui/button";
 import SearchResult from "./SearchResult";
 import { View } from "@/page";
-import { SelectCategory, SelectProject } from "@/lib/db/schema";
 import Loader from "./Loader";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
 import { useContext, useEffect, useState } from "react";
-import { CurrentSearchResultsContext } from "./ChatContext";
+import { CurrentSearchResultsContext } from "./contexts/ChatContext";
 
 type ResultsPanelProps = {
   setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
   isGettingSearchResults: boolean;
   view: View;
-  userProjects: SelectProject[];
-  userCategories: SelectCategory[];
   setIsShowingSearchResults: (isHShowing: boolean) => void;
 };
 
@@ -21,8 +18,6 @@ export default function ResultsPanel({
   setCurrentArticle,
   isGettingSearchResults,
   view,
-  userProjects,
-  userCategories,
   setIsShowingSearchResults,
 }: ResultsPanelProps) {
   const currentSearchResults = useContext(CurrentSearchResultsContext);
@@ -86,8 +81,6 @@ export default function ResultsPanel({
               <SearchResult
                 key={i}
                 searchResult={result}
-                userProjects={userProjects}
-                userCategories={userCategories}
                 setCurrentArticle={setCurrentArticle}
               />
             ))}

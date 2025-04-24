@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
 export default function SearchPage() {
@@ -33,7 +34,7 @@ export default function SearchPage() {
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
-      <form onSubmit={handleSearch} className="mb-4">
+      {/* <form onSubmit={handleSearch} className="mb-4">
         <label className="block mb-2">
           <b>Enter search query:</b>
           <input
@@ -51,11 +52,42 @@ export default function SearchPage() {
         >
           {isLoading ? "Searching..." : "Search AustLII"}
         </button>
+      </form> */}
+
+      <form
+        method="GET"
+        action="http://www.austlii.edu.au/cgi-bin/sinosrch.cgi"
+      >
+        <input type="hidden" name="meta" value="/au" />
+        <input type="hidden" name="method" value="auto" />
+        <input type="hidden" name="results" value="20" />
+        <b>Enter search query:</b>
+        <br />
+        <Input
+          name="query"
+          size={35}
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <input type="submit" value="Search AustLII" />
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+        >
+          {isLoading ? "Searching..." : "Search AustLII"}
+        </button>
       </form>
 
       {error && <div className="text-red-500 mb-4">{error}</div>}
 
       {results && <div className="mt-4 border rounded p-4">{results}</div>}
+
+      <p>Whack Search</p>
+      <form onSubmit={handleSearch}>
+        <button>Test Handle</button>
+      </form>
     </div>
   );
 }

@@ -20,32 +20,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { SelectCategory, SelectProject } from "@/lib/db/schema";
 import { colorList } from "@/lib/utils";
 import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
 import { NewProjectModal } from "./NewProjectModal";
 import { NewCategoryModal } from "./NewCategoryModal";
-import StarRating from "./StarRating";
 import dayjs from "dayjs";
+import RelevanceIndicator from "./RelevanceIndicator";
+import { useUserData } from "./contexts/UserDataContext";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerpts;
   setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
   // getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
-  userProjects: SelectProject[];
-  userCategories: SelectCategory[];
 };
 
 export default function SearchResult({
   searchResult,
   setCurrentArticle,
-  userProjects,
-  userCategories,
 }: SearchResultProps) {
   const [saved, setSaved] = useState(false);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
+  const { userData } = useUserData();
 
   async function handleSave(
     e: React.MouseEvent,
@@ -83,7 +80,8 @@ export default function SearchResult({
               </span>
             )}
             {searchResult.similarityScore && (
-              <StarRating percentage={searchResult.similarityScore * 100} />
+              <RelevanceIndicator score={searchResult.similarityScore} />
+              // <StarRating percentage={searchResult.similarityScore * 100} />
             )}
             <CardTitle
               onClick={() => {
@@ -115,7 +113,7 @@ export default function SearchResult({
                 Save to project
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {userProjects.length === 0 ? (
+              {userData?.projects && userData.projects.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-1">
                   <p className="text-muted-foreground italic font-light text-sm mb-3">
                     You have no projects
@@ -131,7 +129,7 @@ export default function SearchResult({
                   </Button>
                 </div>
               ) : (
-                userProjects.map((project) => (
+                userData?.projects.map((project) => (
                   <DropdownMenuItem
                     key={project.id}
                     onClick={(e) => handleSave(e, "project", project.id)}
@@ -146,7 +144,7 @@ export default function SearchResult({
                 Save to category
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {userCategories.length == 0 ? (
+              {userData && userData.categories.length == 0 ? (
                 <div className="flex flex-col items-center justify-center p-1">
                   <p className="text-muted-foreground italic font-light text-sm mb-3">
                     You have no categories
@@ -161,9 +159,10 @@ export default function SearchResult({
                   </Button>
                 </div>
               ) : (
-                userCategories.length > 0 && (
+                userData &&
+                userData.categories.length > 0 && (
                   <>
-                    {userCategories.map((category) => (
+                    {userData?.categories.map((category) => (
                       <DropdownMenuItem
                         key={category.id}
                         onClick={(e) => handleSave(e, "category", category.id)}
