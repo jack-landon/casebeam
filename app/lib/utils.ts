@@ -138,3 +138,23 @@ export const DOC_TYPES = [
   "primary_legislation",
   "secondary_legislation",
 ] as const;
+
+export function formatTag(str: string) {
+  return str
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+    .replace(/_/g, " ");
+}
+
+export const timeOperation = async <T>(
+  operationName: string,
+  operation: () => Promise<T>
+): Promise<T> => {
+  const start = performance.now();
+  const result = await operation();
+  const end = performance.now();
+  const durationInSeconds = ((end - start) / 1000).toFixed(2);
+  console.log(`⏱️ ${operationName}: ${durationInSeconds}s`);
+  return result;
+};

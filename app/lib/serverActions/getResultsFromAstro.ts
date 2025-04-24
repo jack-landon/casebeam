@@ -5,7 +5,9 @@ import { FilterOption } from "@/page";
 
 export async function findRelevantContent(
   userQuery: string,
-  filters: FilterOption[] = []
+  filters: FilterOption[] = [],
+  limit: number = 20,
+  skip: number = 0
 ) {
   const database = connectToDatabase();
   const collection = database.collection<Document>(
@@ -37,7 +39,8 @@ export async function findRelevantContent(
 
   const relevantDocuments = collection.find(formattedFilters, {
     sort: { $vectorize: userQuery },
-    limit: 10,
+    limit,
+    skip,
     projection: {
       _id: true,
       doc_id: true,
@@ -67,7 +70,6 @@ export async function findRelevantContent(
   >[] = [];
 
   for await (const document of relevantDocuments) {
-    console.log(document);
     returnedDocuments.push(document);
   }
 

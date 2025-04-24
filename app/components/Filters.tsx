@@ -21,7 +21,7 @@ import {
   DOC_JURISDICTIONS,
   DOC_SOURCES,
   DOC_TYPES,
-  formatColumnNames,
+  formatTag,
 } from "@/lib/utils";
 import { FilterOption } from "@/page";
 import { Badge } from "./ui/badge";
@@ -94,7 +94,7 @@ export function FilterButtons({ filters, setFilters }: FilterProps) {
               ) : (
                 <div className={`w-3 h-3 rounded-full mr-2 ${colorList[i]}`} />
               )}
-              <span>{formatColumnNames(type)}</span>
+              <span>{formatTag(type)}</span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -123,7 +123,7 @@ export function FilterButtons({ filters, setFilters }: FilterProps) {
               ) : (
                 <div className={`w-3 h-3 rounded-full mr-2 ${colorList[i]}`} />
               )}
-              <span>{formatColumnNames(jurisdiction)}</span>
+              <span>{formatTag(jurisdiction)}</span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -150,7 +150,7 @@ export function FilterButtons({ filters, setFilters }: FilterProps) {
               ) : (
                 <div className={`w-3 h-3 rounded-full mr-2 ${colorList[i]}`} />
               )}
-              <span>{formatColumnNames(source)}</span>
+              <span>{formatTag(source)}</span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -171,7 +171,7 @@ export function FilterList({ filters, setFilters }: FilterProps) {
             onClick={() => toggleFilter(filter.key, filter.value, setFilters)}
           />
         </div>
-        <span className="ml-1">{formatColumnNames(filter.value)}</span>
+        <span className="ml-1">{formatTag(filter.value)}</span>
       </Badge>
     );
   });

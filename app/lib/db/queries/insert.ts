@@ -75,6 +75,15 @@ export async function updateMessage(
   return updatedMessage;
 }
 
+export async function updateChat(data: Partial<InsertChat> & { id: string }) {
+  const [updatedChat] = await db
+    .update(chatsTable)
+    .set(data)
+    .where(eq(chatsTable.id, data.id))
+    .returning();
+  return updatedChat;
+}
+
 export async function createMessageBulk(data: InsertMessage[]) {
   return await db.insert(messagesTable).values(data).returning();
 }

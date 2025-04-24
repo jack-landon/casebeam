@@ -2,6 +2,8 @@ import {
   createChat,
   createMessage,
   createSearchResultsBulk,
+  updateChat,
+  updateMessage,
 } from "@/lib/db/queries/insert";
 import { google } from "@ai-sdk/google";
 import { auth } from "@clerk/nextjs/server";
@@ -13,12 +15,14 @@ import {
   generateObject,
 } from "ai";
 import { z } from "zod";
-import { Excerpt, InsertSearchResult, SelectMessage } from "@/lib/db/schema";
+import { Excerpt, InsertSearchResult } from "@/lib/db/schema";
 import { findRelevantContent } from "@/lib/serverActions/getResultsFromAstro";
-import { convertUrlToEmbeddedUrl } from "@/lib/utils";
+import { convertUrlToEmbeddedUrl, formatTag, timeOperation } from "@/lib/utils";
 import { FilterOption } from "@/page";
-
-export const maxDuration = 30;
+import {
+  searchResultSummarySystemPrompt,
+  streamTextSystemMessage,
+} from "@/lib/promptBlocks";
 
 const searchResultsSchema = z.array(
   z.object({
@@ -47,18 +51,14 @@ export async function POST(req: Request) {
     filters?: FilterOption[];
   };
   if (!chatId) throw new Error("Chat ID is required");
-  console.log("Filters: ", filters);
 
   const user = await auth();
-  let botMsg: SelectMessage | null = null;
+  if (!user.userId) throw new Error("User not found");
+
   const messageToStore = messages[messages.length - 1];
   const isNewChat = messages.length == 1;
 
   const coreMessages = convertToCoreMessages(messages); // Get last 5 messages
-
-  // const contextWindow = coreMessages // Get last 5 messages
-  //   .map((msg) => msg.content)
-  //   .join("\n");
 
   // Get last 5 messages
   const contextWindow =
@@ -69,17 +69,43 @@ export async function POST(req: Request) {
           .map((msg) => `[${msg.role.toUpperCase()} MESSAGE]: ${msg.content}`)
           .join();
 
-  console.log("Context window:", contextWindow);
+  // Start Getting the relevant content ~ 5 seconds
+  const retrievedExcerptsPromise = timeOperation("Find Relevant Content", () =>
+    findRelevantContent(contextWindow, filters, 30)
+  );
 
-  const retrievedExcerpts = await findRelevantContent(contextWindow, filters);
+  if (isNewChat) {
+    const chatAndChatNamePromise = timeOperation(
+      "Create Chat and Generate Title",
+      () =>
+        Promise.all([
+          generateText({
+            model: google("gemini-2.0-flash-lite-preview-02-05"),
+            prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${messageToStore.content}`,
+          }),
+          createChat({
+            id: chatId,
+            userId: user.userId,
+            name: "Pending Title",
+          }),
+        ])
+    );
+
+    const [{ text: chatTitle }] = await chatAndChatNamePromise;
+
+    await updateChat({
+      id: chatId,
+      name: chatTitle,
+    });
+  }
 
   const docIdSet = new Set<string>();
+
+  const retrievedExcerpts = await retrievedExcerptsPromise;
   for (const excerpt of retrievedExcerpts) {
     if (docIdSet.has(excerpt.doc_id)) continue;
     docIdSet.add(excerpt.doc_id);
   }
-  console.log("Unique doc IDs:", docIdSet);
-
   // Create a doc object but keep the excerpts empty
   const docObject: {
     [key: string]: {
@@ -127,175 +153,94 @@ export async function POST(req: Request) {
     };
   }
 
-  console.log("Grouped documents:", docObject);
+  const topFiveResults = Object.values(docObject).slice(0, 5);
 
-  // const systemMessage = `You are a helpful legal assistant. You MUST follow these exact steps in order:
-  //   1. First, call the getInformation tool with the user's question
-  //   2. Wait for the tool to return results
-  //   3. Only after receiving the tool results, provide your response using that information
-  //   4. If the tool returns no results, respond with "Sorry, I don't know."
-  //   5. Your response must explicitly reference information from the tool results
-
-  //   Important: DO NOT generate any response before getting the tool results.`;
+  const searchResultsPromise = timeOperation("Generate Search Results", () =>
+    generateObject({
+      model: google("gemini-2.0-flash-lite-preview-02-05"),
+      system: searchResultSummarySystemPrompt(
+        messageToStore.content,
+        JSON.stringify(topFiveResults)
+      ),
+      messages: convertToCoreMessages(messages),
+      schema: searchResultsSchema,
+    })
+  );
 
   const result = streamText({
     model: google("gemini-2.0-flash-lite-preview-02-05"),
-    system: `You are a helpful legal assistant. You MUST answer the question using ONLY the information provided in this context: ${JSON.stringify(
-      docObject
-    )}`,
+    system: streamTextSystemMessage(JSON.stringify(topFiveResults)),
     messages: coreMessages,
-    // tools: {
-    //   getInformation: tool({
-    //     description: `Search the knowledge base using vector similarity to find relevant legal information. This tool uses embeddings to find the most semantically similar content.`,
-    //     parameters: z.object({
-    //       question: z
-    //         .string()
-    //         .describe(
-    //           coreMessages.map((msg) => msg.content).join("\n") +
-    //             "\n" +
-    //             messageToStore.content
-    //         ),
-    //     }),
-    //     execute: async ({ question }) => ({
-    //       sources: await findRelevantContent(question),
-    //     }),
-    //   }),
-    // },
-    onFinish: async ({
-      text,
-      // response,
-      // toolResults,
-      // stepType,
-      // finishReason,
-    }) => {
-      // console.log("Tool step type:", stepType);
-      // console.log("Tool finish reason:", finishReason);
-      // if (stepType !== "continue" || finishReason !== "stop") {
-      //   return;
-      // }
-
+    onFinish: async ({ text }) => {
       // If user is signed in, store the chat and message in the database
       if (isNewChat && user.userId) {
-        const { text: chatTitle } = await generateText({
-          model: google("gemini-2.5-pro-exp-03-25"),
-          prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${messageToStore.content}`,
-        });
+        const [userMsgDb, botMsg] = await timeOperation("Create Messages", () =>
+          Promise.all([
+            createMessage({
+              chatId,
+              content: messageToStore.content,
+              role: messageToStore.role,
+            }),
+            createMessage({
+              chatId,
+              content: text,
+              role: "assistant",
+              responseToMsgId: null, // Note: This is updated after
+            }),
+          ])
+        );
 
-        console.log("Chat title:", chatTitle);
-
-        await createChat({
-          id: chatId,
-          userId: user.userId,
-          name: chatTitle,
-        });
-
-        console.log("Chat created:", chatId);
-
-        const userMsgDb = await createMessage({
-          chatId,
-          content: messageToStore.content,
-          role: messageToStore.role,
-        });
-
-        console.log("User message created:", userMsgDb);
-
-        botMsg = await createMessage({
-          chatId,
-          content: text,
-          role: "assistant",
+        // Update ID
+        updateMessage({
+          id: botMsg.id,
           responseToMsgId: userMsgDb.id,
         });
 
-        console.log("Bot message created:", botMsg);
+        const { object: searchResults } = await searchResultsPromise!;
 
-        // const sources = toolResults[0].result.map((source) => source.url);
+        const newTransformedResults: InsertSearchResult[] = Object.values(
+          docObject
+        ).map((doc) => {
+          const searchResult = searchResults.find(
+            (result) => result.docId.toLowerCase() === doc.doc_id.toLowerCase()
+          );
 
-        // console.log("Sources:", sources);
+          const tags = !searchResult?.tags
+            ? []
+            : searchResult.tags.map((tag) => formatTag(tag));
 
-        console.log("Message Text:", text);
+          if (doc.source) tags.unshift(formatTag(doc.source));
+          if (doc.jurisdiction) tags.unshift(formatTag(doc.jurisdiction));
+          if (doc.type) tags.unshift(formatTag(doc.type));
 
-        const searchResultSummarySystemPrompt = `
-          For each source in the following input, you are to create an object for each document.
-          Follow the order of the input and do not change the order under any circumstance.
-          The docId should be the original docId.
-          The title should be a short overall explanation of how the document relates to the user query in 14 words or less.
-          The docSummary should be an overall summary of the document itself.
-          The relevanceSummary should extend on the title and provide a 100 - 200 word summary of how the document relates to the user query.
-          The tags should be a 2-3 list of short 1-2 word tags that are relevant to the document.
-          NEVER mention in the title that the document is not relevant or related to the query.
-          The user query you are finding relevance for is this: [START OF USER MESSAGE]${
-            messageToStore.content
-          }.[END OF USER MESSAGE]
-          The documents you are drawing this data from is here: [START OF SOURCE DATA]${JSON.stringify(
-            docObject
-          )}[END OF SOURCE DATA].
-          Do NOT mention the term "user query" in your response.
-        `;
-
-        const { object: searchResults } = await generateObject({
-          model: google("gemini-2.0-flash-lite-preview-02-05"),
-          system: searchResultSummarySystemPrompt,
-          messages: convertToCoreMessages(messages),
-          schema: searchResultsSchema,
+          const updatedExcerpts = doc.excerpts.map((excerpt) => ({
+            ...excerpt,
+            title: !searchResult ? excerpt.title : searchResult.title,
+          }));
+          return {
+            title: searchResult?.title ?? doc.citation,
+            docTitle: doc.citation,
+            docId: doc.doc_id,
+            docSummary:
+              searchResult?.docSummary ??
+              `${updatedExcerpts[0].content.slice(0, 150)}...`,
+            relevanceSummary:
+              searchResult?.relevanceSummary ??
+              `${updatedExcerpts[0].content.slice(0, 150)}...`,
+            url: doc.url,
+            docDate: doc.date ?? null,
+            similarityScore: doc.similarityScore,
+            tags: JSON.stringify(tags),
+            excerpts: JSON.stringify(updatedExcerpts),
+            userId: user.userId,
+            messageId: botMsg?.id,
+            chatId,
+          };
         });
 
-        if (user.userId) {
-          // type OldSearchResultType = {
-          //   [K in keyof typeof docObject]: (typeof docObject)[K] & {
-          //     docId: string;
-          //     title: string;
-          //     docSummary: string;
-          //     relevanceSummary: string;
-          //     tags: string[];
-          //   };
-          // };
-          const newTransformedResults: InsertSearchResult[] = Object.values(
-            docObject
-          ).map((doc) => {
-            const searchResult = searchResults.find(
-              (result) =>
-                result.docId.toLowerCase() === doc.doc_id.toLowerCase()
-            );
-            if (searchResult?.tags) {
-              if (doc.source) {
-                searchResult.tags.unshift(
-                  doc.source.toLowerCase().replace(/_/g, " ")
-                );
-              }
-              if (doc.jurisdiction) {
-                searchResult.tags.unshift(
-                  doc.jurisdiction.toLowerCase().replace(/_/g, " ")
-                );
-              }
-              if (doc.type) {
-                searchResult.tags.unshift(
-                  doc.type.toLowerCase().replace(/_/g, " ")
-                );
-              }
-            }
-            const updatedExcerpts = doc.excerpts.map((excert) => ({
-              ...excert,
-              title: !searchResult ? excert.title : searchResult.title,
-            }));
-            return {
-              title: searchResult?.title ?? "",
-              docTitle: doc.citation,
-              docId: doc.doc_id,
-              docSummary: searchResult?.docSummary ?? "",
-              relevanceSummary: searchResult?.relevanceSummary ?? "",
-              url: doc.url,
-              docDate: doc.date ?? null,
-              similarityScore: doc.similarityScore,
-              tags: JSON.stringify(searchResult?.tags ?? []),
-              excerpts: JSON.stringify(updatedExcerpts),
-              userId: user.userId,
-              messageId: botMsg?.id,
-              chatId,
-            };
-          });
-
-          await createSearchResultsBulk(Object.values(newTransformedResults));
-        }
+        await timeOperation("Save Search Results", () =>
+          createSearchResultsBulk(Object.values(newTransformedResults))
+        );
       }
     },
     onError: (error) => {
