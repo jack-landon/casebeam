@@ -2,7 +2,6 @@ import {
   createChat,
   createManyMessages,
   createSearchResultsBulk,
-  updateChat,
 } from "@/lib/db/queries/insert";
 import { google } from "@ai-sdk/google";
 import { auth } from "@clerk/nextjs/server";
@@ -79,28 +78,21 @@ export async function POST(req: Request) {
   );
 
   if (isNewChat) {
-    const chatAndChatNamePromise = timeOperation(
-      "Create Chat and Generate Title",
-      () =>
-        Promise.all([
-          generateText({
-            model: google("gemini-2.0-flash-lite-preview-02-05"),
-            prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${messageToStore.content}`,
-          }),
-          createChat({
-            id: chatId,
-            userId: user.userId,
-            name: "Pending Title",
-          }),
-        ])
-    );
-
-    const [{ text: chatTitle }] = await chatAndChatNamePromise;
-
-    await updateChat({
-      id: chatId,
-      name: chatTitle,
-    });
+    generateText({
+      model: google("gemini-2.0-flash-lite-preview-02-05"),
+      prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${messageToStore.content}`,
+    })
+      .then(async (result) => {
+        await createChat({
+          id: chatId,
+          userId: user.userId,
+          name: result.text,
+        });
+      })
+      .catch((error) => {
+        console.error("Error generating chat title:", error);
+        // Handle the error as needed
+      });
   }
 
   const docIdSet = new Set<string>();
@@ -189,24 +181,22 @@ export async function POST(req: Request) {
         onFinish: async ({ text }) => {
           // If user is signed in, store the chat and message in the database
           if (isNewChat && user.userId) {
-            await timeOperation("Create Messages", () =>
-              createManyMessages([
-                {
-                  id: userMsgId,
-                  msgIndex: userMsgIndex,
-                  chatId,
-                  content: messageToStore.content,
-                  role: messageToStore.role,
-                },
-                {
-                  id: botMsgId,
-                  msgIndex: botMsgIndex,
-                  chatId,
-                  content: text,
-                  role: "assistant",
-                },
-              ])
-            );
+            const savedMsgsInDbPromise = createManyMessages([
+              {
+                id: userMsgId,
+                msgIndex: userMsgIndex,
+                chatId,
+                content: messageToStore.content,
+                role: messageToStore.role,
+              },
+              {
+                id: botMsgId,
+                msgIndex: botMsgIndex,
+                chatId,
+                content: text,
+                role: "assistant",
+              },
+            ]);
 
             const { object: searchResults } = await searchResultsPromise!;
 
@@ -251,6 +241,7 @@ export async function POST(req: Request) {
               };
             });
 
+            await savedMsgsInDbPromise;
             await timeOperation("Save Search Results", () =>
               createSearchResultsBulk(Object.values(newTransformedResults))
             );
