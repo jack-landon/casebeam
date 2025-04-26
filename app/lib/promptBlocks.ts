@@ -18,11 +18,10 @@ export function searchResultSummarySystemPrompt(
   return `For each source in the following input, you are to create an object for each document.
 Follow the order of the input and do not change the order under any circumstance.
 The docId should be the original docId.
-The title should be a short overall explanation of how the document relates to the user query in 14 words or less.
+The title should be a short overall explanation of how the document relates to the user query in 14 words or less [NEVER mention that the document is not relevant or related to the query].
 The docSummary should be an overall summary of the document itself.
 The relevanceSummary should extend on the title and provide a 100 - 200 word summary of how the document relates to the user query.
-The tags should be a 2-3 list of short 1-2 word tags that are relevant to the document.
-NEVER mention in the title that the document is not relevant or related to the query.
+For EVERY excerpt, provide a short summary of the excerpt and how it relates to the user query [EACH SHOULD BE LESS THAN 12 WORDS]. You MUST NOT skip any excerpts.
 The user query you are finding relevance for is this: [START OF USER MESSAGE]${messageToStore}. [END OF USER MESSAGE].
 The documents you are drawing this data from is here: [START OF SOURCE DATA]${topFiveResults}. [END OF SOURCE DATA].
 Do NOT mention the term "user query" in your response.

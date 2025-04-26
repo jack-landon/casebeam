@@ -31,7 +31,7 @@ const searchResultsSchema = z.array(
     title: z.string(), // title about how it relates to the query
     docSummary: z.string(), // From the source - Run embeddings on the entire document
     relevanceSummary: z.string(),
-    tags: z.array(z.string()),
+    excerpts: z.array(z.string()), // how the excerpt relates to the query
     // excerpts: z.array(
     //   z.object({
     //     excerptId: z.string(), // references the embedding id going in
@@ -220,17 +220,17 @@ export async function POST(req: Request) {
                   result.docId.toLowerCase() === doc.doc_id.toLowerCase()
               );
 
-              const tags = !searchResult?.tags
-                ? []
-                : searchResult.tags.map((tag) => formatTag(tag));
+              const tags = [];
 
-              if (doc.source) tags.unshift(formatTag(doc.source));
-              if (doc.jurisdiction) tags.unshift(formatTag(doc.jurisdiction));
-              if (doc.type) tags.unshift(formatTag(doc.type));
+              if (doc.source) tags.push(formatTag(doc.source));
+              if (doc.type) tags.push(formatTag(doc.type));
+              if (doc.jurisdiction) tags.push(formatTag(doc.jurisdiction));
 
-              const updatedExcerpts = doc.excerpts.map((excerpt) => ({
+              const updatedExcerpts = doc.excerpts.map((excerpt, i) => ({
                 ...excerpt,
-                title: !searchResult ? excerpt.title : searchResult.title,
+                title: !searchResult
+                  ? excerpt.title
+                  : searchResult.excerpts[i] ?? `Excerpt ${i + 1}`,
               }));
               return {
                 title: searchResult?.title ?? doc.citation,

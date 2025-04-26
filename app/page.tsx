@@ -16,7 +16,12 @@ import {
 } from "./components/contexts/ChatContext";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ListCollapse } from "lucide-react";
-import { DOC_JURISDICTIONS, DOC_SOURCES, DOC_TYPES } from "./lib/utils";
+import {
+  DOC_JURISDICTIONS,
+  DOC_SOURCES,
+  DOC_TYPES,
+  formatTag,
+} from "./lib/utils";
 
 export type View = "chat" | "results" | "details";
 
@@ -68,7 +73,6 @@ function HomeContent() {
       if (response) {
         console.log("First Response", response);
         setIsGenerating(false);
-        setIsShowingSearchResults(true);
         setIsGettingSearchResults(true);
         if (!openViews.includes("results")) {
           const newViews = [...openViews];
@@ -115,6 +119,7 @@ function HomeContent() {
   useEffect(() => {
     console.log("The data has changed", data);
     if (data) {
+      setIsShowingSearchResults(true);
       const initialSearchResultData = (
         data[0] as unknown as {
           initialSearchResults: {
@@ -147,8 +152,10 @@ function HomeContent() {
         similarityScore: result.similarityScore,
         url: result.url ?? "#",
         chatId: chatId,
-        tags: [],
-        excerpts: [],
+        tags: [result.type, result.jurisdiction, result.source].map((tag) =>
+          formatTag(tag)
+        ),
+        excerpts: result.excerpts,
       }));
       setCurrentSearchResults(transaformedData);
       setIsGettingSearchResults(false);
