@@ -5,20 +5,14 @@ import Link from "next/link";
 import { ExcerptsAccordion } from "./ExcerptsAccordion";
 import { Separator } from "./ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { useContext } from "react";
-import { CurrentArticleContext } from "./contexts/ChatContext";
-import { InsertSearchResultWithExcerpts } from "@/lib/types";
+import { useCurrentArticle } from "./contexts/CurrentArticleContext";
 
 type DetailsPanelProps = {
   view: View;
-  setCurrentArticle: (article: InsertSearchResultWithExcerpts | null) => void;
 };
 
-export default function DetailsPanel({
-  view,
-  setCurrentArticle,
-}: DetailsPanelProps) {
-  const currentArticle = useContext(CurrentArticleContext);
+export default function DetailsPanel({ view }: DetailsPanelProps) {
+  const { currentArticle, setCurrentArticle } = useCurrentArticle();
 
   if (currentArticle) {
     return (

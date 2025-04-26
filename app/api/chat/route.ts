@@ -12,9 +12,11 @@ import {
   generateText,
   generateObject,
   createDataStreamResponse,
+  GenerateTextResult,
+  ToolSet,
 } from "ai";
 import { z } from "zod";
-import { Excerpt, InsertSearchResult } from "@/lib/db/schema";
+import { Excerpt, InsertSearchResult, SelectChat } from "@/lib/db/schema";
 import { findRelevantContent } from "@/lib/serverActions/getResultsFromAstro";
 import { convertUrlToEmbeddedUrl, formatTag, timeOperation } from "@/lib/utils";
 import { FilterOption } from "@/page";
@@ -57,6 +59,11 @@ export async function POST(req: Request) {
   const userMsgId = `${chatId}-${userMsgIndex}`;
   const botMsgId = `${chatId}-${botMsgIndex}`;
 
+  let generateChatTitlePromise: Promise<
+    GenerateTextResult<ToolSet, never>
+  > | null = null;
+  let createChatPromise: Promise<SelectChat> | null = null;
+
   const user = await auth();
   if (!user.userId) throw new Error("User not found");
 
@@ -80,21 +87,10 @@ export async function POST(req: Request) {
   );
 
   if (isNewChat) {
-    generateText({
+    generateChatTitlePromise = generateText({
       model: google("gemini-2.0-flash-lite-preview-02-05"),
       prompt: `Generate a short summary title for this chat. The title must be less than 10 words and be 1 sentence and do not end it with a period. This is the chat topic: ${messageToStore.content}`,
-    })
-      .then(async (result) => {
-        await createChat({
-          id: chatId,
-          userId: user.userId,
-          name: result.text,
-        });
-      })
-      .catch((error) => {
-        console.error("Error generating chat title:", error);
-        // Handle the error as needed
-      });
+    });
   }
 
   const docIdSet = new Set<string>();
@@ -180,70 +176,83 @@ export async function POST(req: Request) {
         messages: coreMessages,
         onFinish: async ({ text }) => {
           // If user is signed in, store the chat and message in the database
-          if (isNewChat && user.userId) {
-            const savedMsgsInDbPromise = createManyMessages([
-              {
-                id: userMsgId,
-                msgIndex: userMsgIndex,
-                chatId,
-                content: messageToStore.content,
-                role: messageToStore.role,
-              },
-              {
-                id: botMsgId,
-                msgIndex: botMsgIndex,
-                chatId,
-                content: text,
-                role: "assistant",
-              },
-            ]);
-
-            const { object: searchResults } = await searchResultsPromise;
-            await savedMsgsInDbPromise;
-
-            const newTransformedResults: InsertSearchResult[] = Object.values(
-              docObject
-            ).map((doc) => {
-              const searchResult = searchResults.find(
-                (result) =>
-                  result.docId.toLowerCase() === doc.doc_id.toLowerCase()
-              );
-
-              const tags = [];
-
-              if (doc.source) tags.push(formatTag(doc.source));
-              if (doc.type) tags.push(formatTag(doc.type));
-              if (doc.jurisdiction) tags.push(formatTag(doc.jurisdiction));
-
-              const updatedExcerpts = doc.excerpts.map((excerpt, i) => ({
-                ...excerpt,
-                title: !searchResult
-                  ? excerpt.title
-                  : searchResult.excerpts[i] ?? `Excerpt ${i + 1}`,
-              }));
-              return {
-                title: searchResult?.title ?? doc.citation,
-                docTitle: doc.citation,
-                docId: doc.doc_id,
-                docSummary:
-                  searchResult?.docSummary ??
-                  `${updatedExcerpts[0].content.slice(0, 150)}...`,
-                relevanceSummary:
-                  searchResult?.relevanceSummary ??
-                  `${updatedExcerpts[0].content.slice(0, 150)}...`,
-                url: doc.url,
-                docDate: doc.date,
-                similarityScore: doc.similarityScore,
-                tags: JSON.stringify(tags),
-                excerpts: JSON.stringify(updatedExcerpts),
+          if (isNewChat) {
+            if (generateChatTitlePromise) {
+              const { text: chatTitle } = await generateChatTitlePromise;
+              createChatPromise = createChat({
+                id: chatId,
                 userId: user.userId,
-                messageId: botMsgId,
-                chatId,
-              };
-            });
+                name: chatTitle,
+              });
+            }
 
-            await createSearchResultsBulk(Object.values(newTransformedResults));
+            if (createChatPromise) {
+              await createChatPromise;
+            }
           }
+
+          const savedMsgsInDbPromise = createManyMessages([
+            {
+              id: userMsgId,
+              msgIndex: userMsgIndex,
+              chatId,
+              content: messageToStore.content,
+              role: messageToStore.role,
+            },
+            {
+              id: botMsgId,
+              msgIndex: botMsgIndex,
+              chatId,
+              content: text,
+              role: "assistant",
+            },
+          ]);
+
+          const { object: searchResults } = await searchResultsPromise;
+          await savedMsgsInDbPromise;
+
+          const newTransformedResults: InsertSearchResult[] = Object.values(
+            docObject
+          ).map((doc) => {
+            const searchResult = searchResults.find(
+              (result) =>
+                result.docId.toLowerCase() === doc.doc_id.toLowerCase()
+            );
+
+            const tags = [];
+
+            if (doc.source) tags.push(formatTag(doc.source));
+            if (doc.type) tags.push(formatTag(doc.type));
+            if (doc.jurisdiction) tags.push(formatTag(doc.jurisdiction));
+
+            const updatedExcerpts = doc.excerpts.map((excerpt, i) => ({
+              ...excerpt,
+              title: !searchResult
+                ? excerpt.title
+                : searchResult.excerpts[i] ?? `Excerpt ${i + 1}`,
+            }));
+            return {
+              title: searchResult?.title ?? doc.citation,
+              docTitle: doc.citation,
+              docId: doc.doc_id,
+              docSummary:
+                searchResult?.docSummary ??
+                `${updatedExcerpts[0].content.slice(0, 150)}...`,
+              relevanceSummary:
+                searchResult?.relevanceSummary ??
+                `${updatedExcerpts[0].content.slice(0, 150)}...`,
+              url: doc.url,
+              docDate: doc.date,
+              similarityScore: doc.similarityScore,
+              tags: JSON.stringify(tags),
+              excerpts: JSON.stringify(updatedExcerpts),
+              userId: user.userId,
+              messageId: botMsgId,
+              chatId,
+            };
+          });
+
+          await createSearchResultsBulk(Object.values(newTransformedResults));
         },
         onError: (error) => {
           console.error("Stream error:", error);

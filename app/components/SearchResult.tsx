@@ -29,22 +29,22 @@ import dayjs from "dayjs";
 import RelevanceIndicator from "./RelevanceIndicator";
 import { useUserData } from "./contexts/UserDataContext";
 import Loader from "./Loader";
+import { useCurrentArticle } from "./contexts/CurrentArticleContext";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerpts;
-  setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
   isStreaming?: boolean;
   // getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
 };
 
 export default function SearchResult({
   searchResult,
-  setCurrentArticle,
   isStreaming = false,
 }: SearchResultProps) {
   const [saved, setSaved] = useState(false);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
+  const { setCurrentArticle } = useCurrentArticle();
   const { userData } = useUserData();
 
   async function handleSave(
@@ -77,29 +77,33 @@ export default function SearchResult({
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
-            {searchResult.docDate && (
-              <span className="text-xs text-muted-foreground mb-2">
-                {dayjs(searchResult.docDate).format("MMM D, YYYY")}
-              </span>
-            )}
-            {searchResult.similarityScore && (
-              <RelevanceIndicator score={searchResult.similarityScore} />
-              // <StarRating percentage={searchResult.similarityScore * 100} />
-            )}
+            <div className="mb-3">
+              {searchResult.docDate && (
+                <span className="text-xs text-muted-foreground mb-2">
+                  {dayjs(searchResult.docDate).format("MMM D, YYYY")}
+                </span>
+              )}
+              {searchResult.similarityScore && (
+                <RelevanceIndicator score={searchResult.similarityScore} />
+                // <StarRating percentage={searchResult.similarityScore * 100} />
+              )}
+            </div>
             <CardTitle
               onClick={() => {
                 if (isStreaming) return toast.error("Loading Result...");
                 setCurrentArticle(searchResult);
               }}
-              className={`flex items-center cursor-pointer group-hover:underline text-xl text-primary hover:underline ${
+              className={`flex items-center cursor-pointer group-hover:underline text-xl text-primary hover:underline mb-2 ${
                 isStreaming ? "animate-pulse" : ""
               }`}
             >
               {isStreaming && <Loader size="sm" className="mr-2" />}
-              <p>{searchResult.title}</p>
+              <p>{searchResult.title.replace(/\.$/, "")}</p>
             </CardTitle>
             <CardDescription
-              className={`text-sm ${isStreaming ? "animate-pulse" : ""}`}
+              className={`text-base italic ${
+                isStreaming ? "animate-pulse" : ""
+              }`}
             >
               {searchResult.docTitle}
             </CardDescription>
@@ -193,7 +197,7 @@ export default function SearchResult({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground mb-2">
           {searchResult.docSummary}
         </p>
         {searchResult.tags && (

@@ -3,12 +3,10 @@ import { Button } from "./ui/button";
 import SearchResult from "./SearchResult";
 import { View } from "@/page";
 import Loader from "./Loader";
-import { InsertSearchResultWithExcerpts } from "@/lib/types";
-import { useContext, useEffect, useState } from "react";
-import { CurrentSearchResultsContext } from "./contexts/ChatContext";
+import { useEffect, useState } from "react";
+import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
 
 type ResultsPanelProps = {
-  setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
   isGettingSearchResults: boolean;
   view: View;
   setIsShowingSearchResults: (isHShowing: boolean) => void;
@@ -16,14 +14,13 @@ type ResultsPanelProps = {
 };
 
 export default function ResultsPanel({
-  setCurrentArticle,
   isGettingSearchResults,
   view,
   setIsShowingSearchResults,
   isStreaming = false,
 }: ResultsPanelProps) {
-  const currentSearchResults = useContext(CurrentSearchResultsContext);
   const [amountOfResults, setAmountOfResults] = useState<number>(0);
+  const { currentSearchResults } = useCurrentSearchResults();
 
   useEffect(() => {
     // set the amount of results to a random number between 3,000 and 60,000
@@ -42,7 +39,9 @@ export default function ResultsPanel({
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between">
         <div>
-          <p className="text-3xl font-bold group-hover:underline">Results</p>
+          <p className="text-3xl font-bold group-hover:underline flex items-center">
+            Results {isStreaming && <Loader className="ml-2" size="md" />}
+          </p>
           <p className="text-sm text-muted-foreground">
             From {amountOfResults.toLocaleString()} results
           </p>
@@ -83,7 +82,6 @@ export default function ResultsPanel({
               <SearchResult
                 key={i}
                 searchResult={result}
-                setCurrentArticle={setCurrentArticle}
                 isStreaming={isStreaming}
               />
             ))}

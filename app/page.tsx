@@ -8,12 +8,7 @@ import DetailsPanel from "./components/DetailsPanel";
 import ChatPanel from "./components/ChatPanel";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { InsertSearchResultWithExcerpts } from "./lib/types";
 import { getChat, getSearchResults } from "./lib/db/queries/query";
-import {
-  CurrentArticleContext,
-  CurrentSearchResultsContext,
-} from "./components/contexts/ChatContext";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ListCollapse } from "lucide-react";
 import {
@@ -22,6 +17,8 @@ import {
   DOC_TYPES,
   formatTag,
 } from "./lib/utils";
+import { useCurrentSearchResults } from "./components/contexts/CurrentSearchResultsContext";
+import { useCurrentArticle } from "./components/contexts/CurrentArticleContext";
 
 export type View = "chat" | "results" | "details";
 
@@ -47,14 +44,12 @@ function HomeContent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const [openViews, setOpenViews] = useState<View[]>(["chat"]);
-  const [currentSearchResults, setCurrentSearchResults] = useState<
-    InsertSearchResultWithExcerpts[]
-  >([]);
-  const [currentArticle, setCurrentArticle] =
-    useState<InsertSearchResultWithExcerpts | null>(null);
   const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
   const [isShowingSearchResults, setIsShowingSearchResults] = useState(false);
   const [chatName, setChatName] = useState<string | undefined>(undefined);
+  const { currentSearchResults, setCurrentSearchResults } =
+    useCurrentSearchResults();
+  const { currentArticle } = useCurrentArticle();
 
   const {
     id: generatedChatId,
@@ -267,78 +262,69 @@ function HomeContent() {
   }, [currentArticle]);
 
   return (
-    <CurrentSearchResultsContext.Provider value={currentSearchResults}>
-      <CurrentArticleContext.Provider value={currentArticle}>
-        <main className="flex h-[calc(100vh-4rem)] w-full max-w-7xl flex-col items-center mx-auto">
-          <AnimatePresence>
-            <PanelGroup direction="horizontal">
+    <main className="flex h-[calc(100vh-4rem)] w-full max-w-7xl flex-col items-center mx-auto">
+      <AnimatePresence>
+        <PanelGroup direction="horizontal">
+          <Panel defaultSize={30} minSize={20}>
+            <ChatPanel
+              key={"chat"}
+              openViews={openViews}
+              messages={messages}
+              input={input}
+              view={"chat"}
+              handleActionClick={handleActionClick}
+              handleInputChange={handleInputChange}
+              isGenerating={isGenerating}
+              isLoading={isLoading}
+              onKeyDown={onKeyDown}
+              onSubmit={onSubmit}
+              filters={filters}
+              setFilters={setFilters}
+              chatName={chatName}
+            />
+          </Panel>
+          {isShowingSearchResults ? (
+            <>
+              <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
               <Panel defaultSize={30} minSize={20}>
-                <ChatPanel
-                  key={"chat"}
-                  openViews={openViews}
-                  messages={messages}
-                  input={input}
-                  view={"chat"}
-                  handleActionClick={handleActionClick}
-                  handleInputChange={handleInputChange}
-                  isGenerating={isGenerating}
-                  isLoading={isLoading}
-                  onKeyDown={onKeyDown}
-                  onSubmit={onSubmit}
-                  filters={filters}
-                  setFilters={setFilters}
-                  chatName={chatName}
+                <ResultsPanel
+                  key={"results"}
+                  view={"results"}
+                  isGettingSearchResults={isGettingSearchResults}
+                  setIsShowingSearchResults={setIsShowingSearchResults}
+                  isStreaming={status == "streaming"}
                 />
               </Panel>
-              {isShowingSearchResults ? (
-                <>
-                  <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
-                  <Panel defaultSize={30} minSize={20}>
-                    <ResultsPanel
-                      key={"results"}
-                      view={"results"}
-                      setCurrentArticle={setCurrentArticle}
-                      isGettingSearchResults={isGettingSearchResults}
-                      setIsShowingSearchResults={setIsShowingSearchResults}
-                      isStreaming={status == "streaming"}
-                    />
-                  </Panel>
-                </>
-              ) : currentSearchResults.length > 0 ? (
-                <Panel
-                  className="bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setIsShowingSearchResults(true);
-                  }}
-                  defaultSize={5}
-                  minSize={5}
-                  maxSize={5}
-                >
-                  <div className="flex items-center justify-center h-full">
-                    <p className="flex items-center gap-4 transform rotate-90 origin-center whitespace-nowrap font-medium">
-                      <ListCollapse />
-                      Show Search Results
-                    </p>
-                  </div>
-                </Panel>
-              ) : null}
-              {currentArticle && (
-                <>
-                  <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
-                  <Panel defaultSize={30} minSize={20}>
-                    <DetailsPanel
-                      key={"details"}
-                      view={"details"}
-                      setCurrentArticle={setCurrentArticle}
-                    />
-                  </Panel>
-                </>
-              )}
-            </PanelGroup>
-          </AnimatePresence>
-        </main>
-      </CurrentArticleContext.Provider>
-    </CurrentSearchResultsContext.Provider>
+            </>
+          ) : currentSearchResults.length > 0 ? (
+            <Panel
+              className="bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer"
+              onClick={() => {
+                setIsShowingSearchResults(true);
+              }}
+              defaultSize={5}
+              minSize={5}
+              maxSize={5}
+            >
+              <div className="flex items-center justify-center h-full">
+                <p className="flex items-center gap-4 transform rotate-90 origin-center whitespace-nowrap font-medium">
+                  <ListCollapse />
+                  Show Search Results
+                </p>
+              </div>
+            </Panel>
+          ) : null}
+          {currentArticle && (
+            <>
+              <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
+              <Panel defaultSize={30} minSize={20}>
+                <DetailsPanel key={"details"} view={"details"} />
+              </Panel>
+            </>
+          )}
+        </PanelGroup>
+      </AnimatePresence>
+    </main>
   );
 }
 

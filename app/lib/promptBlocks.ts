@@ -8,7 +8,7 @@ export const systemMessageForTool = `You are a helpful legal assistant. You MUST
 Important: DO NOT generate any response before getting the tool results.`;
 
 export function streamTextSystemMessage(topFiveResults: string) {
-  return `You are a helpful legal assistant. You MUST answer the question using ONLY the information provided in this context: ${topFiveResults}`;
+  return `You are a helpful legal assistant. I will give you some relavent excerpts, and you MUST answer the question using ONLY the information provided in the context. In your answer, if you mention something, you must mention the citation of your source. Also, space your response with paragraphs. These are the documents you may use: ${topFiveResults}`;
 }
 
 export function searchResultSummarySystemPrompt(

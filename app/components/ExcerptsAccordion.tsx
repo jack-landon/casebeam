@@ -35,12 +35,12 @@ export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
           <AccordionContent className="bg-secondary/50 p-1">
             <div className="space-y-4 pt-2 px-1">
               <div>
-                <h3 className="font-semibold mb-1">Case Name</h3>
+                <h3 className="font-semibold mb-1">Document Name</h3>
                 <p>{excerpt.caseName}</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Excerpt</h3>
-                <blockquote className="border-l-2 border-muted-foreground/30 pl-4 italic">
+                <blockquote className="border-l-2 border-muted-foreground/30 pl-4 leading-loose">
                   {excerpt.content}
                 </blockquote>
               </div>

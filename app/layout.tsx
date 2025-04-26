@@ -8,6 +8,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 import { UserDataProvider } from "./components/contexts/UserDataContext";
 import { getUserData } from "./lib/db/queries/query";
+import { CurrentSearchResultsProvider } from "./components/contexts/CurrentSearchResultsContext";
+import { CurrentArticleProvider } from "./components/contexts/CurrentArticleContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,12 +38,16 @@ export default async function RootLayout({
         <body className={`${inter.className} bg-muted/30`}>
           <ThemeProvider attribute="class" defaultTheme="system">
             <UserDataProvider initialUserData={userData}>
-              <>
-                <Header />
-                {children}
-              </>
-              <Toaster />
-              {/* <ChatSupport /> */}
+              <CurrentSearchResultsProvider>
+                <CurrentArticleProvider>
+                  <>
+                    <Header />
+                    {children}
+                  </>
+                  <Toaster />
+                  {/* <ChatSupport /> */}
+                </CurrentArticleProvider>
+              </CurrentSearchResultsProvider>
             </UserDataProvider>
           </ThemeProvider>
         </body>
