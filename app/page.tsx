@@ -41,12 +41,20 @@ export type FilterOption = {
 
 function HomeContent() {
   const router = useRouter();
-
   const searchParams = useSearchParams();
   let chatId = searchParams.get("id");
-
   const [filters, setFilters] = useState<FilterOption[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const [openViews, setOpenViews] = useState<View[]>(["chat"]);
+  const [currentSearchResults, setCurrentSearchResults] = useState<
+    InsertSearchResultWithExcerpts[]
+  >([]);
+  const [currentArticle, setCurrentArticle] =
+    useState<InsertSearchResultWithExcerpts | null>(null);
+  const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
+  const [isShowingSearchResults, setIsShowingSearchResults] = useState(false);
+  const [chatName, setChatName] = useState<string | undefined>(undefined);
 
   const {
     id: generatedChatId,
@@ -82,14 +90,6 @@ function HomeContent() {
       }
     },
     async onFinish(res) {
-      console.log("Res:", res);
-      const sources = res.parts
-        ?.filter((part) => part.type === "source")
-        .map((part) => part.source);
-
-      console.log("Sources:", sources);
-      if (!sources) return;
-
       if (!chatId) return setIsGettingSearchResults(false);
 
       const [chat, fetchedSearchResults] = await Promise.all([
@@ -161,19 +161,6 @@ function HomeContent() {
       setIsGettingSearchResults(false);
     }
   }, [data]);
-
-  const messagesRef = useRef<HTMLDivElement>(null);
-  const [openViews, setOpenViews] = useState<View[]>(["chat"]);
-  const [currentSearchResults, setCurrentSearchResults] = useState<
-    InsertSearchResultWithExcerpts[]
-  >([]);
-  const [currentArticle, setCurrentArticle] =
-    useState<InsertSearchResultWithExcerpts | null>(null);
-  const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
-  // const [userProjects, setUserProjects] = useState<SelectProject[]>([]);
-  // const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
-  const [isShowingSearchResults, setIsShowingSearchResults] = useState(false);
-  const [chatName, setChatName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (messagesRef.current) {

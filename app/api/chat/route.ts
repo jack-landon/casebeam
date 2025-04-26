@@ -205,7 +205,7 @@ export async function POST(req: Request) {
             );
 
             // Update ID
-            updateMessage({
+            await updateMessage({
               id: botMsg.id,
               responseToMsgId: userMsgDb.id,
             });
@@ -256,14 +256,6 @@ export async function POST(req: Request) {
             await timeOperation("Save Search Results", () =>
               createSearchResultsBulk(Object.values(newTransformedResults))
             );
-
-            // message annotation:
-            dataStream.writeMessageAnnotation({
-              other: "information",
-            });
-
-            // call annotation:
-            dataStream.writeData("call completed");
           }
         },
         onError: (error) => {
