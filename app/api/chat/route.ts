@@ -13,6 +13,7 @@ import {
   Message,
   generateText,
   generateObject,
+  createDataStreamResponse,
 } from "ai";
 import { z } from "zod";
 import { Excerpt, InsertSearchResult } from "@/lib/db/schema";
@@ -167,86 +168,115 @@ export async function POST(req: Request) {
     })
   );
 
-  const result = streamText({
-    model: google("gemini-2.0-flash-lite-preview-02-05"),
-    system: streamTextSystemMessage(JSON.stringify(topFiveResults)),
-    messages: coreMessages,
-    onFinish: async ({ text }) => {
-      // If user is signed in, store the chat and message in the database
-      if (isNewChat && user.userId) {
-        const [userMsgDb, botMsg] = await timeOperation("Create Messages", () =>
-          Promise.all([
-            createMessage({
-              chatId,
-              content: messageToStore.content,
-              role: messageToStore.role,
-            }),
-            createMessage({
-              chatId,
-              content: text,
-              role: "assistant",
-              responseToMsgId: null, // Note: This is updated after
-            }),
-          ])
-        );
+  // return result.toDataStreamResponse();
+  return createDataStreamResponse({
+    execute: (dataStream) => {
+      dataStream.writeData({
+        initialSearchResults: Object.values(docObject).map((result) => ({
+          ...result,
+          date: result.date ?? null,
+        })),
+      });
 
-        // Update ID
-        updateMessage({
-          id: botMsg.id,
-          responseToMsgId: userMsgDb.id,
-        });
+      // THIS IS THE STREAMED TEXT
+      const result = streamText({
+        model: google("gemini-2.0-flash-lite-preview-02-05"),
+        system: streamTextSystemMessage(JSON.stringify(topFiveResults)),
+        messages: coreMessages,
+        onFinish: async ({ text }) => {
+          // If user is signed in, store the chat and message in the database
+          if (isNewChat && user.userId) {
+            const [userMsgDb, botMsg] = await timeOperation(
+              "Create Messages",
+              () =>
+                Promise.all([
+                  createMessage({
+                    chatId,
+                    content: messageToStore.content,
+                    role: messageToStore.role,
+                  }),
+                  createMessage({
+                    chatId,
+                    content: text,
+                    role: "assistant",
+                    responseToMsgId: null, // Note: This is updated after
+                  }),
+                ])
+            );
 
-        const { object: searchResults } = await searchResultsPromise!;
+            // Update ID
+            updateMessage({
+              id: botMsg.id,
+              responseToMsgId: userMsgDb.id,
+            });
 
-        const newTransformedResults: InsertSearchResult[] = Object.values(
-          docObject
-        ).map((doc) => {
-          const searchResult = searchResults.find(
-            (result) => result.docId.toLowerCase() === doc.doc_id.toLowerCase()
-          );
+            const { object: searchResults } = await searchResultsPromise!;
 
-          const tags = !searchResult?.tags
-            ? []
-            : searchResult.tags.map((tag) => formatTag(tag));
+            const newTransformedResults: InsertSearchResult[] = Object.values(
+              docObject
+            ).map((doc) => {
+              const searchResult = searchResults.find(
+                (result) =>
+                  result.docId.toLowerCase() === doc.doc_id.toLowerCase()
+              );
 
-          if (doc.source) tags.unshift(formatTag(doc.source));
-          if (doc.jurisdiction) tags.unshift(formatTag(doc.jurisdiction));
-          if (doc.type) tags.unshift(formatTag(doc.type));
+              const tags = !searchResult?.tags
+                ? []
+                : searchResult.tags.map((tag) => formatTag(tag));
 
-          const updatedExcerpts = doc.excerpts.map((excerpt) => ({
-            ...excerpt,
-            title: !searchResult ? excerpt.title : searchResult.title,
-          }));
-          return {
-            title: searchResult?.title ?? doc.citation,
-            docTitle: doc.citation,
-            docId: doc.doc_id,
-            docSummary:
-              searchResult?.docSummary ??
-              `${updatedExcerpts[0].content.slice(0, 150)}...`,
-            relevanceSummary:
-              searchResult?.relevanceSummary ??
-              `${updatedExcerpts[0].content.slice(0, 150)}...`,
-            url: doc.url,
-            docDate: doc.date ?? null,
-            similarityScore: doc.similarityScore,
-            tags: JSON.stringify(tags),
-            excerpts: JSON.stringify(updatedExcerpts),
-            userId: user.userId,
-            messageId: botMsg?.id,
-            chatId,
-          };
-        });
+              if (doc.source) tags.unshift(formatTag(doc.source));
+              if (doc.jurisdiction) tags.unshift(formatTag(doc.jurisdiction));
+              if (doc.type) tags.unshift(formatTag(doc.type));
 
-        await timeOperation("Save Search Results", () =>
-          createSearchResultsBulk(Object.values(newTransformedResults))
-        );
-      }
+              const updatedExcerpts = doc.excerpts.map((excerpt) => ({
+                ...excerpt,
+                title: !searchResult ? excerpt.title : searchResult.title,
+              }));
+              return {
+                title: searchResult?.title ?? doc.citation,
+                docTitle: doc.citation,
+                docId: doc.doc_id,
+                docSummary:
+                  searchResult?.docSummary ??
+                  `${updatedExcerpts[0].content.slice(0, 150)}...`,
+                relevanceSummary:
+                  searchResult?.relevanceSummary ??
+                  `${updatedExcerpts[0].content.slice(0, 150)}...`,
+                url: doc.url,
+                docDate: doc.date ?? null,
+                similarityScore: doc.similarityScore,
+                tags: JSON.stringify(tags),
+                excerpts: JSON.stringify(updatedExcerpts),
+                userId: user.userId,
+                messageId: botMsg?.id,
+                chatId,
+              };
+            });
+
+            await timeOperation("Save Search Results", () =>
+              createSearchResultsBulk(Object.values(newTransformedResults))
+            );
+
+            // message annotation:
+            dataStream.writeMessageAnnotation({
+              other: "information",
+            });
+
+            // call annotation:
+            dataStream.writeData("call completed");
+          }
+        },
+        onError: (error) => {
+          console.error("Stream error:", error);
+        },
+      });
+
+      result.mergeIntoDataStream(dataStream);
     },
     onError: (error) => {
-      console.error("Stream error:", error);
+      // Error messages are masked by default for security reasons.
+      // If you want to expose the error message to the client, you can do so here:
+      return error instanceof Error ? error.message : String(error);
     },
   });
-
-  return result.toDataStreamResponse();
 }

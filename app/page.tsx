@@ -52,6 +52,9 @@ function HomeContent() {
     isLoading,
     reload,
     setMessages,
+    data,
+    setData,
+    status,
   } = useChat({
     api: `api/chat`,
     id: chatId ?? undefined,
@@ -60,8 +63,10 @@ function HomeContent() {
       filters,
     },
     onResponse(response) {
+      // Clear Data First
+      setData(undefined);
       if (response) {
-        console.log(response);
+        console.log("First Response", response);
         setIsGenerating(false);
         setIsShowingSearchResults(true);
         setIsGettingSearchResults(true);
@@ -106,6 +111,49 @@ function HomeContent() {
       }
     },
   });
+
+  useEffect(() => {
+    console.log("The data has changed", data);
+    if (data) {
+      const initialSearchResultData = (
+        data[0] as unknown as {
+          initialSearchResults: {
+            doc_id: string;
+            citation: string;
+            jurisdiction: string;
+            type: string;
+            source: string;
+            date: string;
+            url: string | null;
+            similarityScore: number;
+            $vectorize: string;
+            excerpts: {
+              caseName: string;
+              title: string;
+              content: string;
+              url: string;
+            }[];
+          }[];
+        }
+      ).initialSearchResults;
+      console.log("Initial Search Result Data", initialSearchResultData);
+
+      const transaformedData = initialSearchResultData.map((result) => ({
+        title: result.citation,
+        docTitle: "Loading Relevance...",
+        docSummary: result.$vectorize.slice(0, 150),
+        relevanceSummary: result.citation,
+        docDate: result.date,
+        similarityScore: result.similarityScore,
+        url: result.url ?? "#",
+        chatId: chatId,
+        tags: [],
+        excerpts: [],
+      }));
+      setCurrentSearchResults(transaformedData);
+      setIsGettingSearchResults(false);
+    }
+  }, [data]);
 
   const messagesRef = useRef<HTMLDivElement>(null);
   const [openViews, setOpenViews] = useState<View[]>(["chat"]);
@@ -258,6 +306,7 @@ function HomeContent() {
                       setCurrentArticle={setCurrentArticle}
                       isGettingSearchResults={isGettingSearchResults}
                       setIsShowingSearchResults={setIsShowingSearchResults}
+                      isStreaming={status == "streaming"}
                     />
                   </Panel>
                 </>

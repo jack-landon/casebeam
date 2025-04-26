@@ -28,16 +28,19 @@ import { NewCategoryModal } from "./NewCategoryModal";
 import dayjs from "dayjs";
 import RelevanceIndicator from "./RelevanceIndicator";
 import { useUserData } from "./contexts/UserDataContext";
+import Loader from "./Loader";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerpts;
   setCurrentArticle: (article: InsertSearchResultWithExcerpts) => void;
+  isStreaming?: boolean;
   // getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
 };
 
 export default function SearchResult({
   searchResult,
   setCurrentArticle,
+  isStreaming = false,
 }: SearchResultProps) {
   const [saved, setSaved] = useState(false);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -85,13 +88,19 @@ export default function SearchResult({
             )}
             <CardTitle
               onClick={() => {
+                if (isStreaming) return toast.error("Loading Result...");
                 setCurrentArticle(searchResult);
               }}
-              className="cursor-pointer group-hover:underline text-xl text-primary hover:underline"
+              className={`flex items-center cursor-pointer group-hover:underline text-xl text-primary hover:underline ${
+                isStreaming ? "animate-pulse" : ""
+              }`}
             >
+              {isStreaming && <Loader size="sm" className="mr-2" />}
               <p>{searchResult.title}</p>
             </CardTitle>
-            <CardDescription className="text-sm">
+            <CardDescription
+              className={`text-sm ${isStreaming ? "animate-pulse" : ""}`}
+            >
               {searchResult.docTitle}
             </CardDescription>
           </div>

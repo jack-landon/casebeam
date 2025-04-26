@@ -12,6 +12,7 @@ type ResultsPanelProps = {
   isGettingSearchResults: boolean;
   view: View;
   setIsShowingSearchResults: (isHShowing: boolean) => void;
+  isStreaming?: boolean;
 };
 
 export default function ResultsPanel({
@@ -19,6 +20,7 @@ export default function ResultsPanel({
   isGettingSearchResults,
   view,
   setIsShowingSearchResults,
+  isStreaming = false,
 }: ResultsPanelProps) {
   const currentSearchResults = useContext(CurrentSearchResultsContext);
   const [amountOfResults, setAmountOfResults] = useState<number>(0);
@@ -82,6 +84,7 @@ export default function ResultsPanel({
                 key={i}
                 searchResult={result}
                 setCurrentArticle={setCurrentArticle}
+                isStreaming={isStreaming}
               />
             ))}
         </div>
