@@ -39,6 +39,8 @@ const searchResultsSchema = z.array(
   })
 );
 
+export const runtime = "edge";
+
 export async function POST(req: Request) {
   const {
     id: chatId,
@@ -230,7 +232,7 @@ export async function POST(req: Request) {
                   searchResult?.relevanceSummary ??
                   `${updatedExcerpts[0].content.slice(0, 150)}...`,
                 url: doc.url,
-                docDate: doc.date ?? undefined,
+                docDate: doc.date,
                 similarityScore: doc.similarityScore,
                 tags: JSON.stringify(tags),
                 excerpts: JSON.stringify(updatedExcerpts),
