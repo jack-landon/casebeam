@@ -17,7 +17,7 @@ import {
   RefreshCcw,
   Volume2,
 } from "lucide-react";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeDisplayBlock from "@/components/code-display-block";
@@ -29,6 +29,7 @@ import { ChatHistoryDrawer } from "./ChatHistoryDrawer";
 import { useSearchParams } from "next/navigation";
 import Filters, { FilterList } from "./Filters";
 import { useUserData } from "./contexts/UserDataContext";
+import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
 
 const ChatAiIcons = [
   {
@@ -81,6 +82,11 @@ export default function ChatPanel({
   const { userData } = useUserData();
   const searchParams = useSearchParams();
   const chatId = searchParams.get("id");
+  const { currentSearchResults } = useCurrentSearchResults();
+
+  const docTitles = useMemo(() => {
+    return currentSearchResults.map((result) => result.docTitle);
+  }, [currentSearchResults]);
 
   return (
     <motion.div
@@ -142,7 +148,7 @@ export default function ChatPanel({
                   fallback={message.role == "user" ? "👤" : "👨‍⚖️"}
                 />
                 <ChatBubbleMessage>
-                  {message.content
+                  {/* {message.content
                     .split("```")
                     .map((part: string, index: number) => {
                       if (index % 2 === 0) {
@@ -158,8 +164,59 @@ export default function ChatPanel({
                           </pre>
                         );
                       }
-                    })}
+                    })} */}
 
+                  {message.content
+                    .split("```")
+                    .map((part: string, index: number) => {
+                      if (index % 2 === 0) {
+                        // Process text parts (non-code blocks)
+                        let processedContent = part;
+
+                        // Create regex pattern for all docTitles, escape special characters
+                        docTitles.forEach((title) => {
+                          const escapedTitle = title?.replace(
+                            /[.*+?^${}()|[\]\\]/g,
+                            "\\$&"
+                          );
+                          const regex = new RegExp(`(${escapedTitle})`, "gi");
+                          processedContent = processedContent.replace(
+                            regex,
+                            '<span class="bg-yellow-500/50 hover:bg-yellow-500/40 px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors">$1</span>'
+                          );
+                        });
+
+                        return (
+                          <Markdown
+                            key={index}
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              p: ({ children }) => {
+                                const content = Array.isArray(children)
+                                  ? children.join("")
+                                  : String(children || "");
+                                return (
+                                  <p
+                                    dangerouslySetInnerHTML={{
+                                      __html: content,
+                                    }}
+                                  />
+                                );
+                              },
+                            }}
+                          >
+                            {processedContent}
+                          </Markdown>
+                        );
+                      } else {
+                        // Code blocks remain unchanged
+                        return (
+                          <pre className="whitespace-pre-wrap pt-2" key={index}>
+                            <CodeDisplayBlock code={part} lang="" />
+                          </pre>
+                        );
+                      }
+                    })}
                   {message.role === "assistant" &&
                     messages.length - 1 === index && (
                       <div className="flex items-center mt-1.5 gap-1">
