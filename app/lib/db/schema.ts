@@ -67,13 +67,13 @@ export const chatsTable = sqliteTable("chats", {
 });
 
 export const messagesTable = sqliteTable("messages", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: text("id").primaryKey(),
   chatId: text("chat_id")
     .notNull()
     .references(() => chatsTable.id, { onDelete: "cascade" }),
+  msgIndex: integer("msg_index").notNull(),
   role: text("role").notNull(), // 'user' or 'assistant'
   content: text("content").notNull(),
-  responseToMsgId: integer("response_to_id"), // ID of the message this response is replying to (if assistant)
   createdAt: text("created_at")
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
@@ -111,7 +111,7 @@ export const searchResultsTable = sqliteTable("search_results", {
   //     content: string;
   //     url: string;
   //   }[];
-  messageId: integer("message_id").references(() => messagesTable.id, {
+  messageId: text("message_id").references(() => messagesTable.id, {
     onDelete: "cascade",
   }),
   chatId: text("chat_id").references(() => chatsTable.id, {
@@ -202,10 +202,6 @@ export const messagesRelations = relations(messagesTable, ({ one, many }) => ({
   chat: one(chatsTable, {
     fields: [messagesTable.chatId],
     references: [chatsTable.id],
-  }),
-  botResponse: one(messagesTable, {
-    fields: [messagesTable.responseToMsgId],
-    references: [messagesTable.id],
   }),
   searchResults: many(searchResultsTable),
 }));

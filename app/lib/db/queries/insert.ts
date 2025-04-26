@@ -41,6 +41,10 @@ export async function createMessage(data: InsertMessage) {
   return message;
 }
 
+export async function createManyMessages(data: InsertMessage[]) {
+  return await db.insert(messagesTable).values(data).returning();
+}
+
 export async function createNewNote(data: Omit<InsertNote, "userId">) {
   const { userId } = await auth();
   if (!userId) throw new Error("User not found");

@@ -89,7 +89,7 @@ function HomeContent() {
         }
       }
     },
-    async onFinish(res) {
+    async onFinish() {
       if (!chatId) return setIsGettingSearchResults(false);
 
       const [chat, fetchedSearchResults] = await Promise.all([

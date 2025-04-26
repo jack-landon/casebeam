@@ -1,9 +1,8 @@
 import {
   createChat,
-  createMessage,
+  createManyMessages,
   createSearchResultsBulk,
   updateChat,
-  updateMessage,
 } from "@/lib/db/queries/insert";
 import { google } from "@ai-sdk/google";
 import { auth } from "@clerk/nextjs/server";
@@ -52,6 +51,10 @@ export async function POST(req: Request) {
     filters?: FilterOption[];
   };
   if (!chatId) throw new Error("Chat ID is required");
+  const userMsgIndex = messages.length - 1;
+  const botMsgIndex = messages.length;
+  const userMsgId = `${chatId}-${userMsgIndex}`;
+  const botMsgId = `${chatId}-${botMsgIndex}`;
 
   const user = await auth();
   if (!user.userId) throw new Error("User not found");
@@ -186,29 +189,24 @@ export async function POST(req: Request) {
         onFinish: async ({ text }) => {
           // If user is signed in, store the chat and message in the database
           if (isNewChat && user.userId) {
-            const [userMsgDb, botMsg] = await timeOperation(
-              "Create Messages",
-              () =>
-                Promise.all([
-                  createMessage({
-                    chatId,
-                    content: messageToStore.content,
-                    role: messageToStore.role,
-                  }),
-                  createMessage({
-                    chatId,
-                    content: text,
-                    role: "assistant",
-                    responseToMsgId: null, // Note: This is updated after
-                  }),
-                ])
+            await timeOperation("Create Messages", () =>
+              createManyMessages([
+                {
+                  id: userMsgId,
+                  msgIndex: userMsgIndex,
+                  chatId,
+                  content: messageToStore.content,
+                  role: messageToStore.role,
+                },
+                {
+                  id: botMsgId,
+                  msgIndex: botMsgIndex,
+                  chatId,
+                  content: text,
+                  role: "assistant",
+                },
+              ])
             );
-
-            // Update ID
-            await updateMessage({
-              id: botMsg.id,
-              responseToMsgId: userMsgDb.id,
-            });
 
             const { object: searchResults } = await searchResultsPromise!;
 
@@ -248,7 +246,7 @@ export async function POST(req: Request) {
                 tags: JSON.stringify(tags),
                 excerpts: JSON.stringify(updatedExcerpts),
                 userId: user.userId,
-                messageId: botMsg?.id,
+                messageId: botMsgId,
                 chatId,
               };
             });
