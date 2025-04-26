@@ -15,7 +15,7 @@ export async function getUserData() {
       categories: true,
     },
   });
-  if (!userData) throw new Error("User not found");
+  if (!userData) return null;
   return userData;
 }
 
