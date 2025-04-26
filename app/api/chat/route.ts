@@ -151,17 +151,15 @@ export async function POST(req: Request) {
 
   const topFiveResults = Object.values(docObject).slice(0, 5);
 
-  const searchResultsPromise = timeOperation("Generate Search Results", () =>
-    generateObject({
-      model: google("gemini-2.0-flash-lite-preview-02-05"),
-      system: searchResultSummarySystemPrompt(
-        messageToStore.content,
-        JSON.stringify(topFiveResults)
-      ),
-      messages: convertToCoreMessages(messages),
-      schema: searchResultsSchema,
-    })
-  );
+  const searchResultsPromise = generateObject({
+    model: google("gemini-2.0-flash-lite-preview-02-05"),
+    system: searchResultSummarySystemPrompt(
+      messageToStore.content,
+      JSON.stringify(topFiveResults)
+    ),
+    messages: convertToCoreMessages(messages),
+    schema: searchResultsSchema,
+  });
 
   // return result.toDataStreamResponse();
   return createDataStreamResponse({
@@ -198,7 +196,8 @@ export async function POST(req: Request) {
               },
             ]);
 
-            const { object: searchResults } = await searchResultsPromise!;
+            const { object: searchResults } = await searchResultsPromise;
+            await savedMsgsInDbPromise;
 
             const newTransformedResults: InsertSearchResult[] = Object.values(
               docObject
@@ -231,7 +230,7 @@ export async function POST(req: Request) {
                   searchResult?.relevanceSummary ??
                   `${updatedExcerpts[0].content.slice(0, 150)}...`,
                 url: doc.url,
-                docDate: doc.date ?? null,
+                docDate: doc.date ?? undefined,
                 similarityScore: doc.similarityScore,
                 tags: JSON.stringify(tags),
                 excerpts: JSON.stringify(updatedExcerpts),
@@ -241,10 +240,7 @@ export async function POST(req: Request) {
               };
             });
 
-            await savedMsgsInDbPromise;
-            await timeOperation("Save Search Results", () =>
-              createSearchResultsBulk(Object.values(newTransformedResults))
-            );
+            await createSearchResultsBulk(Object.values(newTransformedResults));
           }
         },
         onError: (error) => {
