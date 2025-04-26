@@ -6,7 +6,7 @@ import { db } from "../index";
 export async function getUserData() {
   const user = await auth();
 
-  if (!user.userId) throw new Error("User not authenticated");
+  if (!user.userId) return null;
   const userData = await db.query.usersTable.findFirst({
     where: (usersTable, { eq }) => eq(usersTable.id, user.userId),
     with: {
