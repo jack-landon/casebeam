@@ -103,6 +103,7 @@ export default function ChatPanel({
       (result) => result.docTitle?.toLowerCase() === title.toLowerCase()
     );
     if (resultArticle) {
+      console.log("Found resultArticle:", resultArticle);
       setCurrentArticle(resultArticle);
     }
   };
