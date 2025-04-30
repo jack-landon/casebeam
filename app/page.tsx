@@ -8,7 +8,7 @@ import DetailsPanel from "./components/DetailsPanel";
 import ChatPanel from "./components/ChatPanel";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { getChat, getSearchResults } from "./lib/db/queries/query";
+import { getChat } from "./lib/db/queries/query";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ListCollapse } from "lucide-react";
 import {
@@ -87,20 +87,19 @@ function HomeContent() {
     async onFinish() {
       if (!chatId) return setIsGettingSearchResults(false);
 
-      const [chat, fetchedSearchResults] = await Promise.all([
-        getChat(chatId),
-        getSearchResults(chatId),
-      ]);
+      const chat = await getChat(chatId);
 
-      if (chat) setChatName(chat.name);
+      if (chat) {
+        setChatName(chat.name);
+        setCurrentSearchResults(
+          chat.searchResults.map((result) => ({
+            ...result,
+            excerpts: JSON.parse(result.excerpts ?? "[]"),
+            tags: JSON.parse(result.tags ?? "[]"),
+          }))
+        );
+      }
 
-      setCurrentSearchResults(
-        fetchedSearchResults.map((result) => ({
-          ...result,
-          excerpts: JSON.parse(result.excerpts ?? "[]"),
-          tags: JSON.parse(result.tags ?? "[]"),
-        }))
-      );
       setIsGettingSearchResults(false);
     },
     onError(error) {

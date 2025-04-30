@@ -1,7 +1,7 @@
 "use client";
 
 import { InsertSearchResultWithExcerpts } from "@/lib/types";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 type CurrentSearchResultsContextType = {
   currentSearchResults: InsertSearchResultWithExcerpts[];
@@ -28,10 +28,13 @@ export const CurrentSearchResultsProvider = ({
     InsertSearchResultWithExcerpts[]
   >([]);
 
+  const value = useMemo(
+    () => ({ currentSearchResults, setCurrentSearchResults }),
+    [currentSearchResults]
+  );
+
   return (
-    <CurrentSearchResultsContext.Provider
-      value={{ currentSearchResults, setCurrentSearchResults }}
-    >
+    <CurrentSearchResultsContext.Provider value={value}>
       {children}
     </CurrentSearchResultsContext.Provider>
   );

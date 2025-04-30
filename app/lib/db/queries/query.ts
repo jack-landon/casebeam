@@ -31,26 +31,12 @@ export async function getChat(id: string) {
           searchResults: true,
         },
       },
-      searchResults: true,
+      searchResults: {
+        orderBy: (searchResultsTable, { desc }) => desc(searchResultsTable.id),
+      },
       user: true,
     },
   });
-}
-
-export async function getSearchResults(chatId: string) {
-  const user = await auth();
-
-  if (!user.userId) throw new Error("User not authenticated");
-  const searchResults = await db.query.searchResultsTable.findMany({
-    where: (searchResultsTable, { eq }) =>
-      eq(searchResultsTable.chatId, chatId),
-    with: {
-      message: true,
-    },
-    orderBy: (searchResultsTable, { desc }) => desc(searchResultsTable.id),
-  });
-
-  return searchResults;
 }
 
 export async function getNote(noteId: number) {

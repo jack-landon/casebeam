@@ -12,12 +12,12 @@ import { Button } from "@/components/ui/button";
 import {
   CopyIcon,
   CornerDownLeft,
-  Mic,
-  Paperclip,
+  // Mic,
+  // Paperclip,
   RefreshCcw,
   Volume2,
 } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeDisplayBlock from "@/components/code-display-block";
@@ -63,7 +63,6 @@ type ChatPanelProps = {
   chatName?: string;
 };
 
-// Add this before the ChatPanel component
 declare global {
   interface Window {
     handleDocumentClickInChatBubble?: (title: string) => void;
@@ -97,23 +96,24 @@ export default function ChatPanel({
     return currentSearchResults.map((result) => result.docTitle);
   }, [currentSearchResults]);
 
-  const handleDocumentClickInChatBubble = (title: string) => {
-    console.log("Clicked title:", title);
-    const resultArticle = currentSearchResults.find(
-      (result) => result.docTitle?.toLowerCase() === title.toLowerCase()
-    );
-    if (resultArticle) {
-      console.log("Found resultArticle:", resultArticle);
-      setCurrentArticle(resultArticle);
-    }
-  };
+  const handleDocumentClickInChatBubble = useCallback(
+    (title: string) => {
+      const resultArticle = currentSearchResults.find(
+        (result) => result.docTitle?.toLowerCase() === title.toLowerCase()
+      );
+      if (resultArticle) {
+        setCurrentArticle(resultArticle);
+      }
+    },
+    [currentSearchResults, setCurrentArticle]
+  );
 
   useEffect(() => {
     window.handleDocumentClickInChatBubble = handleDocumentClickInChatBubble;
     return () => {
       window.handleDocumentClickInChatBubble = undefined;
     };
-  }, []);
+  }, [handleDocumentClickInChatBubble]);
 
   return (
     <motion.div
@@ -289,7 +289,7 @@ export default function ChatPanel({
             className="rounded-lg bg-background border-0 shadow-none focus-visible:ring-0"
           />
           <div className="flex items-center p-3 pt-0">
-            <Button variant="ghost" size="icon" className="cursor-pointer">
+            {/* <Button variant="ghost" size="icon" className="cursor-pointer">
               <Paperclip className="size-4" />
               <span className="sr-only">Attach file</span>
             </Button>
@@ -297,7 +297,7 @@ export default function ChatPanel({
             <Button variant="ghost" size="icon" className="cursor-pointer">
               <Mic className="size-4" />
               <span className="sr-only">Use Microphone</span>
-            </Button>
+            </Button> */}
 
             <Filters
               filters={filters}
