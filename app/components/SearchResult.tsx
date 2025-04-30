@@ -93,19 +93,17 @@ export default function SearchResult({
                 if (isStreaming) return toast.error("Loading Result...");
                 setCurrentArticle(searchResult);
               }}
-              className={`flex items-center cursor-pointer group-hover:underline text-xl text-primary hover:underline mb-2 ${
+              className={`flex items-center cursor-pointer group-hover:underline text-xl text-primary hover:underline mb-2`}
+            >
+              {searchResult.docTitle}
+            </CardTitle>
+            <CardDescription
+              className={`text-base italic flex items-center ${
                 isStreaming ? "animate-pulse" : ""
               }`}
             >
               {isStreaming && <Loader size="sm" className="mr-2" />}
               <p>{searchResult.title.replace(/\.$/, "")}</p>
-            </CardTitle>
-            <CardDescription
-              className={`text-base italic ${
-                isStreaming ? "animate-pulse" : ""
-              }`}
-            >
-              {searchResult.docTitle}
             </CardDescription>
           </div>
           <DropdownMenu>

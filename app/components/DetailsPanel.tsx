@@ -47,10 +47,10 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
           <Card className="w-full m-0 p-0 border-none">
             <CardHeader>
               <CardTitle className="text-xl font-bold">
-                {currentArticle.title}
+                {currentArticle.docTitle}
               </CardTitle>
               <h3 className="text-lg font-semibold text-muted-foreground">
-                {currentArticle.docTitle}
+                {currentArticle.title}
               </h3>
             </CardHeader>
             <CardContent className="space-y-4">

@@ -17,7 +17,7 @@ import {
   RefreshCcw,
   Volume2,
 } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeDisplayBlock from "@/components/code-display-block";
@@ -30,6 +30,7 @@ import { useSearchParams } from "next/navigation";
 import Filters, { FilterList } from "./Filters";
 import { useUserData } from "./contexts/UserDataContext";
 import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
+import { useCurrentArticle } from "./contexts/CurrentArticleContext";
 
 const ChatAiIcons = [
   {
@@ -62,6 +63,13 @@ type ChatPanelProps = {
   chatName?: string;
 };
 
+// Add this before the ChatPanel component
+declare global {
+  interface Window {
+    handleDocumentClickInChatBubble?: (title: string) => void;
+  }
+}
+
 export default function ChatPanel({
   openViews,
   messages,
@@ -83,10 +91,28 @@ export default function ChatPanel({
   const searchParams = useSearchParams();
   const chatId = searchParams.get("id");
   const { currentSearchResults } = useCurrentSearchResults();
+  const { setCurrentArticle } = useCurrentArticle();
 
   const docTitles = useMemo(() => {
     return currentSearchResults.map((result) => result.docTitle);
   }, [currentSearchResults]);
+
+  const handleDocumentClickInChatBubble = (title: string) => {
+    console.log("Clicked title:", title);
+    const resultArticle = currentSearchResults.find(
+      (result) => result.docTitle?.toLowerCase() === title.toLowerCase()
+    );
+    if (resultArticle) {
+      setCurrentArticle(resultArticle);
+    }
+  };
+
+  useEffect(() => {
+    window.handleDocumentClickInChatBubble = handleDocumentClickInChatBubble;
+    return () => {
+      window.handleDocumentClickInChatBubble = undefined;
+    };
+  }, []);
 
   return (
     <motion.div
@@ -148,24 +174,6 @@ export default function ChatPanel({
                   fallback={message.role == "user" ? "👤" : "👨‍⚖️"}
                 />
                 <ChatBubbleMessage>
-                  {/* {message.content
-                    .split("```")
-                    .map((part: string, index: number) => {
-                      if (index % 2 === 0) {
-                        return (
-                          <Markdown key={index} remarkPlugins={[remarkGfm]}>
-                            {part}
-                          </Markdown>
-                        );
-                      } else {
-                        return (
-                          <pre className="whitespace-pre-wrap pt-2" key={index}>
-                            <CodeDisplayBlock code={part} lang="" />
-                          </pre>
-                        );
-                      }
-                    })} */}
-
                   {message.content
                     .split("```")
                     .map((part: string, index: number) => {
@@ -182,7 +190,13 @@ export default function ChatPanel({
                           const regex = new RegExp(`(${escapedTitle})`, "gi");
                           processedContent = processedContent.replace(
                             regex,
-                            '<span class="bg-yellow-500/50 hover:bg-yellow-500/40 px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors">$1</span>'
+                            `<span 
+                            class="bg-yellow-500/50 hover:bg-yellow-500/40 px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors" 
+                            onclick="window.handleDocumentClickInChatBubble('${title?.replace(
+                              /'/g,
+                              "\\'"
+                            )}')"
+                          >$1</span>`
                           );
                         });
 

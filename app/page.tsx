@@ -140,9 +140,9 @@ function HomeContent() {
 
       const transaformedData = initialSearchResultData.map((result) => ({
         title: result.citation,
-        docTitle: "Loading Relevance...",
+        docTitle: result.citation,
         docSummary: result.$vectorize.slice(0, 150),
-        relevanceSummary: result.citation,
+        relevanceSummary: "Loading Relevance...",
         docDate: result.date,
         similarityScore: result.similarityScore,
         url: result.url ?? "#",
