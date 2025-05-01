@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Star } from "lucide-react";
+import { BookText, Landmark, MapPin, Plus, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -60,7 +60,6 @@ export default function SearchResult({
       searchResult: {
         ...searchResult,
         excerpts: JSON.stringify(searchResult.excerpts),
-        tags: JSON.stringify(searchResult.tags),
       },
       projectIds: type == "project" ? [itemId] : [],
       categoryIds: type == "category" ? [itemId] : [],
@@ -98,12 +97,12 @@ export default function SearchResult({
               {searchResult.docTitle}
             </CardTitle>
             <CardDescription
-              className={`text-base italic flex items-center ${
+              className={`flex items-center ${
                 isStreaming ? "animate-pulse" : ""
               }`}
             >
               {isStreaming && <Loader size="sm" className="mr-2" />}
-              <p>{searchResult.title.replace(/\.$/, "")}</p>
+              <p>{searchResult.docSummary}</p>
             </CardDescription>
           </div>
           <DropdownMenu>
@@ -195,21 +194,18 @@ export default function SearchResult({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-2">
-          {searchResult.docSummary}
-        </p>
-        {searchResult.tags && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {searchResult.tags.map((tag, i) => (
-              <span
-                key={`${tag}-${i}`}
-                className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700">
+            <BookText className="h-3 w-3 mr-2" />
+            {searchResult.type}
+          </span>
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700">
+            <MapPin className="h-3 w-3 mr-2" /> {searchResult.jurisdiction}
+          </span>
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700">
+            <Landmark className="h-3 w-3 mr-2" /> {searchResult.source}
+          </span>
+        </div>
       </CardContent>
       <NewProjectModal
         open={isNewProjectModalOpen}

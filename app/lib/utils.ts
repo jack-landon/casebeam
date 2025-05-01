@@ -158,3 +158,5 @@ export const timeOperation = async <T>(
   console.log(`⏱️ ${operationName}: ${durationInSeconds}s`);
   return result;
 };
+
+export const totalDocumentsCount = 300_000;

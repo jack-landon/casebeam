@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,19 +10,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Plus } from "lucide-react";
 import { SelectNote } from "@/lib/db/schema";
-import { CurrentNoteContext } from "./CurrentNoteProvider";
+import { useCurrentNote } from "./contexts/CurrentNoteContext";
 import { getNote, getUserNotes } from "@/lib/db/queries/query";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
 import { generateRandomColor } from "@/lib/utils";
 import { createNewNote } from "@/lib/db/queries/insert";
 
-export function NotepadMenuBar({
-  setCurrentNote,
-}: {
-  setCurrentNote: (note: SelectNote | null) => void;
-}) {
-  const currentNote = useContext(CurrentNoteContext);
+export function NotepadMenuBar() {
+  const { currentNote, setCurrentNote } = useCurrentNote();
   const [userNotes, setUserNotes] = useState<SelectNote[]>([]);
   const { user } = useUser();
 

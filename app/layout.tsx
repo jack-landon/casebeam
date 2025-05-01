@@ -10,6 +10,7 @@ import { UserDataProvider } from "./components/contexts/UserDataContext";
 import { getUserData } from "./lib/db/queries/query";
 import { CurrentSearchResultsProvider } from "./components/contexts/CurrentSearchResultsContext";
 import { CurrentArticleProvider } from "./components/contexts/CurrentArticleContext";
+import { CurrentNoteProvider } from "./components/contexts/CurrentNoteContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,16 +39,18 @@ export default async function RootLayout({
         <body className={`${inter.className} bg-muted/30`}>
           <ThemeProvider attribute="class" defaultTheme="system">
             <UserDataProvider initialUserData={userData}>
-              <CurrentSearchResultsProvider>
-                <CurrentArticleProvider>
-                  <>
-                    <Header />
-                    {children}
-                  </>
-                  <Toaster />
-                  {/* <ChatSupport /> */}
-                </CurrentArticleProvider>
-              </CurrentSearchResultsProvider>
+              <CurrentNoteProvider>
+                <CurrentSearchResultsProvider>
+                  <CurrentArticleProvider>
+                    <>
+                      <Header />
+                      {children}
+                    </>
+                    <Toaster />
+                    {/* <ChatSupport /> */}
+                  </CurrentArticleProvider>
+                </CurrentSearchResultsProvider>
+              </CurrentNoteProvider>
             </UserDataProvider>
           </ThemeProvider>
         </body>

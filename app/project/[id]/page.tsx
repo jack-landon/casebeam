@@ -340,16 +340,24 @@ export default function ProjectPage({ params }: PageProps) {
                               </CardDescription>
 
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {result.tags &&
-                                  JSON.parse(result.tags).map((tag: string) => (
-                                    <Badge
-                                      key={tag}
-                                      // variant="outline"
-                                      className="mr-2 mt-2"
-                                    >
-                                      {tag}
-                                    </Badge>
-                                  ))}
+                                <Badge
+                                  // variant="outline"
+                                  className="mr-2 mt-2"
+                                >
+                                  {result.type}
+                                </Badge>
+                                <Badge
+                                  // variant="outline"
+                                  className="mr-2 mt-2"
+                                >
+                                  {result.jurisdiction}
+                                </Badge>
+                                <Badge
+                                  // variant="outline"
+                                  className="mr-2 mt-2"
+                                >
+                                  {result.source}
+                                </Badge>
                               </div>
                             </div>
                           </CardHeader>
@@ -552,7 +560,7 @@ const cases = [
     caseType: "Civil Litigation",
     status: "Active",
     filingDate: "2023-06-15",
-    lastUpdated: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     nextDeadline: "2025-04-20",
     court: "Northern District Court",
     judge: "Hon. Robert Thompson",
@@ -568,7 +576,7 @@ const cases = [
     caseType: "Probate",
     status: "Pending",
     filingDate: "2023-08-22",
-    lastUpdated: Date.now() - 5 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
     nextDeadline: "2025-05-15",
     court: "County Probate Court",
     judge: "Hon. Maria Garcia",
@@ -583,7 +591,7 @@ const cases = [
     caseType: "Family Law",
     status: "Active",
     filingDate: "2023-09-10",
-    lastUpdated: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
     nextDeadline: "2025-04-12",
     court: "Family Court Division",
     judge: "Hon. Sarah Chen",
@@ -599,7 +607,7 @@ const cases = [
     caseType: "Business Law",
     status: "Closed",
     filingDate: "2023-05-05",
-    lastUpdated: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
     nextDeadline: null,
     court: null,
     judge: null,
@@ -614,7 +622,7 @@ const cases = [
     caseType: "Intellectual Property",
     status: "Active",
     filingDate: "2023-07-18",
-    lastUpdated: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     nextDeadline: "2025-06-01",
     court: "Federal District Court",
     judge: "Hon. James Wilson",
@@ -629,7 +637,7 @@ const cases = [
     caseType: "Real Estate",
     status: "Pending",
     filingDate: "2023-10-01",
-    lastUpdated: Date.now() - 7 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
     nextDeadline: "2025-04-30",
     court: null,
     judge: null,
@@ -644,7 +652,7 @@ const cases = [
     caseType: "Medical Litigation",
     status: "Active",
     filingDate: "2023-11-15",
-    lastUpdated: Date.now() - 10 * 24 * 60 * 60 * 1000,
+    updatedAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
     nextDeadline: "2025-07-10",
     court: "Superior Court",
     judge: "Hon. Elizabeth Brown",

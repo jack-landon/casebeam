@@ -2,9 +2,8 @@ import { InsertSearchResult } from "./db/schema";
 
 export type InsertSearchResultWithExcerpts = Omit<
   InsertSearchResult,
-  "excerpts" | "tags" | "userId"
+  "excerpts" | "userId"
 > & {
-  tags: string[];
   excerpts: {
     title: string;
     caseName: string;

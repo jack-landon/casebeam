@@ -14,7 +14,6 @@
 //       caseType: caseData.caseType,
 //       status: caseData.status,
 //       filingDate: caseData.filingDate,
-//       lastUpdated: caseData.lastUpdated,
 //       nextDeadline: caseData.nextDeadline,
 //       court: caseData.court,
 //       judge: caseData.judge,
@@ -99,7 +98,6 @@ export async function createProjectInDbForm(formData: FormData) {
     caseType: formData.get("caseType") as string,
     status: formData.get("status") as string,
     filingDate: formData.get("filingDate") as string,
-    lastUpdated: Date.now(),
     nextDeadline: formData.get("nextDeadline") as string,
     court: formData.get("court") as string,
     judge: formData.get("judge") as string,
@@ -116,7 +114,7 @@ export async function getProjectsFromDb() {
       .select()
       .from(projectsTable)
       .where(eq(projectsTable.userId, userId))
-      .orderBy(projectsTable.lastUpdated);
+      .orderBy(projectsTable.updateAt);
     return { success: true, data: projects };
   } catch (error) {
     console.error("Error fetching projects:", error);

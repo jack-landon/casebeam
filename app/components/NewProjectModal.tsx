@@ -94,7 +94,6 @@ export function NewProjectModal({
         nextDeadline: formData.nextDeadline
           ? dayjs(formData.nextDeadline).format("MMM DD, YYYY")
           : null,
-        lastUpdated: Date.now(),
       };
 
       await createProjectInDb({

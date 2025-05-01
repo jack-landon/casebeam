@@ -176,7 +176,7 @@ export default function ChatPanel({
                 />
                 <ChatBubbleMessage>
                   {message.content
-                    .split("```")
+                    .split("```") // Split by code blocks -> then process the normal text parts
                     .map((part: string, index: number) => {
                       if (index % 2 === 0) {
                         // Process text parts (non-code blocks)
@@ -191,8 +191,8 @@ export default function ChatPanel({
                           const regex = new RegExp(`(${escapedTitle})`, "gi");
                           processedContent = processedContent.replace(
                             regex,
-                            `<span 
-                            class="bg-yellow-500/50 hover:bg-yellow-500/40 px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors" 
+                            `<span
+                            class="bg-yellow-500/50 hover:bg-yellow-500/40 px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors"
                             onclick="window.handleDocumentClickInChatBubble('${title?.replace(
                               /'/g,
                               "\\'"

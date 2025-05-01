@@ -3,8 +3,8 @@ import { Button } from "./ui/button";
 import SearchResult from "./SearchResult";
 import { View } from "@/page";
 import Loader from "./Loader";
-import { useEffect, useState } from "react";
 import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
+import { totalDocumentsCount } from "@/lib/utils";
 
 type ResultsPanelProps = {
   isGettingSearchResults: boolean;
@@ -19,13 +19,7 @@ export default function ResultsPanel({
   setIsShowingSearchResults,
   isStreaming = false,
 }: ResultsPanelProps) {
-  const [amountOfResults, setAmountOfResults] = useState<number>(0);
   const { currentSearchResults } = useCurrentSearchResults();
-
-  useEffect(() => {
-    // set the amount of results to a random number between 3,000 and 60,000
-    setAmountOfResults(Math.floor(Math.random() * (60000 - 3000 + 1)) + 3000);
-  }, [currentSearchResults]);
 
   return (
     <motion.div
@@ -43,7 +37,8 @@ export default function ResultsPanel({
             Results {isStreaming && <Loader className="ml-2" size="md" />}
           </p>
           <p className="text-sm text-muted-foreground">
-            From {amountOfResults.toLocaleString()} results
+            Showing best {currentSearchResults.length.toLocaleString()} of ~
+            {totalDocumentsCount.toLocaleString()} documents
           </p>
         </div>
 

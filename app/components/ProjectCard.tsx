@@ -73,7 +73,9 @@ export default function ProjectCard({ caseItem }: { caseItem: SelectProject }) {
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>{getTimeAgo(caseItem.lastUpdated)}</span>
+              {caseItem.updateAt && (
+                <span>{getTimeAgo(dayjs(caseItem.updateAt).unix())}</span>
+              )}
             </div>
           </div>
           {caseItem.nextDeadline && (

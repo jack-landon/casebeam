@@ -20,7 +20,8 @@ import {
   searchResultsTable,
   usersTable,
 } from "../schema";
-import { eq } from "drizzle-orm";
+import { eq, getTableColumns, SQL, sql } from "drizzle-orm";
+import { SQLiteTable } from "drizzle-orm/sqlite-core";
 
 export async function createUser(data: InsertUser) {
   const [user] = await db.insert(usersTable).values(data).returning();
@@ -32,17 +33,17 @@ export async function createProject(data: InsertProject) {
 }
 
 export async function createChat(data: InsertChat) {
-  const [chat] = await db.insert(chatsTable).values(data).returning();
+  const [chat] = await db
+    .insert(chatsTable)
+    .values(data)
+    .onConflictDoNothing()
+    .returning();
   return chat;
 }
 
 export async function createMessage(data: InsertMessage) {
   const [message] = await db.insert(messagesTable).values(data).returning();
   return message;
-}
-
-export async function createManyMessages(data: InsertMessage[]) {
-  return await db.insert(messagesTable).values(data).returning();
 }
 
 export async function createNewNote(data: Omit<InsertNote, "userId">) {
@@ -88,10 +89,6 @@ export async function updateChat(data: Partial<InsertChat> & { id: string }) {
   return updatedChat;
 }
 
-export async function createMessageBulk(data: InsertMessage[]) {
-  return await db.insert(messagesTable).values(data).returning();
-}
-
 export async function createCategory(
   data: Pick<InsertCategory, "name" | "description">
 ) {
@@ -117,7 +114,11 @@ export async function createSearchResult(data: InsertSearchResult) {
 }
 
 export async function createSearchResultsBulk(data: InsertSearchResult[]) {
-  return await db.insert(searchResultsTable).values(data).returning();
+  return await db
+    .insert(searchResultsTable)
+    .values(data)
+    .onConflictDoNothing()
+    .returning();
 }
 
 export async function saveSearchResultWithAssociations(data: {
@@ -156,4 +157,34 @@ export async function saveSearchResultWithAssociations(data: {
   }
 
   return savedResult;
+}
+
+export async function createManyMessages(data: InsertMessage[]) {
+  console.log(data.map((msg) => msg.content));
+  return await db
+    .insert(messagesTable)
+    .values(data)
+    .onConflictDoUpdate({
+      set: conflictUpdateAllExcept(messagesTable, ["id"]),
+      target: [messagesTable.id],
+    })
+    .returning();
+}
+
+function conflictUpdateAllExcept<
+  T extends SQLiteTable,
+  E extends (keyof T["$inferInsert"])[]
+>(table: T, except: E) {
+  const columns = getTableColumns(table);
+  const updateColumns = Object.entries(columns).filter(
+    ([col]) => !except.includes(col as keyof typeof table.$inferInsert)
+  );
+
+  return updateColumns.reduce(
+    (acc, [colName, table]) => ({
+      ...acc,
+      [colName]: sql.raw(`excluded.${table.name}`),
+    }),
+    {}
+  ) as Omit<Record<keyof typeof table.$inferInsert, SQL>, E[number]>;
 }

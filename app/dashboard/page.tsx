@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ProjectCard from "@/components/ProjectCard";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { NewCategoryModal } from "@/components/NewCategoryModal";
+import dayjs from "dayjs";
 
 function DashboardContent() {
   const { user } = useUser();
@@ -176,7 +177,7 @@ function DashboardContent() {
                 {filteredCases
                   .filter(
                     (caseItem) =>
-                      caseItem.lastUpdated >
+                      dayjs(caseItem.updateAt).unix() >
                       Date.now() - 7 * 24 * 60 * 60 * 1000
                   )
                   .map((caseItem) => (

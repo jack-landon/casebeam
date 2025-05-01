@@ -48,16 +48,20 @@ export async function POST(req: Request) {
     id: chatId,
     messages,
     filters = [],
+    reload = false,
   } = (await req.json()) as {
     messages: Array<Omit<Message, "id">>;
     id?: string;
     filters?: FilterOption[];
+    reload?: boolean;
   };
   if (!chatId) throw new Error("Chat ID is required");
   const userMsgIndex = messages.length - 1;
   const botMsgIndex = messages.length;
   const userMsgId = `${chatId}-${userMsgIndex}`;
   const botMsgId = `${chatId}-${botMsgIndex}`;
+
+  console.log("Is Reload: ", reload);
 
   let generateChatTitlePromise: Promise<
     GenerateTextResult<ToolSet, never>
@@ -83,7 +87,7 @@ export async function POST(req: Request) {
 
   // Start Getting the relevant content ~ 5 seconds
   const retrievedExcerptsPromise = timeOperation("Find Relevant Content", () =>
-    findRelevantContent(contextWindow, filters, 30)
+    findRelevantContent(contextWindow, filters, 50)
   );
 
   if (isNewChat) {
@@ -93,9 +97,9 @@ export async function POST(req: Request) {
     });
   }
 
-  const docIdSet = new Set<string>();
-
   const retrievedExcerpts = await retrievedExcerptsPromise;
+
+  const docIdSet = new Set<string>();
   for (const excerpt of retrievedExcerpts) {
     if (docIdSet.has(excerpt.doc_id)) continue;
     docIdSet.add(excerpt.doc_id);
@@ -171,8 +175,19 @@ export async function POST(req: Request) {
 
       // THIS IS THE STREAMED TEXT
       const result = streamText({
-        model: google("gemini-2.0-flash-lite-preview-02-05"),
-        system: streamTextSystemMessage(JSON.stringify(topFiveResults)),
+        model: google("gemini-2.0-flash-001"),
+        system: streamTextSystemMessage(
+          JSON.stringify(
+            topFiveResults.map((doc) => ({
+              title: doc.citation,
+              jurisdiction: doc.jurisdiction,
+              type: doc.type,
+              source: doc.source,
+              importanceScore: doc.similarityScore,
+              excerpts: doc.excerpts.map((excerpt) => excerpt.content),
+            }))
+          )
+        ),
         messages: coreMessages,
         onFinish: async ({ text }) => {
           // If user is signed in, store the chat and message in the database
@@ -219,12 +234,6 @@ export async function POST(req: Request) {
                 result.docId.toLowerCase() === doc.doc_id.toLowerCase()
             );
 
-            const tags = [];
-
-            if (doc.source) tags.push(formatTag(doc.source));
-            if (doc.type) tags.push(formatTag(doc.type));
-            if (doc.jurisdiction) tags.push(formatTag(doc.jurisdiction));
-
             const updatedExcerpts = doc.excerpts.map((excerpt, i) => ({
               ...excerpt,
               title: !searchResult
@@ -244,7 +253,9 @@ export async function POST(req: Request) {
               url: doc.url,
               docDate: doc.date,
               similarityScore: doc.similarityScore,
-              tags: JSON.stringify(tags),
+              jurisdiction: formatTag(doc.jurisdiction),
+              type: formatTag(doc.type),
+              source: formatTag(doc.source),
               excerpts: JSON.stringify(updatedExcerpts),
               userId: user.userId,
               messageId: botMsgId,

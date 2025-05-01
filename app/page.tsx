@@ -95,7 +95,6 @@ function HomeContent() {
           chat.searchResults.map((result) => ({
             ...result,
             excerpts: JSON.parse(result.excerpts ?? "[]"),
-            tags: JSON.parse(result.tags ?? "[]"),
           }))
         );
       }
@@ -135,23 +134,23 @@ function HomeContent() {
           }[];
         }
       ).initialSearchResults;
-      console.log("Initial Search Result Data", initialSearchResultData);
 
-      const transaformedData = initialSearchResultData.map((result) => ({
-        title: "Loading Relevance...",
-        docTitle: result.citation,
-        docSummary: result.$vectorize.slice(0, 150),
-        relevanceSummary: "Loading Relevance...",
-        docDate: result.date,
-        similarityScore: result.similarityScore,
-        url: result.url ?? "#",
-        chatId: chatId,
-        tags: [result.type, result.jurisdiction, result.source].map((tag) =>
-          formatTag(tag)
-        ),
-        excerpts: result.excerpts,
-      }));
-      setCurrentSearchResults(transaformedData);
+      setCurrentSearchResults(
+        initialSearchResultData.map((result) => ({
+          title: "Loading Relevance...",
+          docTitle: result.citation,
+          docSummary: "Loading Relevance...",
+          relevanceSummary: "Loading Relevance...",
+          docDate: result.date,
+          similarityScore: result.similarityScore,
+          url: result.url ?? "#",
+          chatId: chatId,
+          type: formatTag(result.type),
+          jurisdiction: formatTag(result.jurisdiction),
+          source: formatTag(result.source),
+          excerpts: result.excerpts,
+        }))
+      );
       setIsGettingSearchResults(false);
     }
   }, [data]);
@@ -181,7 +180,6 @@ function HomeContent() {
         chat.searchResults.map((result) => ({
           ...result,
           excerpts: JSON.parse(result.excerpts ?? "[]"),
-          tags: JSON.parse(result.tags ?? "[]"),
         }))
       );
       setIsShowingSearchResults(true);
@@ -228,7 +226,13 @@ function HomeContent() {
     if (action === "Refresh") {
       setIsGenerating(true);
       try {
-        await reload();
+        await reload({
+          allowEmptySubmit: false,
+          body: {
+            reload: true,
+            filters,
+          },
+        });
       } catch (error) {
         console.error("Error reloading:", error);
       } finally {

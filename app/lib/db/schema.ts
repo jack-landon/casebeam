@@ -20,7 +20,6 @@ export const projectsTable = sqliteTable("projects", {
   caseType: text("case_type").notNull(),
   status: text("status").notNull(),
   filingDate: text("filing_date").notNull(),
-  lastUpdated: integer("last_updated").notNull(),
   nextDeadline: text("next_deadline"),
   court: text("court"),
   judge: text("judge"),
@@ -103,7 +102,9 @@ export const searchResultsTable = sqliteTable("search_results", {
   docDate: text("doc_date"),
   similarityScore: real(),
   url: text("url").notNull(),
-  tags: text("tags"), // Store as JSON string
+  jurisdiction: text("jurisdiction"),
+  type: text("type"),
+  source: text("source"),
   excerpts: text("excerpts"), // Store as JSON string
   //   excerpts: {
   //     title: string;
