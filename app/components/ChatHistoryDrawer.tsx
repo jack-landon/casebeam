@@ -79,7 +79,7 @@ export function ChatHistoryDrawer({
                     }`}
                   >
                     <p className="text-sm font-medium mb-1">{chat.name}</p>
-                    <p className="text-xs font-light">
+                    <p className="text-xs font-extralight">
                       {dayjs(chat.lastMessageAt).format("ddd D MMM YY")}
                     </p>
                   </Link>

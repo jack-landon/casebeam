@@ -7,6 +7,7 @@ import { Separator } from "./ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useCurrentArticle } from "./contexts/CurrentArticleContext";
 import Loader from "./Loader";
+import { useEffect, useRef } from "react";
 
 type DetailsPanelProps = {
   view: View;
@@ -14,6 +15,13 @@ type DetailsPanelProps = {
 
 export default function DetailsPanel({ view }: DetailsPanelProps) {
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [currentArticle]);
 
   if (currentArticle) {
     return (
@@ -51,7 +59,10 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
             </p>
           </div>
         ) : (
-          <div className="relative flex-1 overflow-y-auto py-4">
+          <div
+            ref={scrollContainerRef}
+            className="relative flex-1 overflow-y-auto py-4"
+          >
             <Card className="w-full m-0 p-0 border-none">
               <CardHeader>
                 <CardTitle className="text-xl font-bold">
@@ -77,7 +88,7 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
                 <div>
                   <h3 className="text-lg font-bold">Relevant Excerpts</h3>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Here are some related cases that might be of interest:
+                    Click on the title to expand the excerpt
                   </p>
 
                   <ExcerptsAccordion excerpts={currentArticle.excerpts} />
