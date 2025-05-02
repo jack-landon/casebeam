@@ -28,10 +28,9 @@ import {
 const searchResultsSchema = z.array(
   z.object({
     docId: z.string(), // references the version_id going in
-    title: z.string(), // title about how it relates to the query
-    docSummary: z.string(), // From the source - Run embeddings on the entire document
-    relevanceSummary: z.string(),
-    excerpts: z.array(z.string()), // how the excerpt relates to the query
+    shortSummary: z.string(), // From the source - Run embeddings on the entire document
+    // extendedSummary: z.string(),
+    // excerpts: z.array(z.string()), // how the excerpt relates to the query
     // excerpts: z.array(
     //   z.object({
     //     excerptId: z.string(), // references the embedding id going in
@@ -87,7 +86,7 @@ export async function POST(req: Request) {
 
   // Start Getting the relevant content ~ 5 seconds
   const retrievedExcerptsPromise = timeOperation("Find Relevant Content", () =>
-    findRelevantContent(contextWindow, filters, 50)
+    findRelevantContent(contextWindow, filters, 25)
   );
 
   if (isNewChat) {
@@ -234,31 +233,38 @@ export async function POST(req: Request) {
                 result.docId.toLowerCase() === doc.doc_id.toLowerCase()
             );
 
-            const updatedExcerpts = doc.excerpts.map((excerpt, i) => ({
+            // const updatedExcerpts = doc.excerpts.map((excerpt, i) => ({
+            //   ...excerpt,
+            //   title: !searchResult
+            //     ? excerpt.title
+            //     : searchResult.excerpts[i] ?? `Excerpt ${i + 1}`,
+            // }));
+
+            const initialExcerpts = doc.excerpts.map((excerpt, i) => ({
               ...excerpt,
-              title: !searchResult
-                ? excerpt.title
-                : searchResult.excerpts[i] ?? `Excerpt ${i + 1}`,
+              title: `Excerpt ${i + 1}`,
             }));
+
             return {
-              title: searchResult?.title ?? doc.citation,
               docTitle: doc.citation,
               docId: doc.doc_id,
-              docSummary:
-                searchResult?.docSummary ??
-                `${updatedExcerpts[0].content.slice(0, 150)}...`,
-              relevanceSummary:
-                searchResult?.relevanceSummary ??
-                `${updatedExcerpts[0].content.slice(0, 150)}...`,
+              shortSummary:
+                searchResult?.shortSummary ??
+                `${initialExcerpts[0].content.slice(0, 150)}...`,
+              extendedSummary: null,
+              // extendedSummary:
+              //   searchResult?.extendedSummary ??
+              //   `${updatedExcerpts[0].content.slice(0, 150)}...`,
               url: doc.url,
               docDate: doc.date,
               similarityScore: doc.similarityScore,
               jurisdiction: formatTag(doc.jurisdiction),
               type: formatTag(doc.type),
               source: formatTag(doc.source),
-              excerpts: JSON.stringify(updatedExcerpts),
+              excerpts: JSON.stringify(initialExcerpts ?? []),
               userId: user.userId,
-              messageId: botMsgId,
+              userMessageId: userMsgId,
+              botMessageId: botMsgId,
               chatId,
             };
           });

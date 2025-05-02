@@ -31,6 +31,9 @@ import Filters, { FilterList } from "./Filters";
 import { useUserData } from "./contexts/UserDataContext";
 import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
 import { useCurrentArticle } from "./contexts/CurrentArticleContext";
+import { InsertSearchResultWithExcerptsAndId } from "@/lib/types";
+import { toast } from "sonner";
+import { getDetailedSearchResult } from "@/lib/serverActions/getDetailedSearchResult";
 
 const ChatAiIcons = [
   {
@@ -89,8 +92,9 @@ export default function ChatPanel({
   const { userData } = useUserData();
   const searchParams = useSearchParams();
   const chatId = searchParams.get("id");
-  const { currentSearchResults } = useCurrentSearchResults();
-  const { setCurrentArticle } = useCurrentArticle();
+  const { currentSearchResults, setCurrentSearchResults } =
+    useCurrentSearchResults();
+  const { currentArticle, setCurrentArticle } = useCurrentArticle();
 
   const docTitles = useMemo(() => {
     return currentSearchResults.map((result) => result.docTitle);
@@ -102,11 +106,49 @@ export default function ChatPanel({
         (result) => result.docTitle?.toLowerCase() === title.toLowerCase()
       );
       if (resultArticle) {
-        setCurrentArticle(resultArticle);
+        handleSelectCurrentArticle(resultArticle);
+        // setCurrentArticle(resultArticle);
       }
     },
     [currentSearchResults, setCurrentArticle]
   );
+
+  async function handleSelectCurrentArticle(
+    searchResult: InsertSearchResultWithExcerptsAndId
+  ) {
+    if (
+      currentArticle &&
+      currentArticle != "loading" &&
+      currentArticle.id == searchResult.id
+    )
+      return;
+
+    if (searchResult.extendedSummary) {
+      setCurrentArticle(searchResult);
+      return;
+    }
+
+    if (!searchResult.id) return toast.error("No search result found");
+
+    setCurrentArticle("loading");
+
+    const updatedSearchResult = await getDetailedSearchResult(searchResult.id);
+
+    const updatedSearchResultWithExcerpts = {
+      ...updatedSearchResult,
+      excerpts: JSON.parse(updatedSearchResult.excerpts),
+    };
+
+    setCurrentArticle(updatedSearchResultWithExcerpts);
+
+    // Update currentSearchResults with the new search result included
+    const newSearchResults = currentSearchResults.map((result) => {
+      if (result.id === searchResult.id) return updatedSearchResultWithExcerpts;
+      return result;
+    });
+
+    setCurrentSearchResults(newSearchResults);
+  }
 
   useEffect(() => {
     window.handleDocumentClickInChatBubble = handleDocumentClickInChatBubble;

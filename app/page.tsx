@@ -137,10 +137,9 @@ function HomeContent() {
 
       setCurrentSearchResults(
         initialSearchResultData.map((result) => ({
-          title: "Loading Relevance...",
           docTitle: result.citation,
-          docSummary: "Loading Relevance...",
-          relevanceSummary: "Loading Relevance...",
+          shortSummary: null,
+          extendedSummary: null,
           docDate: result.date,
           similarityScore: result.similarityScore,
           url: result.url ?? "#",

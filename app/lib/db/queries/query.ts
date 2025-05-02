@@ -19,6 +19,20 @@ export async function getUserData() {
   return userData;
 }
 
+export async function getSearchResultById(searchResultId: number) {
+  const user = await auth();
+  if (!user.userId) throw new Error("User not authenticated");
+  const searchResult = await db.query.searchResultsTable.findFirst({
+    where: (searchResultsTable, { eq }) =>
+      eq(searchResultsTable.id, searchResultId),
+    with: {
+      userMessage: true,
+    },
+  });
+  if (!searchResult) throw new Error("Search result not found");
+  return searchResult;
+}
+
 export async function getChat(id: string) {
   const user = await auth();
 
@@ -28,7 +42,7 @@ export async function getChat(id: string) {
     with: {
       messages: {
         with: {
-          searchResults: true,
+          botSearchResults: true,
         },
       },
       searchResults: {

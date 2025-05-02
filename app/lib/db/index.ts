@@ -3,7 +3,7 @@ import * as schema from "./schema";
 
 // config({ path: ".env" });
 
-const isUsingBackup = true;
+const isUsingBackup = false;
 
 export const dbCredentials = {
   url: isUsingBackup

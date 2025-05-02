@@ -11,3 +11,8 @@ export type InsertSearchResultWithExcerpts = Omit<
     url: string;
   }[];
 };
+
+export type InsertSearchResultWithExcerptsAndId =
+  InsertSearchResultWithExcerpts & {
+    id?: number;
+  };

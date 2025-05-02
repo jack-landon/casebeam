@@ -159,6 +159,17 @@ export async function saveSearchResultWithAssociations(data: {
   return savedResult;
 }
 
+export async function updateSearchResult(
+  data: Partial<InsertSearchResult> & { id: number }
+) {
+  const [updatedSearchResult] = await db
+    .update(searchResultsTable)
+    .set(data)
+    .where(eq(searchResultsTable.id, data.id))
+    .returning();
+  return updatedSearchResult;
+}
+
 export async function createManyMessages(data: InsertMessage[]) {
   console.log(data.map((msg) => msg.content));
   return await db

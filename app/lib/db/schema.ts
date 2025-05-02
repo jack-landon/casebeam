@@ -95,24 +95,26 @@ export const searchResultsTable = sqliteTable("search_results", {
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  docTitle: text("doc_title"),
-  docSummary: text("doc_summary"),
-  relevanceSummary: text("relevance_summary"),
+  docTitle: text("doc_title").notNull(),
+  shortSummary: text("short_summary"),
+  extendedSummary: text("extended_summary"),
   docDate: text("doc_date"),
   similarityScore: real(),
   url: text("url").notNull(),
   jurisdiction: text("jurisdiction"),
   type: text("type"),
   source: text("source"),
-  excerpts: text("excerpts"), // Store as JSON string
+  excerpts: text("excerpts").notNull(), // Store as JSON string
   //   excerpts: {
   //     title: string;
   //     caseName: string;
   //     content: string;
   //     url: string;
   //   }[];
-  messageId: text("message_id").references(() => messagesTable.id, {
+  userMessageId: text("user_message_id").references(() => messagesTable.id, {
+    onDelete: "cascade",
+  }),
+  botMessageId: text("bot_message_id").references(() => messagesTable.id, {
     onDelete: "cascade",
   }),
   chatId: text("chat_id").references(() => chatsTable.id, {
@@ -204,7 +206,13 @@ export const messagesRelations = relations(messagesTable, ({ one, many }) => ({
     fields: [messagesTable.chatId],
     references: [chatsTable.id],
   }),
-  searchResults: many(searchResultsTable),
+  userSearchResults: many(searchResultsTable, {
+    relationName: "userMessage",
+  }),
+  botSearchResults: many(searchResultsTable, {
+    relationName: "botMessage",
+  }),
+  // searchResults: many(searchResultsTable),
 }));
 
 export const categoriesRelations = relations(
@@ -225,9 +233,15 @@ export const searchResultsRelations = relations(
       fields: [searchResultsTable.userId],
       references: [usersTable.id],
     }),
-    message: one(messagesTable, {
-      fields: [searchResultsTable.messageId],
+    userMessage: one(messagesTable, {
+      fields: [searchResultsTable.userMessageId],
       references: [messagesTable.id],
+      relationName: "userMessage",
+    }),
+    botMessage: one(messagesTable, {
+      fields: [searchResultsTable.botMessageId],
+      references: [messagesTable.id],
+      relationName: "botMessage",
     }),
     chat: one(chatsTable, {
       fields: [searchResultsTable.chatId],

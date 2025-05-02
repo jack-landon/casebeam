@@ -22,17 +22,19 @@ import {
 import { toast } from "sonner";
 import { colorList } from "@/lib/utils";
 import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
-import { InsertSearchResultWithExcerpts } from "@/lib/types";
+import { InsertSearchResultWithExcerptsAndId } from "@/lib/types";
 import { NewProjectModal } from "./NewProjectModal";
 import { NewCategoryModal } from "./NewCategoryModal";
 import dayjs from "dayjs";
 import RelevanceIndicator from "./RelevanceIndicator";
 import { useUserData } from "./contexts/UserDataContext";
-import Loader from "./Loader";
 import { useCurrentArticle } from "./contexts/CurrentArticleContext";
+import { Skeleton } from "./ui/skeleton";
+import { getDetailedSearchResult } from "@/lib/serverActions/getDetailedSearchResult";
+import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
 
 type SearchResultProps = {
-  searchResult: InsertSearchResultWithExcerpts;
+  searchResult: InsertSearchResultWithExcerptsAndId;
   isStreaming?: boolean;
   // getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
 };
@@ -44,7 +46,9 @@ export default function SearchResult({
   const [saved, setSaved] = useState(false);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
-  const { setCurrentArticle } = useCurrentArticle();
+  const { currentSearchResults, setCurrentSearchResults } =
+    useCurrentSearchResults();
+  const { currentArticle, setCurrentArticle } = useCurrentArticle();
   const { userData } = useUserData();
 
   async function handleSave(
@@ -54,7 +58,7 @@ export default function SearchResult({
   ) {
     e.stopPropagation();
     toast(`Saving to ${type}`, {
-      id: searchResult.title,
+      id: searchResult.docTitle,
     });
     await saveSearchResultWithAssociations({
       searchResult: {
@@ -66,9 +70,46 @@ export default function SearchResult({
     });
     setSaved(true);
     toast(`Saved to ${type}`, {
-      id: searchResult.title,
-      description: `"${searchResult.title}" has been saved to ${type}`,
+      id: searchResult.docTitle,
+      description: `"${searchResult.docTitle}" has been saved to ${type}`,
     });
+  }
+
+  async function handleSelectCurrentArticle() {
+    if (
+      currentArticle &&
+      currentArticle != "loading" &&
+      currentArticle.id == searchResult.id
+    )
+      return;
+
+    if (searchResult.extendedSummary) {
+      setCurrentArticle(searchResult);
+      return;
+    }
+
+    if (isStreaming) return toast.error("Loading Result...");
+
+    if (!searchResult.id) return toast.error("No search result found");
+
+    setCurrentArticle("loading");
+
+    const updatedSearchResult = await getDetailedSearchResult(searchResult.id);
+
+    const updatedSearchResultWithExcerpts = {
+      ...updatedSearchResult,
+      excerpts: JSON.parse(updatedSearchResult.excerpts),
+    };
+
+    setCurrentArticle(updatedSearchResultWithExcerpts);
+
+    // Update currentSearchResults with the new search result included
+    const newSearchResults = currentSearchResults.map((result) => {
+      if (result.id === searchResult.id) return updatedSearchResultWithExcerpts;
+      return result;
+    });
+
+    setCurrentSearchResults(newSearchResults);
   }
 
   return (
@@ -84,14 +125,10 @@ export default function SearchResult({
               )}
               {searchResult.similarityScore && (
                 <RelevanceIndicator score={searchResult.similarityScore} />
-                // <StarRating percentage={searchResult.similarityScore * 100} />
               )}
             </div>
             <CardTitle
-              onClick={() => {
-                if (isStreaming) return toast.error("Loading Result...");
-                setCurrentArticle(searchResult);
-              }}
+              onClick={handleSelectCurrentArticle}
               className={`flex items-center cursor-pointer group-hover:underline text-xl text-primary hover:underline mb-2`}
             >
               {searchResult.docTitle}
@@ -101,8 +138,14 @@ export default function SearchResult({
                 isStreaming ? "animate-pulse" : ""
               }`}
             >
-              {isStreaming && <Loader size="sm" className="mr-2" />}
-              <p>{searchResult.docSummary}</p>
+              {isStreaming && (
+                <div className="w-full flex flex-col gap-2 mb-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              )}
+              <p>{searchResult.shortSummary}</p>
             </CardDescription>
           </div>
           <DropdownMenu>

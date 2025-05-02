@@ -331,7 +331,7 @@ export default function ProjectPage({ params }: PageProps) {
                           <CardHeader className="flex flex-row items-center">
                             <div>
                               <CardTitle className="text-xl underline mb-1">
-                                {result.title}
+                                {result.docTitle}
                               </CardTitle>
                               <CardDescription>
                                 {result.docTitle} -{" "}
@@ -367,14 +367,14 @@ export default function ProjectPage({ params }: PageProps) {
                                 Case Summary
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                {result.docSummary}
+                                {result.shortSummary}
                               </p>
                             </div>
 
                             <div>
                               <h3 className="text-lg font-semibold">{`How It's Relevant`}</h3>
                               <p className="text-sm text-muted-foreground">
-                                {result.relevanceSummary}
+                                {result.extendedSummary}
                               </p>
                             </div>
 

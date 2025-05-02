@@ -72,13 +72,16 @@ export function ChatHistoryDrawer({
                     key={chat.id}
                     href={`/?id=${chat.id}`}
                     onClick={closeDrawer}
-                    className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
+                    className={`px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
                       chatId && chatId == chat.id
                         ? "bg-accent text-accent-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    <span className="text-sm font-medium">{chat.name}</span>
+                    <p className="text-sm font-medium mb-1">{chat.name}</p>
+                    <p className="text-xs font-light">
+                      {dayjs(chat.lastMessageAt).format("ddd D MMM YY")}
+                    </p>
                   </Link>
                 ))}
             </div>

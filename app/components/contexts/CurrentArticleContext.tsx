@@ -4,9 +4,9 @@ import { InsertSearchResultWithExcerpts } from "@/lib/types";
 import { createContext, useContext, useState } from "react";
 
 type CurrentArticleContextType = {
-  currentArticle: InsertSearchResultWithExcerpts | null;
+  currentArticle: InsertSearchResultWithExcerpts | "loading" | null;
   setCurrentArticle: React.Dispatch<
-    React.SetStateAction<InsertSearchResultWithExcerpts | null>
+    React.SetStateAction<InsertSearchResultWithExcerpts | "loading" | null>
   >;
 };
 
@@ -23,7 +23,7 @@ export const CurrentArticleProvider = ({
   children: React.ReactNode;
 }) => {
   const [currentArticle, setCurrentArticle] =
-    useState<InsertSearchResultWithExcerpts | null>(null);
+    useState<CurrentArticleContextType["currentArticle"]>(null);
 
   return (
     <CurrentArticleContext.Provider
