@@ -22,9 +22,9 @@ export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
       : excerpts;
 
   return (
-    <Accordion type="single" collapsible className="w-full">
+    <Accordion type="multiple" defaultValue={["0"]} className="w-full">
       {parsedExcerpts.map((excerpt, i) => (
-        <AccordionItem key={i} value={`${excerpt.url}-item-${i}`}>
+        <AccordionItem key={i} value={i.toString()}>
           <AccordionTrigger
             className={`flex justify-between text-left rounded-none no-underline data-[state=open]:underline`}
           >
@@ -35,11 +35,11 @@ export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
           <AccordionContent className="bg-secondary/50 p-1">
             <div className="space-y-4 pt-2 px-1">
               <div>
-                <h3 className="font-semibold mb-1">Document Name</h3>
+                <h3 className="font-semibold mb-1 underline">Document Name</h3>
                 <p>{excerpt.caseName}</p>
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Excerpt</h3>
+                <h3 className="font-semibold mb-1 underline">Excerpt</h3>
                 <blockquote className="border-l-2 border-muted-foreground/30 pl-4 leading-loose">
                   {excerpt.content}
                 </blockquote>
