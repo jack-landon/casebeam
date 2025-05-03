@@ -15,7 +15,6 @@ import {
   GenerateTextResult,
   ToolSet,
 } from "ai";
-import { z } from "zod";
 import { Excerpt, InsertSearchResult, SelectChat } from "@/lib/db/schema";
 import { findRelevantContent } from "@/lib/serverActions/getResultsFromAstro";
 import { convertUrlToEmbeddedUrl, formatTag, timeOperation } from "@/lib/utils";
@@ -24,21 +23,7 @@ import {
   searchResultSummarySystemPrompt,
   streamTextSystemMessage,
 } from "@/lib/promptBlocks";
-
-const searchResultsSchema = z.array(
-  z.object({
-    docId: z.string(), // references the version_id going in
-    shortSummary: z.string(), // From the source - Run embeddings on the entire document
-    // extendedSummary: z.string(),
-    // excerpts: z.array(z.string()), // how the excerpt relates to the query
-    // excerpts: z.array(
-    //   z.object({
-    //     excerptId: z.string(), // references the embedding id going in
-    //     title: z.string(), // title about how it relates to the query
-    //   })
-    // ),
-  })
-);
+import { searchResultsSchema } from "@/lib/zodSchemas";
 
 export const runtime = "edge";
 
@@ -233,13 +218,6 @@ export async function POST(req: Request) {
                 result.docId.toLowerCase() === doc.doc_id.toLowerCase()
             );
 
-            // const updatedExcerpts = doc.excerpts.map((excerpt, i) => ({
-            //   ...excerpt,
-            //   title: !searchResult
-            //     ? excerpt.title
-            //     : searchResult.excerpts[i] ?? `Excerpt ${i + 1}`,
-            // }));
-
             const initialExcerpts = doc.excerpts.map((excerpt, i) => ({
               ...excerpt,
               title: `Excerpt ${i + 1}`,
@@ -252,9 +230,6 @@ export async function POST(req: Request) {
                 searchResult?.shortSummary ??
                 `${initialExcerpts[0].content.slice(0, 150)}...`,
               extendedSummary: null,
-              // extendedSummary:
-              //   searchResult?.extendedSummary ??
-              //   `${updatedExcerpts[0].content.slice(0, 150)}...`,
               url: doc.url,
               docDate: doc.date,
               similarityScore: doc.similarityScore,

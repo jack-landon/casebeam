@@ -45,20 +45,22 @@ export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
                 </blockquote>
               </div>
               <div className="my-2">
-                <Button
-                  size="sm"
-                  className="ml-auto mr-4 shrink-0 cursor-pointer"
-                  asChild
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Link
-                    href={excerpt.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {excerpt.url && (
+                  <Button
+                    size="sm"
+                    className="ml-auto mr-4 shrink-0 cursor-pointer"
+                    asChild
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    View Excerpt <ExternalLink className="ml-1 h-3 w-3" />
-                  </Link>
-                </Button>
+                    <Link
+                      href={excerpt.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View Excerpt <ExternalLink className="ml-1 h-3 w-3" />
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           </AccordionContent>

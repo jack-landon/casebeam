@@ -5,6 +5,9 @@ import { View } from "@/page";
 import Loader from "./Loader";
 import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
 import { totalDocumentsCount } from "@/lib/utils";
+import { getMoreResults } from "@/lib/serverActions/getMoreResults";
+import { useState } from "react";
+import { toast } from "sonner";
 
 type ResultsPanelProps = {
   isGettingSearchResults: boolean;
@@ -19,7 +22,31 @@ export default function ResultsPanel({
   setIsShowingSearchResults,
   isStreaming = false,
 }: ResultsPanelProps) {
-  const { currentSearchResults } = useCurrentSearchResults();
+  const { currentSearchResults, setCurrentSearchResults } =
+    useCurrentSearchResults();
+  const [isLoadingMoreResults, setIsLoadingMoreResults] = useState(false);
+
+  async function searchMore() {
+    try {
+      setIsLoadingMoreResults(true);
+      const chatId = currentSearchResults[0].chatId;
+
+      if (!chatId) return toast.error("Chat not found. Please try again.");
+
+      const moreResults = await getMoreResults({
+        chatId,
+        skip: currentSearchResults.length,
+        limit: 20,
+      });
+
+      setCurrentSearchResults([...currentSearchResults, ...moreResults]);
+    } catch (error) {
+      console.log("Error getting more results: ", error);
+      toast.error("Error getting more results. Please try again.");
+    } finally {
+      setIsLoadingMoreResults(false);
+    }
+  }
 
   return (
     <motion.div
@@ -80,6 +107,18 @@ export default function ResultsPanel({
                 isStreaming={isStreaming}
               />
             ))}
+          <div className="flex justify-center items-center my-2">
+            <Button
+              disabled={isLoadingMoreResults}
+              onClick={searchMore}
+              className="cursor-pointer"
+            >
+              {isLoadingMoreResults && <Loader className="mr-2" size="sm" />}
+              <span className="">
+                {isLoadingMoreResults ? "Loading More Results" : "Search More"}
+              </span>
+            </Button>
+          </div>
         </div>
       </div>
 

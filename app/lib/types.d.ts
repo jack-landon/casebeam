@@ -1,15 +1,10 @@
-import { InsertSearchResult } from "./db/schema";
+import { Excerpt, InsertSearchResult } from "./db/schema";
 
 export type InsertSearchResultWithExcerpts = Omit<
   InsertSearchResult,
   "excerpts" | "userId"
 > & {
-  excerpts: {
-    title: string;
-    caseName: string;
-    content: string;
-    url: string;
-  }[];
+  excerpts: Excerpt[];
 };
 
 export type InsertSearchResultWithExcerptsAndId =
