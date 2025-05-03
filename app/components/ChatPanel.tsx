@@ -222,14 +222,13 @@ export default function ChatPanel({
                     .map((part: string, index: number) => {
                       if (index % 2 === 0) {
                         // Process text parts (non-code blocks)
-                        let processedContent = part;
+                        let processedContent = part.replace(/\*/g, ""); // Strip all asterisks
 
                         // Create regex pattern for all docTitles, escape special characters
                         docTitles.forEach((title) => {
-                          const escapedTitle = title?.replace(
-                            /[.*+?^${}()|[\]\\]/g,
-                            "\\$&"
-                          );
+                          const escapedTitle = title
+                            ?.replace(/\*/g, "")
+                            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
                           const regex = new RegExp(`(${escapedTitle})`, "gi");
                           processedContent = processedContent.replace(
                             regex,
