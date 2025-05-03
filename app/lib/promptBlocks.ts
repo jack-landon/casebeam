@@ -38,9 +38,13 @@ Firstly, you will provide a detailed summary of the document which explains why 
 Secondly, you are to create an array containing a title for each excerpt [LESS THAN 12 WORDS EACH].
 For EVERY excerpt, provide a short summary of the excerpt and how it relates to the user query. You MUST NOT skip any excerpts.
 Here is the query: [START OF QUERY]"${userQuery}"[END OF QUERY]
-Here are the excerpts: [START OF EXCERPTS]${excerpts.map((excerpt) => ({
-    REPLACE_THIS: excerpt.title,
-    EXCERPT_CONTENT: excerpt.content,
-  }))}[END OF EXCERPTS]  
+Here are the excerpts: [START OF EXCERPTS]${excerpts
+    .map(
+      (excerpt) => `
+  Title: ${excerpt.title}
+  Content: ${excerpt.content}
+`
+    )
+    .join(" - [NEXT EXCERPT] - ")}[END OF EXCERPTS]  
   `;
 }

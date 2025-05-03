@@ -30,7 +30,7 @@ export async function getDetailedSearchResult(searchResultId: number) {
   console.log("User query:", userQuery);
 
   const { object } = await generateObject({
-    model: google("gemini-2.0-flash-001"),
+    model: google("gemini-2.0-flash-lite-preview-02-05"),
     schema: z.object({
       extendedSummary: z.string(),
       excerpts: z.array(z.string()), // how the excerpt relates to the query
