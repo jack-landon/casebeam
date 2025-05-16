@@ -50,21 +50,43 @@ export async function createNewNote(data: Omit<InsertNote, "userId">) {
   const { userId } = await auth();
   if (!userId) throw new Error("User not found");
 
+  const defaultEditorContent = {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: `Start typing the ${data.name} note here...`,
+          },
+        ],
+      },
+    ],
+  };
+
   const [note] = await db
     .insert(notesTable)
     .values({
       ...data,
       userId,
+      content: data.content ?? JSON.stringify(defaultEditorContent),
     })
     .returning();
   return note;
 }
 
 export async function updateNote(data: Partial<InsertNote> & { id: number }) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("User not found");
+
   const [updatedNote] = await db
     .update(notesTable)
     .set(data)
-    .where(eq(notesTable.id, data.id))
+    .where(
+      sql`${notesTable.id} = ${data.id} AND ${notesTable.userId} = ${userId}`
+    )
+    // .where(eq(notesTable.id, data.id))
     .returning();
   return updatedNote;
 }

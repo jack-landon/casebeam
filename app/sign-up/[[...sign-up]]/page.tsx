@@ -1,7 +1,6 @@
 "use client";
 
 import { SignUp, useUser } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 
 export default function SignupPage() {
   const { user } = useUser();
@@ -12,9 +11,6 @@ export default function SignupPage() {
         <SignUp
           redirectUrl="/create-new-user"
           forceRedirectUrl="/create-new-user"
-          appearance={{
-            baseTheme: dark,
-          }}
         />
       ) : (
         <div>You are signed in!</div>

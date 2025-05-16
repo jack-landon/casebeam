@@ -1,6 +1,25 @@
 export const defaultEditorContent = {
   type: "doc",
-  content: [],
+  content: [
+    {
+      type: "hardBreak",
+    },
+    {
+      type: "hardBreak",
+    },
+    {
+      type: "hardBreak",
+    },
+    {
+      type: "hardBreak",
+    },
+    {
+      type: "hardBreak",
+    },
+    {
+      type: "hardBreak",
+    },
+  ],
   // content: [
   //   {
   //     type: "heading",

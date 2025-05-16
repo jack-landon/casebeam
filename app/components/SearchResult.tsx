@@ -27,11 +27,11 @@ import { NewProjectModal } from "./NewProjectModal";
 import { NewCategoryModal } from "./NewCategoryModal";
 import dayjs from "dayjs";
 import RelevanceIndicator from "./RelevanceIndicator";
-import { useUserData } from "./contexts/UserDataContext";
-import { useCurrentArticle } from "./contexts/CurrentArticleContext";
+import { useUserData } from "./providers/UserDataProvider";
+import { useCurrentArticle } from "./providers/CurrentArticleProvider";
 import { Skeleton } from "./ui/skeleton";
 import { getDetailedSearchResult } from "@/lib/serverActions/getDetailedSearchResult";
-import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
+import { useCurrentSearchResults } from "./providers/CurrentSearchResultsProvider";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerptsAndId;

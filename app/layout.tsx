@@ -6,11 +6,11 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Header from "./components/Header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
-import { UserDataProvider } from "./components/contexts/UserDataContext";
+import { UserDataProvider } from "./components/providers/UserDataProvider";
 import { getUserData } from "./lib/db/queries/query";
-import { CurrentSearchResultsProvider } from "./components/contexts/CurrentSearchResultsContext";
-import { CurrentArticleProvider } from "./components/contexts/CurrentArticleContext";
-import { CurrentNoteProvider } from "./components/contexts/CurrentNoteContext";
+import { CurrentSearchResultsProvider } from "./components/providers/CurrentSearchResultsProvider";
+import { CurrentArticleProvider } from "./components/providers/CurrentArticleProvider";
+import { CurrentNoteProvider } from "./components/providers/CurrentNoteProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,7 +37,7 @@ export default async function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={`${inter.className} bg-muted/30`}>
-          <ThemeProvider attribute="class" defaultTheme="system">
+          <ThemeProvider attribute="class" defaultTheme="light">
             <UserDataProvider initialUserData={userData}>
               <CurrentNoteProvider>
                 <CurrentSearchResultsProvider>

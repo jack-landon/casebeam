@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ExcerptsAccordion } from "./ExcerptsAccordion";
 import { Separator } from "./ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { useCurrentArticle } from "./contexts/CurrentArticleContext";
+import { useCurrentArticle } from "./providers/CurrentArticleProvider";
 import Loader from "./Loader";
 import { useEffect, useRef } from "react";
 

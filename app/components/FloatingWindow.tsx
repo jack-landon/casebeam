@@ -4,6 +4,7 @@ import { useState, useRef, MouseEvent, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Minus } from "lucide-react";
 import { NotepadMenuBar } from "./FloatingWindowMenuBar";
+import { useCurrentNote } from "./providers/CurrentNoteProvider";
 
 type FloatingWindowProps = {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ const FloatingWindow = ({
   const dragStartPos = useRef({ x: 0, y: 0 });
   const resizeStartPos = useRef({ x: 0, y: 0 });
   const initialSize = useRef({ width: 0, height: 0 });
+  const { currentNote, saveStatus } = useCurrentNote();
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     if (isDragging) {
@@ -140,7 +142,7 @@ const FloatingWindow = ({
       return (
         <div
           ref={windowRef}
-          className="absolute bg-neutral-900 border border-neutral-500 rounded shadow-lg overflow-hidden"
+          className="absolute bg-card border border-neutral-500/20 rounded shadow-lg overflow-hidden"
           style={{
             left: position.x,
             top: position.y,
@@ -152,14 +154,30 @@ const FloatingWindow = ({
           //   onMouseLeave={handleMouseUp}
         >
           <div
-            className="drag-handle bg-neutral-900 p-2 cursor-move border-b border-neutral-700 select-none"
+            className="drag-handle p-2 cursor-move border-b border-neutral-700/20 select-none"
             onMouseDown={handleMouseDown}
           >
             <div className="px-2 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <NotepadMenuBar />
-                {/* <p className="font-bold text-lg">Notepad</p> */}
+              <div className="relative flex space-x-2">
+                <div className="items-center">
+                  <div className="flex items-center">
+                    {currentNote && (
+                      <div
+                        className={`w-3 h-3 rounded-full mr-4 ${currentNote.color}`}
+                      />
+                    )}
+                    <div className="flex flex-col">
+                      <p className="">{currentNote?.name ?? "Unnamed Note"}</p>
+                      <p className="italic text-xs text-muted-foreground">
+                        {saveStatus}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
+              {/* <div className="flex items-center space-x-2">
+                <NotepadMenuBar />
+              </div> */}
               <Button
                 variant="outline"
                 size="icon"
@@ -169,6 +187,7 @@ const FloatingWindow = ({
                 <Minus className="h-4 w-4 cursor-pointer" />
               </Button>
             </div>
+            <NotepadMenuBar />
           </div>
           <div className="p-2.5 h-[calc(100%-37px)]">{children}</div>
 

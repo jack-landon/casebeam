@@ -166,6 +166,7 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   chats: many(chatsTable),
   categories: many(categoriesTable),
   searchResults: many(searchResultsTable),
+  notes: many(notesTable),
 }));
 
 export const projectsRelations = relations(projectsTable, ({ one, many }) => ({

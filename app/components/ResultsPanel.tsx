@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import SearchResult from "./SearchResult";
 import { View } from "@/page";
 import Loader from "./Loader";
-import { useCurrentSearchResults } from "./contexts/CurrentSearchResultsContext";
+import { useCurrentSearchResults } from "./providers/CurrentSearchResultsProvider";
 import { totalDocumentsCount } from "@/lib/utils";
 import { getMoreResults } from "@/lib/serverActions/getMoreResults";
 import { useState } from "react";

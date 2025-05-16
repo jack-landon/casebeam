@@ -17,8 +17,8 @@ import {
   DOC_TYPES,
   formatTag,
 } from "./lib/utils";
-import { useCurrentSearchResults } from "./components/contexts/CurrentSearchResultsContext";
-import { useCurrentArticle } from "./components/contexts/CurrentArticleContext";
+import { useCurrentSearchResults } from "./components/providers/CurrentSearchResultsProvider";
+import { useCurrentArticle } from "./components/providers/CurrentArticleProvider";
 
 export type View = "chat" | "results" | "details";
 

@@ -13,6 +13,7 @@ export async function getUserData() {
       chats: true,
       projects: true,
       categories: true,
+      notes: true,
     },
   });
   if (!userData) return null;
@@ -60,14 +61,4 @@ export async function getNote(noteId: number) {
   return await db.query.notesTable.findFirst({
     where: (notesTable, { eq }) => eq(notesTable.id, noteId),
   });
-}
-
-export async function getUserNotes() {
-  const user = await auth();
-  if (!user.userId) throw new Error("User not authenticated");
-  const userNotes = await db.query.notesTable.findMany({
-    where: (notesTable, { eq }) => eq(notesTable.userId, user.userId),
-    orderBy: (notesTable, { desc }) => desc(notesTable.updatedAt),
-  });
-  return userNotes;
 }

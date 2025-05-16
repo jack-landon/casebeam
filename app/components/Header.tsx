@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Bird } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import FloatingWindow from "./FloatingWindow";
 import Notepad from "./wysiwyg/Notepad";
 import { ChatHistoryDrawer } from "./ChatHistoryDrawer";
-import { useUserData } from "./contexts/UserDataContext";
+import { useUserData } from "./providers/UserDataProvider";
 import { useSearchParams } from "next/navigation";
+import DarkModeSwitch from "./DarkModeSwitch";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,7 +37,17 @@ export default function Header() {
         <header className="flex h-16 w-full shrink-0 items-center px-4 md:px-6">
           <div className="flex items-center gap-4">
             <Link href="/" className="mr-6 hidden lg:flex" prefetch={false}>
-              <Bird className="h-6 w-6" />
+              {/* <Bird className="h-6 w-6" /> */}
+              <img
+                src="/brand/icon-black-circle.png"
+                alt=""
+                className="h-9 w-10 dark:hidden"
+              />
+              <img
+                src="/brand/icon-white-circle.png"
+                alt=""
+                className="h-9 w-10 hidden dark:block"
+              />
               <span className="sr-only">Car E-commerce</span>
             </Link>
 
@@ -102,6 +112,7 @@ export default function Header() {
                 <Link href="/sign-up">Sign Up</Link>
               </Button>
             </SignedOut>
+            <DarkModeSwitch />
           </div>
         </header>
       </div>

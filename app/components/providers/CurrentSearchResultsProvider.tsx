@@ -29,7 +29,10 @@ export const CurrentSearchResultsProvider = ({
   >([]);
 
   const value = useMemo(
-    () => ({ currentSearchResults, setCurrentSearchResults }),
+    () => ({
+      currentSearchResults,
+      setCurrentSearchResults,
+    }),
     [currentSearchResults]
   );
 

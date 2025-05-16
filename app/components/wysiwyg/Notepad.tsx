@@ -8,12 +8,11 @@ import {
   type EditorInstance,
   EditorRoot,
   ImageResizer,
-  type JSONContent,
   handleCommandNavigation,
   handleImageDrop,
   handleImagePaste,
 } from "novel";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultExtensions } from "./extensions";
 import { ColorSelector } from "./selectors/color-selector";
@@ -27,16 +26,15 @@ import { uploadFn } from "./image-upload";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
 import { defaultEditorContent } from "./defaultEditorContent";
-import hljs from "highlight.js";
+// import hljs from "highlight.js";
+import { updateNote } from "@/lib/db/queries/insert";
+import { useCurrentNote } from "../providers/CurrentNoteProvider";
 
 const extensions = [...defaultExtensions, slashCommand];
 
 export default function Notepad() {
-  const [initialContent, setInitialContent] = useState<null | JSONContent>(
-    null
-  );
-  const [saveStatus, setSaveStatus] = useState("Saved");
-  const [charsCount, setCharsCount] = useState();
+  const { currentNote, setCurrentNote, setSaveStatus, editorRef } =
+    useCurrentNote();
 
   const [openNode, setOpenNode] = useState(false);
   const [openColor, setOpenColor] = useState(false);
@@ -44,43 +42,45 @@ export default function Notepad() {
   const [openAI, setOpenAI] = useState(false);
 
   //Apply Codeblock Highlighting on the HTML from editor.getHTML()
-  const highlightCodeblocks = (content: string) => {
-    const doc = new DOMParser().parseFromString(content, "text/html");
-    doc.querySelectorAll("pre code").forEach((el) => {
-      // @ts-expect-error highlightElement is not recognized in HTMLElement type
-      // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
-      hljs.highlightElement(el);
-    });
-    return new XMLSerializer().serializeToString(doc);
-  };
+  // const highlightCodeblocks = (content: string) => {
+  //   const doc = new DOMParser().parseFromString(content, "text/html");
+  //   doc.querySelectorAll("pre code").forEach((el) => {
+  //     // @ts-expect-error highlightElement is not recognized in HTMLElement type
+  //     // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
+  //     hljs.highlightElement(el);
+  //   });
+  //   return new XMLSerializer().serializeToString(doc);
+  // };
 
   const debouncedUpdates = useDebouncedCallback(
     async (editor: EditorInstance) => {
+      setSaveStatus("Saving...");
       const json = editor.getJSON();
-      setCharsCount(editor.storage.characterCount.words());
-      window.localStorage.setItem(
-        "html-content",
-        highlightCodeblocks(editor.getHTML())
-      );
-      window.localStorage.setItem("novel-content", JSON.stringify(json));
-      window.localStorage.setItem(
-        "markdown",
-        editor.storage.markdown.getMarkdown()
-      );
+      console.log(json);
+      // setCharsCount(editor.storage.characterCount.words());
+      // window.localStorage.setItem(
+      //   "html-content",
+      //   highlightCodeblocks(editor.getHTML())
+      // );
+      // window.localStorage.setItem("novel-content", JSON.stringify(json));
+      // window.localStorage.setItem(
+      //   "markdown",
+      //   editor.storage.markdown.getMarkdown()
+      // );
       setSaveStatus("Saved");
-      console.log(saveStatus);
-      console.log(charsCount);
+
+      if (!currentNote) return;
+      setCurrentNote({
+        ...currentNote,
+        content: JSON.stringify(json),
+      });
+      updateNote({
+        id: currentNote.id,
+        content: JSON.stringify(json),
+      });
     },
-    500
+    2000
   );
-
-  useEffect(() => {
-    const content = window.localStorage.getItem("novel-content");
-    if (content) setInitialContent(JSON.parse(content));
-    else setInitialContent(defaultEditorContent);
-  }, []);
-
-  if (!initialContent) return null;
 
   return (
     <div className="relative w-full max-w-screen-lg">
@@ -100,7 +100,18 @@ export default function Notepad() {
       </div> */}
       <EditorRoot>
         <EditorContent
-          initialContent={initialContent}
+          initialContent={
+            currentNote?.content
+              ? JSON.parse(currentNote.content)
+              : defaultEditorContent
+          }
+          onCreate={({ editor }) => {
+            editorRef.current = editor;
+          }}
+          onUpdate={({ editor }) => {
+            setSaveStatus("Saving...");
+            debouncedUpdates(editor);
+          }}
           extensions={extensions}
           className="relative min-h-[500px] w-full max-w-screen-lg sm:mb-[calc(20vh)]"
           editorProps={{
@@ -115,10 +126,6 @@ export default function Notepad() {
               class:
                 "prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full",
             },
-          }}
-          onUpdate={({ editor }) => {
-            debouncedUpdates(editor);
-            setSaveStatus("Unsaved");
           }}
           slotAfter={<ImageResizer />}
         >
