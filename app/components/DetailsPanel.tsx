@@ -8,20 +8,53 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useCurrentArticle } from "./providers/CurrentArticleProvider";
 import Loader from "./Loader";
 import { useEffect, useRef } from "react";
+import SaveResultDropdown from "./SaveResultDropdown";
+import { useUserData } from "./providers/UserDataProvider";
+import { toast } from "sonner";
+import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
 
 type DetailsPanelProps = {
   view: View;
 };
 
 export default function DetailsPanel({ view }: DetailsPanelProps) {
+  const { userData } = useUserData();
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    console.log("User Data", userData);
+  }, [userData]);
 
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
   }, [currentArticle]);
+
+  async function handleSave(
+    e: React.MouseEvent,
+    type: "project" | "category",
+    itemId: number
+  ) {
+    e.stopPropagation();
+    if (!currentArticle || currentArticle == "loading") return;
+    toast(`Saving to ${type}`, {
+      id: currentArticle.id,
+    });
+    await saveSearchResultWithAssociations({
+      searchResult: {
+        ...currentArticle,
+        excerpts: JSON.stringify(currentArticle.excerpts),
+      },
+      projectIds: type == "project" ? [itemId] : [],
+      categoryIds: type == "category" ? [itemId] : [],
+    });
+    toast(`Saved to ${type}`, {
+      id: currentArticle.docTitle,
+      description: `"${currentArticle.docTitle}" has been saved to ${type}`,
+    });
+  }
 
   if (currentArticle) {
     return (
@@ -65,6 +98,24 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
           >
             <Card className="w-full m-0 p-0 border-none">
               <CardHeader>
+                <SaveResultDropdown
+                  saved={
+                    !userData
+                      ? false
+                      : userData.projects.some((result) =>
+                          result.searchResultProjects.some(
+                            (res) => res.searchResultId == currentArticle.id
+                          )
+                        ) ||
+                        userData.categories.some((result) =>
+                          result.searchResultCategories.some(
+                            (res) => res.searchResultId == currentArticle.id
+                          )
+                        )
+                  }
+                  handleSave={handleSave}
+                  isArticlePanel
+                />
                 <CardTitle className="text-xl font-bold">
                   {currentArticle.docTitle}
                 </CardTitle>

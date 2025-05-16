@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Badge } from "./ui/badge";
 
 interface RelevanceIndicatorProps {
   score: number;
@@ -23,10 +24,10 @@ export default function RelevanceIndicator({
 
     if (normalizedScore >= 0.9) {
       label = "Super Relevant";
-      color = "bg-green-500";
+      color = "bg-green-700";
     } else if (normalizedScore >= 0.8) {
       label = "Very Relevant";
-      color = "bg-green-400";
+      color = "bg-green-600";
     } else if (normalizedScore >= 0.7) {
       label = "Somewhat Relevant";
       color = "bg-yellow-400";
@@ -39,23 +40,25 @@ export default function RelevanceIndicator({
   }, [score]);
 
   return (
-    <div className="flex items-center space-x-2 text-sm">
+    <Badge
+      className={`flex items-center text-sm text-white/80 ${relevanceData.color}`}
+    >
       <span
-        className={`font-medium ${
-          relevanceData.color === "bg-green-500"
-            ? "text-green-600"
-            : relevanceData.color === "bg-green-400"
-            ? "text-green-500"
-            : relevanceData.color === "bg-yellow-400"
-            ? "text-yellow-500"
-            : "text-red-500"
-        }`}
+        className={`font-medium`}
+        //   ${
+        //   relevanceData.color === "bg-green-500"
+        //     ? "text-green-600"
+        //     : relevanceData.color === "bg-green-400"
+        //     ? "text-green-500"
+        //     : relevanceData.color === "bg-yellow-400"
+        //     ? "text-yellow-500"
+        //     : "text-red-500"
+        // }
+        // `}
       >
         {relevanceData.label}
       </span>
-      <span className="text-gray-500 text-xs">
-        - {Math.round(score * 100)}%
-      </span>
-    </div>
+      <span className="text-xs"> - {Math.round(score * 100)}%</span>
+    </Badge>
   );
 }

@@ -11,8 +11,16 @@ export async function getUserData() {
     where: (usersTable, { eq }) => eq(usersTable.id, user.userId),
     with: {
       chats: true,
-      projects: true,
-      categories: true,
+      projects: {
+        with: {
+          searchResultProjects: true,
+        },
+      },
+      categories: {
+        with: {
+          searchResultCategories: true,
+        },
+      },
       notes: true,
     },
   });

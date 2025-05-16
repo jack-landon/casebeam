@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import dayjs from "dayjs";
 import { useAuth } from "@clerk/nextjs";
+import { useCurrentModal } from "./providers/CurrentModalProvider";
 
 type FormData = {
   name: string;
@@ -50,13 +51,8 @@ type FormData = {
 
 type FormFields = keyof FormData;
 
-export function NewProjectModal({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+export function NewProjectModal() {
+  const { currentModal, setCurrentModal } = useCurrentModal();
   const { userId } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,7 +101,7 @@ export function NewProjectModal({
         description: "Your new case has been successfully created.",
       });
 
-      onOpenChange(false);
+      setCurrentModal(null);
       router.refresh();
     } catch (error) {
       console.error("Error creating case:", error);
@@ -118,8 +114,12 @@ export function NewProjectModal({
     }
   };
 
+  function onOpenChange() {
+    setCurrentModal(null);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={currentModal == "newProject"} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -344,7 +344,7 @@ export function NewProjectModal({
               className="cursor-pointer"
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setCurrentModal(null)}
             >
               Cancel
             </Button>

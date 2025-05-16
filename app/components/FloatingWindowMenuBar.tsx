@@ -35,19 +35,15 @@ import Loader from "./Loader";
 import { ColorPickerDropdown } from "./ColorPickerDropdown";
 import dayjs from "dayjs";
 import { useUserData } from "./providers/UserDataProvider";
-import { useEditor } from "novel";
 
 export function NotepadMenuBar() {
   const { userData } = useUserData();
   const { setCurrentNote, editorRef } = useCurrentNote();
   const [isNewNoteModalOpen, setIsNewNoteModalOpen] = useState(false);
-  const { editor } = useEditor();
 
   async function handleOpenNote(noteId: number) {
     const fetchedNote = await getNote(noteId);
     if (!fetchedNote) return toast.error("Note not found");
-
-    console.log("Current Editor: ", editor);
 
     console.log("Fetched note content:", fetchedNote.content);
     setCurrentNote(fetchedNote);
@@ -116,14 +112,14 @@ export function NotepadMenuBar() {
         <MenubarTrigger className="cursor-pointer">Edit</MenubarTrigger>
         <MenubarContent>
           <MenubarItem
-          // onClick={() => editor?.commands.undo()}
-          // disabled={!editor?.can().undo()}
+            onClick={() => editorRef.current?.commands.undo()}
+            disabled={!editorRef.current?.can().undo()}
           >
             Undo <MenubarShortcut>⌘Z</MenubarShortcut>
           </MenubarItem>
           <MenubarItem
-          // onClick={() => editor?.commands.redo()}
-          // disabled={!editor?.can().redo()}
+            onClick={() => editorRef.current?.commands.redo()}
+            disabled={!editorRef.current?.can().redo()}
           >
             Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
           </MenubarItem>
@@ -139,7 +135,13 @@ export function NotepadMenuBar() {
             </MenubarSubContent>
           </MenubarSub>
           <MenubarSeparator />
-          <MenubarItem>Cut</MenubarItem>
+          <MenubarItem
+            onClick={() =>
+              editorRef.current?.commands.cut({ from: 0, to: 0 }, 1)
+            }
+          >
+            Cut
+          </MenubarItem>
           <MenubarItem>Copy</MenubarItem>
           <MenubarItem>Paste</MenubarItem>
         </MenubarContent>

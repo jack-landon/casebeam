@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useAuth } from "@clerk/nextjs";
 import { createCategory } from "@/lib/db/queries/insert";
 import { SelectCategory } from "@/lib/db/schema";
+import { useCurrentModal } from "./providers/CurrentModalProvider";
 
 type FormData = {
   name: string;
@@ -26,13 +27,8 @@ type FormData = {
 
 type FormFields = keyof FormData;
 
-export function NewCategoryModal({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+export function NewCategoryModal() {
+  const { currentModal, setCurrentModal } = useCurrentModal();
   const { userId } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,7 +64,7 @@ export function NewCategoryModal({
         description: "",
       });
 
-      onOpenChange(false);
+      setCurrentModal(null);
       router.refresh();
     } catch (error) {
       console.error("Error creating category:", error);
@@ -82,8 +78,12 @@ export function NewCategoryModal({
     }
   };
 
+  function onOpenChange() {
+    setCurrentModal(null);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={currentModal == "newCategory"} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -123,7 +123,7 @@ export function NewCategoryModal({
               className="cursor-pointer"
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setCurrentModal(null)}
             >
               Cancel
             </Button>

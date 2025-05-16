@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 // import ChatSupport from "@/components/chat-support";
@@ -11,6 +11,12 @@ import { getUserData } from "./lib/db/queries/query";
 import { CurrentSearchResultsProvider } from "./components/providers/CurrentSearchResultsProvider";
 import { CurrentArticleProvider } from "./components/providers/CurrentArticleProvider";
 import { CurrentNoteProvider } from "./components/providers/CurrentNoteProvider";
+import { CurrentModalProvider } from "./components/providers/CurrentModalProvider";
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+});
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,22 +42,24 @@ export default async function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.className} bg-muted/30`}>
+        <body className={`${lora.variable} ${inter.className} bg-muted/30`}>
           <ThemeProvider attribute="class" defaultTheme="light">
-            <UserDataProvider initialUserData={userData}>
-              <CurrentNoteProvider>
-                <CurrentSearchResultsProvider>
-                  <CurrentArticleProvider>
-                    <>
-                      <Header />
-                      {children}
-                    </>
-                    <Toaster />
-                    {/* <ChatSupport /> */}
-                  </CurrentArticleProvider>
-                </CurrentSearchResultsProvider>
-              </CurrentNoteProvider>
-            </UserDataProvider>
+            <CurrentModalProvider>
+              <UserDataProvider initialUserData={userData}>
+                <CurrentNoteProvider>
+                  <CurrentSearchResultsProvider>
+                    <CurrentArticleProvider>
+                      <>
+                        <Header />
+                        {children}
+                      </>
+                      <Toaster />
+                      {/* <ChatSupport /> */}
+                    </CurrentArticleProvider>
+                  </CurrentSearchResultsProvider>
+                </CurrentNoteProvider>
+              </UserDataProvider>
+            </CurrentModalProvider>
           </ThemeProvider>
         </body>
       </html>

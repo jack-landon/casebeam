@@ -150,11 +150,20 @@ export async function saveSearchResultWithAssociations(data: {
 }) {
   const { userId } = await auth();
   if (!userId) throw new Error("User not found");
+  const searchResultId = data.searchResult.id;
+  if (!searchResultId) return;
 
-  const [savedResult] = await db
-    .insert(searchResultsTable)
-    .values({ ...data.searchResult, userId })
-    .returning();
+  // const [savedResult] = await db
+  //   .insert(searchResultsTable)
+  //   .values({ ...data.searchResult, userId })
+  //   .returning();
+
+  const savedResult = await db.query.searchResultsTable.findFirst({
+    where: (searchResultsTable, { eq }) =>
+      eq(searchResultsTable.id, searchResultId),
+  });
+
+  if (!savedResult) throw new Error("Search result not found");
 
   // Save category associations
   if (data.categoryIds.length > 0) {

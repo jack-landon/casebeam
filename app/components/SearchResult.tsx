@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { BookText, Landmark, MapPin, Plus, Star } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { BookText, Landmark, MapPin } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,20 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { colorList } from "@/lib/utils";
 import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
 import { InsertSearchResultWithExcerptsAndId } from "@/lib/types";
-import { NewProjectModal } from "./NewProjectModal";
-import { NewCategoryModal } from "./NewCategoryModal";
 import dayjs from "dayjs";
 import RelevanceIndicator from "./RelevanceIndicator";
 import { useUserData } from "./providers/UserDataProvider";
@@ -32,20 +18,17 @@ import { useCurrentArticle } from "./providers/CurrentArticleProvider";
 import { Skeleton } from "./ui/skeleton";
 import { getDetailedSearchResult } from "@/lib/serverActions/getDetailedSearchResult";
 import { useCurrentSearchResults } from "./providers/CurrentSearchResultsProvider";
+import SaveResultDropdown from "./SaveResultDropdown";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerptsAndId;
   isStreaming?: boolean;
-  // getArticleDetails: (article: InsertSearchResultWithExcerpts) => void;
 };
 
 export default function SearchResult({
   searchResult,
   isStreaming = false,
 }: SearchResultProps) {
-  const [saved, setSaved] = useState(false);
-  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
-  const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
   const { currentSearchResults, setCurrentSearchResults } =
     useCurrentSearchResults();
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
@@ -68,7 +51,6 @@ export default function SearchResult({
       projectIds: type == "project" ? [itemId] : [],
       categoryIds: type == "category" ? [itemId] : [],
     });
-    setSaved(true);
     toast(`Saved to ${type}`, {
       id: searchResult.docTitle,
       description: `"${searchResult.docTitle}" has been saved to ${type}`,
@@ -113,28 +95,28 @@ export default function SearchResult({
   }
 
   return (
-    <Card className="group gap-2 w-full max-w-3xl hover:bg-neutral-800 border-b rounded-none transition ease-in-out">
+    <Card className="group gap-2 w-full max-w-3xl hover:bg-accent border-b rounded-none transition ease-in-out">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
             <div className="mb-3">
-              {searchResult.docDate && (
-                <span className="text-xs text-muted-foreground mb-2">
-                  {dayjs(searchResult.docDate).format("MMM D, YYYY")}
-                </span>
-              )}
               {searchResult.similarityScore && (
                 <RelevanceIndicator score={searchResult.similarityScore} />
               )}
             </div>
             <CardTitle
               onClick={handleSelectCurrentArticle}
-              className={`flex items-center cursor-pointer group-hover:underline text-xl text-primary hover:underline mb-2`}
+              className={`cursor-pointer group-hover:underline text-xl text-accent-foreground hover:underline`}
             >
               {searchResult.docTitle}
             </CardTitle>
+            {searchResult.docDate && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {dayjs(searchResult.docDate).format("MMM D, YYYY")}
+              </p>
+            )}
             <CardDescription
-              className={`flex items-center ${
+              className={`flex items-center mt-3 ${
                 isStreaming ? "animate-pulse" : ""
               }`}
             >
@@ -148,7 +130,25 @@ export default function SearchResult({
               <p>{searchResult.shortSummary}</p>
             </CardDescription>
           </div>
-          <DropdownMenu>
+          <SaveResultDropdown
+            saved={
+              !userData
+                ? false
+                : userData.projects.some((result) =>
+                    result.searchResultProjects.some(
+                      (res) => res.searchResultId == searchResult.id
+                    )
+                  ) ||
+                  userData.categories.some((result) =>
+                    result.searchResultCategories.some(
+                      (res) => res.searchResultId == searchResult.id
+                    )
+                  )
+            }
+            handleSave={handleSave}
+            isArticlePanel={false}
+          />
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant={`ghost`}
@@ -233,31 +233,23 @@ export default function SearchResult({
                 )
               )}
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2 mt-3">
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-accent-foreground">
             <BookText className="h-3 w-3 mr-2" />
             {searchResult.type}
           </span>
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-accent-foreground">
             <MapPin className="h-3 w-3 mr-2" /> {searchResult.jurisdiction}
           </span>
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-neutral-700">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-accent-foreground">
             <Landmark className="h-3 w-3 mr-2" /> {searchResult.source}
           </span>
         </div>
       </CardContent>
-      <NewProjectModal
-        open={isNewProjectModalOpen}
-        onOpenChange={setIsNewProjectModalOpen}
-      />
-      <NewCategoryModal
-        open={isNewCategoryModalOpen}
-        onOpenChange={setIsNewCategoryModalOpen}
-      />
     </Card>
   );
 }

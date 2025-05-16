@@ -233,7 +233,7 @@ export default function ChatPanel({
                           processedContent = processedContent.replace(
                             regex,
                             `<span
-                            class="bg-yellow-500/50 hover:bg-yellow-500/40 px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors"
+                            class="bg-amber-300/40 hover:bg-amber-300/80 hover:outline px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors"
                             onclick="window.handleDocumentClickInChatBubble('${title?.replace(
                               /'/g,
                               "\\'"

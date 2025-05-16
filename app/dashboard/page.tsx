@@ -24,16 +24,16 @@ import ProjectCard from "@/components/ProjectCard";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { NewCategoryModal } from "@/components/NewCategoryModal";
 import dayjs from "dayjs";
+import { useCurrentModal } from "@/components/providers/CurrentModalProvider";
 
 function DashboardContent() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setCurrentModal } = useCurrentModal();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
-  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
-  const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
 
   const [projects, setProjects] = useState<SelectProject[]>([]);
   const [userCategories, setUserCategories] = useState<SelectCategory[]>([]);
@@ -89,7 +89,7 @@ function DashboardContent() {
                 <span className="hidden sm:inline">Filter</span>
               </Button>
               <Button
-                onClick={() => setIsNewProjectModalOpen(true)}
+                onClick={() => setCurrentModal("newProject")}
                 size="sm"
                 className="h-8 gap-1 cursor-pointer"
               >
@@ -97,7 +97,7 @@ function DashboardContent() {
                 <span className="hidden sm:inline">New Project</span>
               </Button>
               <Button
-                onClick={() => setIsNewCategoryModalOpen(true)}
+                onClick={() => setCurrentModal("newCategory")}
                 size="sm"
                 className="h-8 gap-1 cursor-pointer"
               >
@@ -157,7 +157,7 @@ function DashboardContent() {
                     </p>
 
                     <Button
-                      onClick={() => setIsNewProjectModalOpen(true)}
+                      onClick={() => setCurrentModal("newProject")}
                       variant="outline"
                       className="mt-4 cursor-pointer"
                     >
@@ -202,14 +202,8 @@ function DashboardContent() {
           </Tabs>
         </main>
       </div>
-      <NewProjectModal
-        open={isNewProjectModalOpen}
-        onOpenChange={setIsNewProjectModalOpen}
-      />
-      <NewCategoryModal
-        open={isNewCategoryModalOpen}
-        onOpenChange={setIsNewCategoryModalOpen}
-      />
+      <NewProjectModal />
+      <NewCategoryModal />
     </div>
   );
 }
