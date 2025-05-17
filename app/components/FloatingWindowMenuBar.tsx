@@ -18,23 +18,9 @@ import { Plus } from "lucide-react";
 import { useCurrentNote } from "./providers/CurrentNoteProvider";
 import { getNote } from "@/lib/db/queries/query";
 import { toast } from "sonner";
-import { colorList } from "@/lib/utils";
-import { createNewNote } from "@/lib/db/queries/insert";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import Loader from "./Loader";
-import { ColorPickerDropdown } from "./ColorPickerDropdown";
 import dayjs from "dayjs";
 import { useUserData } from "./providers/UserDataProvider";
+import NewNoteModal from "./NewNoteModal";
 
 export function NotepadMenuBar() {
   const { userData } = useUserData();
@@ -56,13 +42,17 @@ export function NotepadMenuBar() {
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
-            New Tab <MenubarShortcut>⌘T</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem>
-            New Window <MenubarShortcut>⌘N</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem disabled>New Incognito Window</MenubarItem>
+          <NewNoteModal
+            isNewNoteModalOpen={isNewNoteModalOpen}
+            setIsNewNoteModalOpen={setIsNewNoteModalOpen}
+          >
+            <Button
+              variant="ghost"
+              className="w-full flex justify-start items-center cursor-pointer px-2 font-normal"
+            >
+              <span>{!editorRef.current ? "New Note" : "Save As..."}</span>
+            </Button>
+          </NewNoteModal>
           <MenubarSeparator />
           <MenubarSub>
             <MenubarSubTrigger>Open</MenubarSubTrigger>
@@ -82,48 +72,50 @@ export function NotepadMenuBar() {
                   </div>
                 </MenubarItem>
               ))}
-              <Dialog
-                open={isNewNoteModalOpen}
-                onOpenChange={setIsNewNoteModalOpen}
+              <NewNoteModal
+                isNewNoteModalOpen={isNewNoteModalOpen}
+                setIsNewNoteModalOpen={setIsNewNoteModalOpen}
               >
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full flex justify-start items-center cursor-pointer"
-                  >
-                    <Plus className="h-3 w-3 mr-2" />
-                    <span>Create New</span>
-                  </Button>
-                </DialogTrigger>
-                <CreateNewNoteModal
-                  isNewNoteModalOpen={isNewNoteModalOpen}
-                  setIsNewNoteModalOpen={setIsNewNoteModalOpen}
-                />
-              </Dialog>
+                <Button
+                  variant="ghost"
+                  className="w-full flex justify-start items-center cursor-pointer"
+                >
+                  <Plus className="h-3 w-3 mr-2" />
+                  <span>Create New</span>
+                </Button>
+              </NewNoteModal>
             </MenubarSubContent>
           </MenubarSub>
-          <MenubarSeparator />
-          <MenubarItem>
+          {/* <MenubarSeparator />
+          <MenubarItem
+            className="cursor-pointer"
+            onClick={() => {
+              if (!editorRef.current) return;
+              window.navigator.clipboard.writeText(editorRef.current.getText());
+            }}
+          >
             Print... <MenubarShortcut>⌘P</MenubarShortcut>
-          </MenubarItem>
+          </MenubarItem> */}
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">Edit</MenubarTrigger>
         <MenubarContent>
           <MenubarItem
+            className="cursor-pointer"
             onClick={() => editorRef.current?.commands.undo()}
             disabled={!editorRef.current?.can().undo()}
           >
             Undo <MenubarShortcut>⌘Z</MenubarShortcut>
           </MenubarItem>
           <MenubarItem
+            className="cursor-pointer"
             onClick={() => editorRef.current?.commands.redo()}
             disabled={!editorRef.current?.can().redo()}
           >
             Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
           </MenubarItem>
-          <MenubarSeparator />
+          {/* <MenubarSeparator />
           <MenubarSub>
             <MenubarSubTrigger>Find</MenubarSubTrigger>
             <MenubarSubContent>
@@ -133,40 +125,20 @@ export function NotepadMenuBar() {
               <MenubarItem>Find Next</MenubarItem>
               <MenubarItem>Find Previous</MenubarItem>
             </MenubarSubContent>
-          </MenubarSub>
+          </MenubarSub> */}
           <MenubarSeparator />
           <MenubarItem
-            onClick={() =>
-              editorRef.current?.commands.cut({ from: 0, to: 0 }, 1)
-            }
+            className="cursor-pointer"
+            onClick={() => {
+              if (!editorRef.current) return;
+              window.navigator.clipboard.writeText(editorRef.current.getText());
+            }}
           >
-            Cut
+            Copy Note To Clipboard
           </MenubarItem>
-          <MenubarItem>Copy</MenubarItem>
-          <MenubarItem>Paste</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
       {/* <MenubarMenu>
-        <MenubarTrigger>View</MenubarTrigger>
-        <MenubarContent>
-          <MenubarCheckboxItem>Always Show Bookmarks Bar</MenubarCheckboxItem>
-          <MenubarCheckboxItem checked>
-            Always Show Full URLs
-          </MenubarCheckboxItem>
-          <MenubarSeparator />
-          <MenubarItem inset>
-            Reload <MenubarShortcut>⌘R</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem disabled inset>
-            Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset>Toggle Fullscreen</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset>Hide Sidebar</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
-      <MenubarMenu>
         <MenubarTrigger>Profiles</MenubarTrigger>
         <MenubarContent>
           <MenubarRadioGroup value="benoit">
@@ -181,102 +153,5 @@ export function NotepadMenuBar() {
         </MenubarContent>
       </MenubarMenu> */}
     </Menubar>
-  );
-}
-
-function CreateNewNoteModal({
-  setIsNewNoteModalOpen,
-}: {
-  isNewNoteModalOpen: boolean;
-  setIsNewNoteModalOpen: (open: boolean) => void;
-}) {
-  const { setCurrentNote } = useCurrentNote();
-
-  const [newNoteNameInput, setNewNoteNameInput] = useState("");
-  const [isSavingNewNote, setIsSavingNewNote] = useState(false);
-  const [newNoteColor, setNewNoteColor] =
-    useState<(typeof colorList)[number]>("bg-green-500");
-
-  async function handleOpenNote(noteId: number) {
-    const fetchedNote = await getNote(noteId);
-    if (!fetchedNote) return toast.error("Note not found");
-
-    setCurrentNote(fetchedNote);
-  }
-
-  async function handleCreateNote() {
-    if (!newNoteNameInput) return toast.error("Note name is required");
-    if (isSavingNewNote) return toast.error("Note is already being created");
-    try {
-      setIsSavingNewNote(true);
-
-      const defaultEditorContent = {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: `Start typing the ${newNoteNameInput} note here...`,
-              },
-            ],
-          },
-        ],
-      };
-
-      const newNote = await createNewNote({
-        name: newNoteNameInput,
-        color: newNoteColor,
-        content: JSON.stringify(defaultEditorContent),
-      });
-      setCurrentNote(newNote);
-      handleOpenNote(newNote.id);
-      toast.success("Note created successfully");
-      setNewNoteNameInput("");
-      setIsNewNoteModalOpen(false);
-    } catch (error) {
-      console.error("Error creating note:", error);
-      toast.error("Error creating note");
-    } finally {
-      setIsSavingNewNote(false);
-      setNewNoteNameInput("");
-    }
-  }
-  return (
-    <DialogContent className="sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle>Create New Note</DialogTitle>
-        <DialogDescription>
-          This will create a fresh note with the title you provide.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="flex items-center space-x-2">
-        <ColorPickerDropdown color={newNoteColor} setColor={setNewNoteColor} />
-        <div className="grid flex-1 gap-2">
-          <Input
-            id="link"
-            value={newNoteNameInput}
-            onChange={(e) => setNewNoteNameInput(e.target.value)}
-            placeholder="Enter note name"
-          />
-        </div>
-        <Button
-          onClick={handleCreateNote}
-          type="submit"
-          size="sm"
-          className="px-3 cursor-pointer"
-        >
-          {isSavingNewNote ? <Loader size="sm" /> : <span>Save</span>}
-        </Button>
-      </div>
-      <DialogFooter className="sm:justify-start">
-        <DialogClose asChild>
-          <Button type="button" variant="secondary" className="cursor-pointer">
-            Close
-          </Button>
-        </DialogClose>
-      </DialogFooter>
-    </DialogContent>
   );
 }

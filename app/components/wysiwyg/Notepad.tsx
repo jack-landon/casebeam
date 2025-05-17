@@ -54,9 +54,7 @@ export default function Notepad() {
 
   const debouncedUpdates = useDebouncedCallback(
     async (editor: EditorInstance) => {
-      setSaveStatus("Saving...");
       const json = editor.getJSON();
-      console.log(json);
       // setCharsCount(editor.storage.characterCount.words());
       // window.localStorage.setItem(
       //   "html-content",
@@ -67,9 +65,9 @@ export default function Notepad() {
       //   "markdown",
       //   editor.storage.markdown.getMarkdown()
       // );
-      setSaveStatus("Saved");
 
       if (!currentNote) return;
+      setSaveStatus("Saving...");
       setCurrentNote({
         ...currentNote,
         content: JSON.stringify(json),
@@ -78,12 +76,13 @@ export default function Notepad() {
         id: currentNote.id,
         content: JSON.stringify(json),
       });
+      setSaveStatus("Saved");
     },
     2000
   );
 
   return (
-    <div className="relative w-full max-w-screen-lg">
+    <div className="relative w-full h-full max-w-screen-lg">
       {/* <div className="flex absolute right-5 top-5 z-10 mb-5 gap-2">
         <div className="rounded-lg bg-accent px-2 py-1 text-sm text-muted-foreground">
           {saveStatus}
@@ -109,11 +108,10 @@ export default function Notepad() {
             editorRef.current = editor;
           }}
           onUpdate={({ editor }) => {
-            setSaveStatus("Saving...");
             debouncedUpdates(editor);
           }}
           extensions={extensions}
-          className="relative min-h-[500px] w-full max-w-screen-lg sm:mb-[calc(20vh)]"
+          className="relative w-full max-w-screen-lg sm:mb-[calc(20vh)]"
           editorProps={{
             handleDOMEvents: {
               keydown: (_view, event) => handleCommandNavigation(event),

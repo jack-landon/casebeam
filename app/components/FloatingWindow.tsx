@@ -142,7 +142,7 @@ const FloatingWindow = ({
       return (
         <div
           ref={windowRef}
-          className="absolute bg-card border border-neutral-500/20 rounded shadow-lg overflow-hidden"
+          className="absolute bg-card border border-neutral-500/20 rounded shadow-lg overflow-hidden flex flex-col"
           style={{
             left: position.x,
             top: position.y,
@@ -175,9 +175,6 @@ const FloatingWindow = ({
                   </div>
                 </div>
               </div>
-              {/* <div className="flex items-center space-x-2">
-                <NotepadMenuBar />
-              </div> */}
               <Button
                 variant="outline"
                 size="icon"
@@ -189,7 +186,7 @@ const FloatingWindow = ({
             </div>
             <NotepadMenuBar />
           </div>
-          <div className="p-2.5 h-[calc(100%-37px)]">{children}</div>
+          <div className="flex-1 overflow-y-auto p-2.5">{children}</div>
 
           <div
             className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize"
