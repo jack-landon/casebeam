@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createProjectInDb } from "@/lib/actions";
+import { createProjectInDb, updateProjectInDb } from "@/lib/actions";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -36,6 +36,7 @@ import dayjs from "dayjs";
 import { useAuth } from "@clerk/nextjs";
 import { useCurrentModal } from "./providers/CurrentModalProvider";
 import { ProjectStatus } from "@/lib/db/schema";
+import { useUserData } from "./providers/UserDataProvider";
 
 type FormData = {
   name: string;
@@ -47,17 +48,18 @@ type FormData = {
   court: string;
   judge: string;
   description: string;
-  nextDeadline: Date | null;
 };
 
 type FormFields = keyof FormData;
 
 type Props = {
-  initialData?: FormData;
+  initialData?: FormData & { id: number };
+  refreshPage?: () => void;
 };
 
-export function NewProjectModal({ initialData }: Props) {
+export function NewProjectModal({ initialData, refreshPage }: Props) {
   const { currentModal, setCurrentModal } = useCurrentModal();
+  const { refreshUserData } = useUserData();
   const { userId } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +74,6 @@ export function NewProjectModal({ initialData }: Props) {
       court: "",
       judge: "",
       description: "",
-      nextDeadline: null,
     }
   );
 
@@ -94,19 +95,32 @@ export function NewProjectModal({ initialData }: Props) {
       const formattedData = {
         ...formData,
         filingDate: formData.filingDate.toISOString().split("T")[0],
-        nextDeadline: formData.nextDeadline
-          ? dayjs(formData.nextDeadline).format("MMM DD, YYYY")
-          : null,
       };
 
-      await createProjectInDb({
-        ...formattedData,
-        userId,
-      });
+      if (initialData) {
+        // Update existing project
+        await updateProjectInDb(initialData.id, {
+          ...formattedData,
+          userId,
+        });
 
-      toast("Project created", {
-        description: "Your new case has been successfully created.",
-      });
+        if (refreshPage) refreshPage();
+
+        toast("Project updated", {
+          description: "Your case has been successfully updated.",
+        });
+      } else {
+        await createProjectInDb({
+          ...formattedData,
+          userId,
+        });
+
+        refreshUserData();
+
+        toast("Project created", {
+          description: "Your new case has been successfully created.",
+        });
+      }
 
       setCurrentModal(null);
       await router.refresh();
@@ -130,7 +144,9 @@ export function NewProjectModal({ initialData }: Props) {
       <DialogContent className="sm:max-w-[600px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create New Project</DialogTitle>
+            <DialogTitle>
+              {initialData ? "Update" : "Create New"} Project
+            </DialogTitle>
             <DialogDescription>
               Enter the details for the new legal case.
             </DialogDescription>
@@ -277,39 +293,6 @@ export function NewProjectModal({ initialData }: Props) {
                 </Popover>
               </div>
               <div>
-                <Label className="mb-2" htmlFor="nextDeadline">
-                  Next Deadline (Optional)
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal cursor-pointer",
-                        !formData.nextDeadline && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.nextDeadline ? (
-                        dayjs(formData.nextDeadline).format("MMM D, YYYY")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={formData.nextDeadline ?? undefined}
-                      onSelect={(date) =>
-                        date && handleChange("nextDeadline", date)
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>
                 <Label className="mb-2" htmlFor="court">
                   Court (Optional)
                 </Label>
@@ -356,7 +339,13 @@ export function NewProjectModal({ initialData }: Props) {
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Creating..." : "Create Project"}
+              {initialData && isSubmitting
+                ? "Updating..."
+                : initialData
+                ? "Update Project"
+                : isSubmitting
+                ? "Creating..."
+                : "Create Project"}
             </Button>
           </DialogFooter>
         </form>

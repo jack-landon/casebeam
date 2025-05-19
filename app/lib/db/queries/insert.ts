@@ -21,6 +21,8 @@ import {
   searchResultsTable,
   usersTable,
   ProjectStatus,
+  projectDatesTable,
+  InsertProjectDate,
 } from "../schema";
 import { eq, getTableColumns, SQL, sql } from "drizzle-orm";
 import { SQLiteTable } from "drizzle-orm/sqlite-core";
@@ -254,4 +256,50 @@ export async function updateProjectStatus(
     .where(eq(projectsTable.id, projectId))
     .returning();
   return updatedProject;
+}
+
+export async function createProjectDate(dateObject: InsertProjectDate) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("User not found");
+
+  // Check if project belongs to the user
+  const project = await db.query.projectsTable.findFirst({
+    where: (projectsTable, { eq }) =>
+      eq(projectsTable.id, dateObject.projectId),
+  });
+  if (!project) throw new Error("Project not found");
+  if (project.userId !== userId) {
+    throw new Error("You do not have permission to add a date to this project");
+  }
+
+  const [newDate] = await db
+    .insert(projectDatesTable)
+    .values(dateObject)
+    .returning();
+
+  return newDate;
+}
+
+export async function deleteProjectDateFromDb(projectDateId: number) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("User not found");
+
+  // Check if project date belongs to the user
+  const projectDate = await db.query.projectDatesTable.findFirst({
+    where: (projectDatesTable, { eq }) =>
+      eq(projectDatesTable.id, projectDateId),
+    with: {
+      project: true,
+    },
+  });
+  if (!projectDate) throw new Error("Project date not found");
+  if (projectDate.project.userId !== userId)
+    throw new Error("You do not have permission to delete this project date");
+
+  const [deletedProjectDate] = await db
+    .delete(projectDatesTable)
+    .where(eq(projectDatesTable.id, projectDateId))
+    .returning();
+
+  return deletedProjectDate;
 }

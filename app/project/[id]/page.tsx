@@ -1,13 +1,14 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { FormEvent, use, useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Calendar,
+  CalendarIcon,
   MoreHorizontal,
   Plus,
   Printer,
   Send,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,19 +37,47 @@ import { useUserData } from "@/components/providers/UserDataProvider";
 import { getProjectDetails } from "@/lib/db/queries/query";
 import {
   addProjectComment,
+  createProjectDate,
+  deleteProjectDateFromDb,
   updateProjectStatus,
 } from "@/lib/db/queries/insert";
-import { capitalizeFirstLetter, getInitials } from "@/lib/utils";
+import { capitalizeFirstLetter, cn, getInitials } from "@/lib/utils";
 import { useCurrentModal } from "@/components/providers/CurrentModalProvider";
 import SearchResultsAccordion from "@/components/SearchResultsAccordion";
 import { NewProjectModal } from "@/components/NewProjectModal";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 interface PageProps {
   params: Promise<{
     id: string;
   }>;
 }
+
+type DateFormData = {
+  name: string;
+  description: string;
+  date: Date;
+};
+
+type FormFields = keyof DateFormData;
 
 export default function ProjectPage({ params }: PageProps) {
   const { userData } = useUserData();
@@ -58,6 +87,64 @@ export default function ProjectPage({ params }: PageProps) {
   const [projectDetails, setProjectDetails] = useState<Awaited<
     ReturnType<typeof getProjectDetails>
   > | null>(null);
+  const [isSubmittingNewDate, setIsSubmittingNewDate] = useState(false);
+  const [dateFormData, setDateFormData] = useState<DateFormData>({
+    name: "",
+    description: "",
+    date: new Date(),
+  });
+
+  const handleNewDateChange = (
+    field: string,
+    value: DateFormData[FormFields]
+  ) => {
+    setDateFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleNewDateSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmittingNewDate(true);
+
+    try {
+      if (!userData?.id) return;
+
+      // Format dates for database
+      const formattedData = {
+        ...dateFormData,
+        filingDate: dayjs(dateFormData.date).format("MMM DD YYYY"),
+      };
+
+      await createProjectDate({
+        ...formattedData,
+        projectId: parseInt(resolvedParams.id),
+        date: dayjs(dateFormData.date).format("YYYY-MM-DD"),
+      });
+
+      fetchProject();
+
+      toast("Date Added", {
+        description: "Your new date has been successfully added.",
+      });
+
+      setDateFormData({
+        name: "",
+        description: "",
+        date: new Date(),
+      });
+      document.getElementById("new-date-modal-close")?.click();
+    } catch (error) {
+      console.error("Error creating date:", error);
+      toast("Error", {
+        description: "There was an error adding this date. Please try again.",
+        className: "bg-red-500 text-white",
+      });
+    } finally {
+      setIsSubmittingNewDate(false);
+    }
+  };
 
   const fetchProject = useCallback(async () => {
     const fetchedProjectDetails = await getProjectDetails(
@@ -91,6 +178,12 @@ export default function ProjectPage({ params }: PageProps) {
     fetchProject();
   }
 
+  async function deleteProjectDate(projectDateId: number) {
+    await deleteProjectDateFromDb(projectDateId);
+    fetchProject();
+    toast.success("Date Deleted");
+  }
+
   return (
     <>
       <div className="flex min-h-screen flex-col">
@@ -107,7 +200,9 @@ export default function ProjectPage({ params }: PageProps) {
                 <div>
                   <h1 className="text-2xl font-bold">{projectDetails.name}</h1>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{projectDetails.caseNumber}</span>
+                    {projectDetails.caseNumber && (
+                      <span>{projectDetails.caseNumber}</span>
+                    )}
                     {projectDetails.caseNumber && projectDetails.caseType && (
                       <span>•</span>
                     )}
@@ -268,65 +363,189 @@ export default function ProjectPage({ params }: PageProps) {
                         <CardTitle>Important Dates</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="space-y-3">
-                          {projectDetails.nextDeadline && (
-                            <div className="flex items-start gap-3 rounded-md border p-3">
-                              <Calendar className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium">Next Deadline</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {dayjs(projectDetails.nextDeadline).format(
-                                    "MMM DD, YYYY"
-                                  )}
-                                </div>
-                                <div className="mt-1 text-sm">
-                                  File Response to Motion for Summary Judgment
+                        <div className="space-y-3 max-h-72 overflow-auto">
+                          {projectDetails.projectDates.length > 0 ? (
+                            projectDetails.projectDates.map((projectDate) => (
+                              <div
+                                key={projectDate.id}
+                                className="flex items-start gap-3 rounded-md border p-3"
+                              >
+                                <CalendarIcon className="mt-2 h-5 w-5 text-muted-foreground" />
+                                <div className="w-full">
+                                  <div className="w-full flex items-center justify-between">
+                                    <div className="font-medium">
+                                      {projectDate.name}
+                                    </div>
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button className="cursor-pointer bg-transparent text-secondary">
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>
+                                            Are you absolutely sure?
+                                          </DialogTitle>
+                                          <DialogDescription>
+                                            Are you sure you want to delete the{" "}
+                                            {projectDate.name} date? This action
+                                            cannot be undone.
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                          <Button
+                                            onClick={() => {
+                                              deleteProjectDate(projectDate.id);
+                                            }}
+                                            type="submit"
+                                            className="cursor-pointer"
+                                          >
+                                            Confirm
+                                          </Button>
+                                        </DialogFooter>
+                                      </DialogContent>
+                                    </Dialog>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {dayjs(projectDate.date).format(
+                                      "MMM DD, YYYY"
+                                    )}
+                                  </div>
+                                  <div className="mt-1 text-sm">
+                                    {projectDate.description}
+                                  </div>
                                 </div>
                               </div>
+                            ))
+                          ) : (
+                            <div className="text-center text-muted-foreground py-8">
+                              No important dates added to this case yet.
                             </div>
                           )}
-
-                          <div className="flex items-start gap-3 rounded-md border p-3">
-                            <Calendar className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <div className="font-medium">Hearing Date</div>
-                              <div className="text-sm text-muted-foreground">
-                                {dayjs(
-                                  new Date(
-                                    Date.now() + 30 * 24 * 60 * 60 * 1000
-                                  )
-                                ).format("MMM DD, YYYY")}
-                              </div>
-                              <div className="mt-1 text-sm">
-                                Motion Hearing - Courtroom 3B
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 rounded-md border p-3">
-                            <Calendar className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <div className="font-medium">
-                                Discovery Deadline
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {dayjs(
-                                  new Date(
-                                    Date.now() + 60 * 24 * 60 * 60 * 1000
-                                  )
-                                ).format("MMM DD, YYYY")}
-                              </div>
-                              <div className="mt-1 text-sm">
-                                All discovery must be completed by this date
-                              </div>
-                            </div>
-                          </div>
                         </div>
 
-                        <Button variant="outline" className="w-full gap-1">
-                          <Plus className="h-4 w-4" />
-                          <span>Add Date</span>
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full gap-1 cursor-pointer"
+                            >
+                              <Plus className="h-4 w-4" />
+                              <span>Add Date</span>
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <form onSubmit={handleNewDateSubmit}>
+                              <DialogHeader>
+                                <DialogTitle>Add Important Date</DialogTitle>
+                                <DialogDescription>
+                                  Add a new important for the{" "}
+                                  {projectDetails.name} project.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="grid gap-4 py-4">
+                                <div className="col-span-2">
+                                  <Label className="mb-2" htmlFor="title">
+                                    Title
+                                  </Label>
+                                  <Input
+                                    id="title"
+                                    value={dateFormData.name}
+                                    onChange={(e) =>
+                                      handleNewDateChange(
+                                        "name",
+                                        e.target.value
+                                      )
+                                    }
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="mb-2" htmlFor="date">
+                                    Date
+                                  </Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal cursor-pointer",
+                                          !dateFormData.date &&
+                                            "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateFormData.date ? (
+                                          dayjs(dateFormData.date).format(
+                                            "MMM D, YYYY"
+                                          )
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        selected={dateFormData.date}
+                                        onSelect={(returnedDate) =>
+                                          returnedDate &&
+                                          handleNewDateChange(
+                                            "date",
+                                            returnedDate
+                                          )
+                                        }
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                                <div className="col-span-2">
+                                  <Label className="mb-2" htmlFor="description">
+                                    Description (Optional)
+                                  </Label>
+                                  <Textarea
+                                    id="description"
+                                    value={dateFormData.description}
+                                    onChange={(e) =>
+                                      handleNewDateChange(
+                                        "description",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="min-h-[100px]"
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    id="new-date-modal-close"
+                                    type="button"
+                                    variant="secondary"
+                                    className="cursor-pointer"
+                                  >
+                                    Close
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  className="cursor-pointer"
+                                  type="submit"
+                                >
+                                  {isSubmittingNewDate ? (
+                                    <span className="animate-pulse">
+                                      Saving...
+                                    </span>
+                                  ) : (
+                                    "Save"
+                                  )}
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
                       </CardContent>
                     </Card>
                   </div>
@@ -564,13 +783,11 @@ export default function ProjectPage({ params }: PageProps) {
             filingDate: !projectDetails.filingDate
               ? new Date()
               : new Date(projectDetails.filingDate),
-            nextDeadline: !projectDetails.nextDeadline
-              ? null
-              : new Date(projectDetails.nextDeadline),
             court: projectDetails.court || "",
             judge: projectDetails.judge || "",
             description: projectDetails.description || "",
           }}
+          refreshPage={fetchProject}
         />
       )}
     </>

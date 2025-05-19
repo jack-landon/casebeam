@@ -78,12 +78,12 @@ export default function ProjectCard({ caseItem }: { caseItem: SelectProject }) {
               )}
             </div>
           </div>
-          {caseItem.nextDeadline && (
+          {/* {caseItem.nextDeadline && (
             <div className="mt-2 text-sm">
               <span className="font-medium">Next Deadline:</span>{" "}
               {dayjs(caseItem.nextDeadline).format("MMM DD, YYYY")}
             </div>
-          )}
+          )} */}
         </CardContent>
         <CardFooter className="pt-2">
           <div className="flex w-full items-center justify-between">

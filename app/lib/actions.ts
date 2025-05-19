@@ -14,7 +14,6 @@
 //       caseType: caseData.caseType,
 //       status: caseData.status,
 //       filingDate: caseData.filingDate,
-//       nextDeadline: caseData.nextDeadline,
 //       court: caseData.court,
 //       judge: caseData.judge,
 //       description: caseData.description,
@@ -84,6 +83,21 @@ export async function createProjectInDb(projectData: InsertProject) {
   await createProject(projectData);
 }
 
+export async function updateProjectInDb(
+  projectId: number,
+  projectData: Partial<InsertProject>
+) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("User not found");
+
+  // Update the project data in the database
+  await db
+    .update(projectsTable)
+    .set(projectData)
+    .where(eq(projectsTable.id, projectId))
+    .execute();
+}
+
 export async function createProjectInDbForm(formData: FormData) {
   const { userId } = await auth();
   if (!userId) throw new Error("User not found");
@@ -97,7 +111,6 @@ export async function createProjectInDbForm(formData: FormData) {
     caseType: formData.get("caseType") as string,
     status: formData.get("status") as ProjectStatus,
     filingDate: formData.get("filingDate") as string,
-    nextDeadline: formData.get("nextDeadline") as string,
     court: formData.get("court") as string,
     judge: formData.get("judge") as string,
     description: formData.get("description") as string,

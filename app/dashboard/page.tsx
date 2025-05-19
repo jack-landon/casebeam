@@ -188,12 +188,12 @@ function DashboardContent() {
             <TabsContent value="upcoming" className="mt-4">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredCases
-                  .filter(
-                    (caseItem) =>
-                      caseItem.nextDeadline &&
-                      new Date(caseItem.nextDeadline) <
-                        new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-                  )
+                  // .filter(
+                  //   (caseItem) =>
+                  //     caseItem.nextDeadline &&
+                  //     new Date(caseItem.nextDeadline) <
+                  //       new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+                  // )
                   .map((caseItem) => (
                     <ProjectCard key={caseItem.id} caseItem={caseItem} />
                   ))}

@@ -94,6 +94,7 @@ export async function getProjectDetails(projectId: number) {
           user: true,
         },
       },
+      projectDates: true,
     },
   });
 }

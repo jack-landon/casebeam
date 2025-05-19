@@ -23,7 +23,6 @@ export const projectsTable = sqliteTable("projects", {
   caseType: text("case_type"),
   status: text({ enum: projectStatusEnum }).notNull(),
   filingDate: text("filing_date"),
-  nextDeadline: text("next_deadline"),
   court: text("court"),
   judge: text("judge"),
   description: text("description"),
@@ -145,6 +144,22 @@ export const projectCommentsTable = sqliteTable("project_comments", {
     .notNull(),
 });
 
+export const projectDatesTable = sqliteTable("project_dates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  projectId: integer("project_id")
+    .notNull()
+    .references(() => projectsTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  date: text("date").notNull(),
+  createdAt: text("created_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  updatedAt: text("updated_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+});
+
 // Used for the many-to-many relationship between search results and projects
 export const searchResultProjects = sqliteTable("search_result_projects", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -196,6 +211,7 @@ export const projectsRelations = relations(projectsTable, ({ one, many }) => ({
   notes: many(notesTable),
   searchResultProjects: many(searchResultProjects),
   comments: many(projectCommentsTable),
+  projectDates: many(projectDatesTable),
 }));
 
 export const projectCommentsRelations = relations(
@@ -207,6 +223,16 @@ export const projectCommentsRelations = relations(
     }),
     project: one(projectsTable, {
       fields: [projectCommentsTable.projectId],
+      references: [projectsTable.id],
+    }),
+  })
+);
+
+export const projectDatesRelations = relations(
+  projectDatesTable,
+  ({ one }) => ({
+    project: one(projectsTable, {
+      fields: [projectDatesTable.projectId],
       references: [projectsTable.id],
     }),
   })
@@ -339,6 +365,10 @@ export type InsertCategory = typeof categoriesTable.$inferInsert;
 export type SelectCategory = typeof categoriesTable.$inferSelect;
 export type InsertSearchResult = typeof searchResultsTable.$inferInsert;
 export type SelectSearchResult = typeof searchResultsTable.$inferSelect;
+export type InsertProjectComment = typeof projectCommentsTable.$inferInsert;
+export type SelectProjectComment = typeof projectCommentsTable.$inferSelect;
+export type InsertProjectDate = typeof projectDatesTable.$inferInsert;
+export type SelectProjectDate = typeof projectDatesTable.$inferSelect;
 export type InsertSearchResultProject =
   typeof searchResultProjects.$inferInsert;
 export type SelectSearchResultProject =
