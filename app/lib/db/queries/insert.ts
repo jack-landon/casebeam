@@ -14,11 +14,13 @@ import {
   InsertUser,
   messagesTable,
   notesTable,
+  projectCommentsTable,
   projectsTable,
   searchResultCategories,
   searchResultProjects,
   searchResultsTable,
   usersTable,
+  ProjectStatus,
 } from "../schema";
 import { eq, getTableColumns, SQL, sql } from "drizzle-orm";
 import { SQLiteTable } from "drizzle-orm/sqlite-core";
@@ -221,4 +223,35 @@ function conflictUpdateAllExcept<
     }),
     {}
   ) as Omit<Record<keyof typeof table.$inferInsert, SQL>, E[number]>;
+}
+
+export async function addProjectComment(projectId: number, content: string) {
+  const { userId } = await auth();
+
+  if (!userId) throw new Error("User not found");
+
+  const [newComment] = await db
+    .insert(projectCommentsTable)
+    .values({
+      projectId,
+      content,
+      userId,
+    })
+    .returning();
+  return newComment;
+}
+
+export async function updateProjectStatus(
+  projectId: number,
+  status: ProjectStatus
+) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("User not found");
+
+  const [updatedProject] = await db
+    .update(projectsTable)
+    .set({ status })
+    .where(eq(projectsTable.id, projectId))
+    .returning();
+  return updatedProject;
 }

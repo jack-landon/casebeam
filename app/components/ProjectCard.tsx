@@ -89,9 +89,9 @@ export default function ProjectCard({ caseItem }: { caseItem: SelectProject }) {
           <div className="flex w-full items-center justify-between">
             <Badge
               variant={
-                caseItem.status === "Active"
+                caseItem.status === "active"
                   ? "default"
-                  : caseItem.status === "Pending"
+                  : caseItem.status === "pending"
                   ? "outline"
                   : "secondary"
               }

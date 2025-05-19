@@ -2,6 +2,9 @@ import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text, real } from "drizzle-orm/sqlite-core";
 import { generateRandomColor } from "../utils";
 
+export const projectStatusEnum = ["active", "pending", "closed"] as const;
+export type ProjectStatus = (typeof projectStatusEnum)[number];
+
 export const usersTable = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -18,7 +21,7 @@ export const projectsTable = sqliteTable("projects", {
   caseNumber: text("case_number"),
   client: text("client"),
   caseType: text("case_type"),
-  status: text("status"),
+  status: text({ enum: projectStatusEnum }).notNull(),
   filingDate: text("filing_date"),
   nextDeadline: text("next_deadline"),
   court: text("court"),
@@ -125,6 +128,23 @@ export const searchResultsTable = sqliteTable("search_results", {
     .notNull(),
 });
 
+export const projectCommentsTable = sqliteTable("project_comments", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  projectId: integer("project_id")
+    .notNull()
+    .references(() => projectsTable.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: text("created_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  updatedAt: text("updated_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+});
+
 // Used for the many-to-many relationship between search results and projects
 export const searchResultProjects = sqliteTable("search_result_projects", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -160,7 +180,6 @@ export const searchResultCategories = sqliteTable("search_result_categories", {
 });
 
 // Relations
-
 export const usersRelations = relations(usersTable, ({ many }) => ({
   projects: many(projectsTable),
   chats: many(chatsTable),
@@ -176,7 +195,22 @@ export const projectsRelations = relations(projectsTable, ({ one, many }) => ({
   }),
   notes: many(notesTable),
   searchResultProjects: many(searchResultProjects),
+  comments: many(projectCommentsTable),
 }));
+
+export const projectCommentsRelations = relations(
+  projectCommentsTable,
+  ({ one }) => ({
+    user: one(usersTable, {
+      fields: [projectCommentsTable.userId],
+      references: [usersTable.id],
+    }),
+    project: one(projectsTable, {
+      fields: [projectCommentsTable.projectId],
+      references: [projectsTable.id],
+    }),
+  })
+);
 
 export const notesRelations = relations(notesTable, ({ one }) => ({
   project: one(projectsTable, {

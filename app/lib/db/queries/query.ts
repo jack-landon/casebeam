@@ -70,3 +70,30 @@ export async function getNote(noteId: number) {
     where: (notesTable, { eq }) => eq(notesTable.id, noteId),
   });
 }
+
+export async function getProjectDetails(projectId: number) {
+  const user = await auth();
+
+  if (!user.userId) throw new Error("User not authenticated");
+
+  return await db.query.projectsTable.findFirst({
+    where: (projectsTable, { eq }) => eq(projectsTable.id, projectId),
+    with: {
+      searchResultProjects: {
+        with: {
+          searchResult: true,
+        },
+      },
+      notes: {
+        with: {
+          user: true,
+        },
+      },
+      comments: {
+        with: {
+          user: true,
+        },
+      },
+    },
+  });
+}

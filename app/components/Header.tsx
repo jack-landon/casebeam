@@ -30,7 +30,9 @@ export default function Header() {
   return (
     <div
       className={`sticky top-0 z-10 transition-colors duration-200 ${
-        isScrolled ? "bg-gray-950 border-b" : "bg-transparent"
+        isScrolled
+          ? "bg-primary-foreground dark:bg-accent-foreground border-b"
+          : "bg-transparent"
       }`}
     >
       <div className=" container mx-auto px-4 md:px-6 lg:px-8">

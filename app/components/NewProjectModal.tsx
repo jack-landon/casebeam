@@ -35,13 +35,14 @@ import { CalendarIcon } from "lucide-react";
 import dayjs from "dayjs";
 import { useAuth } from "@clerk/nextjs";
 import { useCurrentModal } from "./providers/CurrentModalProvider";
+import { ProjectStatus } from "@/lib/db/schema";
 
 type FormData = {
   name: string;
   caseNumber: string;
   client: string;
   caseType: string;
-  status: string;
+  status: ProjectStatus;
   filingDate: Date;
   court: string;
   judge: string;
@@ -51,23 +52,29 @@ type FormData = {
 
 type FormFields = keyof FormData;
 
-export function NewProjectModal() {
+type Props = {
+  initialData?: FormData;
+};
+
+export function NewProjectModal({ initialData }: Props) {
   const { currentModal, setCurrentModal } = useCurrentModal();
   const { userId } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    caseNumber: "",
-    client: "",
-    caseType: "",
-    status: "Active",
-    filingDate: new Date(),
-    court: "",
-    judge: "",
-    description: "",
-    nextDeadline: null,
-  });
+  const [formData, setFormData] = useState<FormData>(
+    initialData || {
+      name: "",
+      caseNumber: "",
+      client: "",
+      caseType: "",
+      status: "active",
+      filingDate: new Date(),
+      court: "",
+      judge: "",
+      description: "",
+      nextDeadline: null,
+    }
+  );
 
   const handleChange = (field: string, value: FormData[FormFields]) => {
     setFormData((prev) => ({
@@ -102,7 +109,7 @@ export function NewProjectModal() {
       });
 
       setCurrentModal(null);
-      router.refresh();
+      await router.refresh();
     } catch (error) {
       console.error("Error creating case:", error);
       toast("Error", {
@@ -224,13 +231,13 @@ export function NewProjectModal() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="cursor-pointer" value="Active">
+                    <SelectItem className="cursor-pointer" value="active">
                       Active
                     </SelectItem>
-                    <SelectItem className="cursor-pointer" value="Pending">
+                    <SelectItem className="cursor-pointer" value="pending">
                       Pending
                     </SelectItem>
-                    <SelectItem className="cursor-pointer" value="Closed">
+                    <SelectItem className="cursor-pointer" value="closed">
                       Closed
                     </SelectItem>
                   </SelectContent>

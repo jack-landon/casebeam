@@ -160,3 +160,11 @@ export const timeOperation = async <T>(
 };
 
 export const totalDocumentsCount = 300_000;
+
+export function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}

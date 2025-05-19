@@ -37,8 +37,7 @@ import {
   categoriesTable,
   InsertProject,
   projectsTable,
-  searchResultProjects,
-  searchResultsTable,
+  ProjectStatus,
 } from "./db/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -96,7 +95,7 @@ export async function createProjectInDbForm(formData: FormData) {
     caseNumber: formData.get("caseNumber") as string,
     client: formData.get("client") as string,
     caseType: formData.get("caseType") as string,
-    status: formData.get("status") as string,
+    status: formData.get("status") as ProjectStatus,
     filingDate: formData.get("filingDate") as string,
     nextDeadline: formData.get("nextDeadline") as string,
     court: formData.get("court") as string,
@@ -136,47 +135,6 @@ export async function getUserCategoriesFromDb() {
   } catch (error) {
     console.error("Error fetching categories:", error);
     return { success: false, error: "Problem getting categories" };
-  }
-}
-
-export async function getProjectByIdFromDb(projectId: string) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("User not found");
-
-  try {
-    const project = await db
-      .select()
-      .from(projectsTable)
-      .where(eq(projectsTable.id, parseInt(projectId)))
-      .get();
-
-    const searchResults = await db
-      .select({
-        searchResult: searchResultsTable,
-      })
-      .from(searchResultProjects)
-      .innerJoin(
-        searchResultsTable,
-        eq(searchResultProjects.searchResultId, searchResultsTable.id)
-      )
-      .where(eq(searchResultProjects.projectId, parseInt(projectId)));
-
-    if (!project || !searchResults)
-      return { success: false, error: "Project not found" };
-
-    if (project.userId !== userId)
-      return { success: false, error: "Unauthorized" };
-
-    return {
-      success: true,
-      data: {
-        project,
-        searchResults: searchResults.map((result) => result.searchResult),
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching projects:", error);
-    return { success: false, error: "Problem getting projects" };
   }
 }
 
