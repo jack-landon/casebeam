@@ -1,16 +1,9 @@
-import { DataAPIClient, Db, VectorizeDoc } from "@datastax/astra-db-ts";
-
-export interface DocumentFullDocEmbeddings extends VectorizeDoc {
-  version_id: string | null;
-  type: string | null;
-  jurisdiction: string | null;
-  source: string | null;
-  date: string | null;
-  citation: string | null;
-  url: string | null;
-  text: string | null;
-  $vector: number[];
-}
+import {
+  DataAPIClient,
+  DataAPIVector,
+  Db,
+  VectorizeDoc,
+} from "@datastax/astra-db-ts";
 
 export interface Document extends VectorizeDoc {
   _id: string;
@@ -23,7 +16,8 @@ export interface Document extends VectorizeDoc {
   url: string | null;
   chunk_index: string | null;
   total_chunks: string | null;
-  $vector: number[];
+  $vector: DataAPIVector;
+  $lexical: string;
   $vectorize: string;
 }
 

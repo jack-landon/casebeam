@@ -17,7 +17,7 @@ import {
 } from "ai";
 import { Excerpt, InsertSearchResult, SelectChat } from "@/lib/db/schema";
 import { findRelevantContent } from "@/lib/serverActions/getResultsFromAstro";
-import { convertUrlToEmbeddedUrl, formatTag, timeOperation } from "@/lib/utils";
+import { convertUrlToEmbeddedUrl, formatTag } from "@/lib/utils";
 import { FilterOption } from "@/page";
 import {
   searchResultSummarySystemPrompt,
@@ -70,8 +70,10 @@ export async function POST(req: Request) {
           .join();
 
   // Start Getting the relevant content ~ 5 seconds
-  const retrievedExcerptsPromise = timeOperation("Find Relevant Content", () =>
-    findRelevantContent(contextWindow, filters, 25)
+  const retrievedExcerptsPromise = findRelevantContent(
+    contextWindow,
+    filters,
+    25
   );
 
   if (isNewChat) {
@@ -83,11 +85,8 @@ export async function POST(req: Request) {
 
   const retrievedExcerpts = await retrievedExcerptsPromise;
 
-  const docIdSet = new Set<string>();
-  for (const excerpt of retrievedExcerpts) {
-    if (docIdSet.has(excerpt.doc_id)) continue;
-    docIdSet.add(excerpt.doc_id);
-  }
+  console.log("Retrieved Excerpts: ", retrievedExcerpts);
+
   // Create a doc object but keep the excerpts empty
   const docObject: {
     [key: string]: {
@@ -99,16 +98,25 @@ export async function POST(req: Request) {
       date: string | undefined;
       url: string;
       similarityScore: number | null;
-      $vectorize: string;
+      $lexical: string;
       excerpts: Excerpt[];
     };
   } = {};
 
-  for (const docId of docIdSet) {
+  // Unique doc_ids
+  for (const docId of [
+    ...new Set(retrievedExcerpts.map((doc) => doc.doc_id)),
+  ]) {
     const excerpts = retrievedExcerpts.filter(
       (excerpt) => excerpt.doc_id === docId
     );
     if (excerpts.length == 0) continue;
+
+    const maxScore = Math.max(
+      ...excerpts.map((excerpt) => excerpt.$similarity ?? 0)
+    );
+
+    // We use the first excerpt to get the document details
     const exampleExcerpt = excerpts[0];
 
     docObject[docId] = {
@@ -119,23 +127,25 @@ export async function POST(req: Request) {
       source: exampleExcerpt.source ?? "",
       date: exampleExcerpt.date ?? "",
       url: exampleExcerpt.url ?? "#",
-      similarityScore: exampleExcerpt.$similarity ?? null,
-      $vectorize: exampleExcerpt.$vectorize,
+      similarityScore: maxScore ?? null,
+      $lexical: exampleExcerpt.$lexical,
       excerpts: excerpts.map((excerpt) => ({
         caseName: exampleExcerpt.citation,
         title: exampleExcerpt.citation,
-        content: excerpt.$vectorize,
+        content: excerpt.$lexical,
         url: !exampleExcerpt.url
           ? null
           : convertUrlToEmbeddedUrl(
               exampleExcerpt.url,
-              exampleExcerpt.$vectorize
+              exampleExcerpt.$lexical
             ),
       })),
     };
   }
 
-  const topFiveResults = Object.values(docObject).slice(0, 5);
+  const topFiveResults = Object.values(docObject)
+    .sort((a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0))
+    .slice(0, 5);
 
   const searchResultsPromise = generateObject({
     model: google("gemini-2.0-flash-lite-preview-02-05"),

@@ -1,6 +1,6 @@
 "use server";
 import { connectToDatabase, Document } from "./datastax";
-import { Filter, FoundDoc } from "@datastax/astra-db-ts";
+import { CollectionFilter, FoundDoc } from "@datastax/astra-db-ts";
 import { FilterOption } from "@/page";
 
 export async function findRelevantContent(
@@ -9,6 +9,7 @@ export async function findRelevantContent(
   limit: number = 20,
   skip: number = 0
 ) {
+  console.log("Skip Count: ", skip);
   const database = connectToDatabase();
   const collection = database.collection<Document>(
     process.env.ASTRA_DB_COLLECTION as string
@@ -24,7 +25,7 @@ export async function findRelevantContent(
     .filter((filter) => filter.key === "sources")
     .map((filter) => filter.value);
 
-  const formattedFilters: Filter<Document> = {
+  const formattedFilters: CollectionFilter<Document> = {
     $and: [
       ...(jurisdictionFilters.length > 0
         ? [{ jurisdiction: { $in: jurisdictionFilters } }]
@@ -37,26 +38,36 @@ export async function findRelevantContent(
   // If there are no filters, we can set it to an empty object
   if (formattedFilters.$and?.length === 0) delete formattedFilters.$and;
 
-  const relevantDocuments = collection.find(formattedFilters, {
-    sort: { $vectorize: userQuery },
-    limit,
-    skip,
-    projection: {
-      _id: true,
-      doc_id: true,
-      citation: true,
-      jurisdiction: true,
-      type: true,
-      source: true,
-      date: true,
-      url: true,
-      $vectorize: true,
-    },
-    includeSimilarity: true,
-  });
+  const relevantDocuments = await collection
+    .findAndRerank(formattedFilters, {
+      // sort: { $hybrid: userQuery },
+      sort: {
+        $hybrid: {
+          $vectorize: userQuery,
+          $lexical: userQuery,
+        },
+      },
+      limit,
+      // skip,
+      projection: {
+        _id: true,
+        doc_id: true,
+        citation: true,
+        jurisdiction: true,
+        type: true,
+        source: true,
+        date: true,
+        url: true,
+        $lexical: true,
+        // $vectorize: true,
+      },
+      includeScores: true,
+      // includeSimilarity: true,
+    })
+    .toArray();
 
   const returnedDocuments: Pick<
-    FoundDoc<Document>,
+    FoundDoc<Document> & { $similarity: number },
     | "_id"
     | "doc_id"
     | "citation"
@@ -65,12 +76,22 @@ export async function findRelevantContent(
     | "source"
     | "date"
     | "url"
-    | "$vectorize"
+    | "$lexical"
     | "$similarity"
   >[] = [];
 
-  for await (const document of relevantDocuments) {
-    returnedDocuments.push(document);
+  const highestScore = Math.max(
+    ...relevantDocuments.map((document) => document.scores.$rerank)
+  );
+
+  for (const document of relevantDocuments) {
+    console.log("Document Scores: ", document.scores);
+    const comparitiveScore = document.scores.$rerank / highestScore;
+
+    returnedDocuments.push({
+      ...document.document,
+      $similarity: comparitiveScore,
+    });
   }
 
   return returnedDocuments;

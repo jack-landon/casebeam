@@ -22,15 +22,18 @@ export default function RelevanceIndicator({
     let label: string;
     let color: string;
 
-    if (normalizedScore >= 0.9) {
+    if (normalizedScore == 1) {
+      label = "Most Relevant";
+      color = "bg-green-800";
+    } else if (normalizedScore >= 0.85) {
       label = "Super Relevant";
       color = "bg-green-700";
-    } else if (normalizedScore >= 0.8) {
+    } else if (normalizedScore >= 0.7) {
       label = "Very Relevant";
       color = "bg-green-600";
-    } else if (normalizedScore >= 0.7) {
+    } else if (normalizedScore >= 0.5) {
       label = "Somewhat Relevant";
-      color = "bg-yellow-400";
+      color = "bg-yellow-600";
     } else {
       label = "Not Very Relevant";
       color = "bg-red-500";

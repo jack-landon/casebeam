@@ -74,7 +74,7 @@ export async function getMoreResults({
       date: string | undefined;
       url: string;
       similarityScore: number | null;
-      $vectorize: string;
+      $lexical: string;
       excerpts: Excerpt[];
     };
   } = {};
@@ -95,16 +95,16 @@ export async function getMoreResults({
       date: exampleExcerpt.date ?? "",
       url: exampleExcerpt.url ?? "#",
       similarityScore: exampleExcerpt.$similarity ?? null,
-      $vectorize: exampleExcerpt.$vectorize,
+      $lexical: exampleExcerpt.$lexical,
       excerpts: excerpts.map((excerpt) => ({
         caseName: exampleExcerpt.citation,
         title: exampleExcerpt.citation,
-        content: excerpt.$vectorize,
+        content: excerpt.$lexical,
         url: !exampleExcerpt.url
           ? null
           : convertUrlToEmbeddedUrl(
               exampleExcerpt.url,
-              exampleExcerpt.$vectorize
+              exampleExcerpt.$lexical
             ),
       })),
     };

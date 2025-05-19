@@ -128,6 +128,7 @@ function HomeContent() {
             date: string;
             url: string | null;
             similarityScore: number;
+            $lexical: string;
             $vectorize: string;
             excerpts: {
               caseName: string;

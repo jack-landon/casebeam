@@ -127,14 +127,6 @@ export async function createCategory(
   return category;
 }
 
-export async function createSearchResult(data: InsertSearchResult) {
-  const [searchResult] = await db
-    .insert(searchResultsTable)
-    .values(data)
-    .returning();
-  return searchResult;
-}
-
 export async function createSearchResultsBulk(data: InsertSearchResult[]) {
   return await db
     .insert(searchResultsTable)

@@ -86,16 +86,6 @@ export function NotepadMenuBar() {
               </NewNoteModal>
             </MenubarSubContent>
           </MenubarSub>
-          {/* <MenubarSeparator />
-          <MenubarItem
-            className="cursor-pointer"
-            onClick={() => {
-              if (!editorRef.current) return;
-              window.navigator.clipboard.writeText(editorRef.current.getText());
-            }}
-          >
-            Print... <MenubarShortcut>⌘P</MenubarShortcut>
-          </MenubarItem> */}
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
@@ -115,17 +105,6 @@ export function NotepadMenuBar() {
           >
             Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
           </MenubarItem>
-          {/* <MenubarSeparator />
-          <MenubarSub>
-            <MenubarSubTrigger>Find</MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarItem>Search the web</MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem>Find...</MenubarItem>
-              <MenubarItem>Find Next</MenubarItem>
-              <MenubarItem>Find Previous</MenubarItem>
-            </MenubarSubContent>
-          </MenubarSub> */}
           <MenubarSeparator />
           <MenubarItem
             className="cursor-pointer"
@@ -138,20 +117,6 @@ export function NotepadMenuBar() {
           </MenubarItem>
         </MenubarContent>
       </MenubarMenu>
-      {/* <MenubarMenu>
-        <MenubarTrigger>Profiles</MenubarTrigger>
-        <MenubarContent>
-          <MenubarRadioGroup value="benoit">
-            <MenubarRadioItem value="andy">Andy</MenubarRadioItem>
-            <MenubarRadioItem value="benoit">Benoit</MenubarRadioItem>
-            <MenubarRadioItem value="Luis">Luis</MenubarRadioItem>
-          </MenubarRadioGroup>
-          <MenubarSeparator />
-          <MenubarItem inset>Edit...</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset>Add Profile...</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu> */}
     </Menubar>
   );
 }
