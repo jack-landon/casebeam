@@ -65,7 +65,7 @@ export function NewCategoryModal() {
       });
 
       setCurrentModal(null);
-      router.refresh();
+      await router.refresh();
     } catch (error) {
       console.error("Error creating category:", error);
       toast("Error", {

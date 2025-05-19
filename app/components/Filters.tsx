@@ -25,6 +25,7 @@ import {
 } from "@/lib/utils";
 import { FilterOption } from "@/page";
 import { Badge } from "./ui/badge";
+import { useCurrentArticle } from "./providers/CurrentArticleProvider";
 
 export const filterIcons = {
   types: BookText,
@@ -35,15 +36,12 @@ export const filterIcons = {
 type FilterProps = {
   filters: FilterOption[];
   setFilters: React.Dispatch<React.SetStateAction<FilterOption[]>>;
-  isCombinedButton?: boolean;
 };
 
-export default function Filters({
-  filters,
-  setFilters,
-  isCombinedButton,
-}: FilterProps) {
-  return isCombinedButton ? (
+export default function Filters({ filters, setFilters }: FilterProps) {
+  const { currentArticle } = useCurrentArticle();
+
+  return currentArticle ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="cursor-pointer">

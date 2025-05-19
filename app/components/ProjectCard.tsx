@@ -40,7 +40,7 @@ function getTimeAgo(timestamp: number) {
 export default function ProjectCard({ caseItem }: { caseItem: SelectProject }) {
   return (
     <Link href={`/project/${caseItem.id}`} prefetch={false}>
-      <Card className="hover:bg-neutral-800 hover:shadow-md transition ease-in-out duration-200 cursor-pointer">
+      <Card className="hover:bg-secondary hover:shadow-md transition ease-in-out duration-200 cursor-pointer">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div>

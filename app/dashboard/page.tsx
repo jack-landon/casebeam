@@ -66,8 +66,8 @@ function DashboardContent() {
   const filteredCases = projects.filter(
     (caseItem) =>
       caseItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      caseItem.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      caseItem.caseNumber.toLowerCase().includes(searchQuery.toLowerCase())
+      caseItem.client?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      caseItem.caseNumber?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

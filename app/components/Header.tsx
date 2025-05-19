@@ -39,14 +39,14 @@ export default function Header() {
             <Link href="/" className="mr-6 hidden lg:flex" prefetch={false}>
               {/* <Bird className="h-6 w-6" /> */}
               <img
-                src="/brand/icon-black-circle.png"
+                src="/brand/logo-black-text.png"
                 alt=""
-                className="h-9 w-10 dark:hidden"
+                className="h-9 dark:hidden"
               />
               <img
-                src="/brand/icon-white-circle.png"
+                src="/brand/logo-white-text.png"
                 alt=""
-                className="h-9 w-10 hidden dark:block"
+                className="h-9 hidden dark:block"
               />
               <span className="sr-only">Car E-commerce</span>
             </Link>

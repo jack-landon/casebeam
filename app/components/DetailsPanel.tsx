@@ -96,7 +96,7 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
             ref={scrollContainerRef}
             className="relative flex-1 overflow-y-auto py-4"
           >
-            <Card className="w-full m-0 p-0 border-none">
+            <Card className="w-full m-0 p-0 border-none bg-transparent">
               <CardHeader>
                 <SaveResultDropdown
                   saved={

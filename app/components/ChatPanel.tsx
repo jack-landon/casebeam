@@ -26,7 +26,6 @@ import { FilterOption, View } from "@/page";
 import { UIMessage } from "ai";
 import { SignedIn, useUser } from "@clerk/nextjs";
 import { ChatHistoryDrawer } from "./ChatHistoryDrawer";
-import { useSearchParams } from "next/navigation";
 import Filters, { FilterList } from "./Filters";
 import { useUserData } from "./providers/UserDataProvider";
 import { useCurrentSearchResults } from "./providers/CurrentSearchResultsProvider";
@@ -34,6 +33,7 @@ import { useCurrentArticle } from "./providers/CurrentArticleProvider";
 import { InsertSearchResultWithExcerptsAndId } from "@/lib/types";
 import { toast } from "sonner";
 import { getDetailedSearchResult } from "@/lib/serverActions/getDetailedSearchResult";
+import { useTheme } from "next-themes";
 
 const ChatAiIcons = [
   {
@@ -90,11 +90,10 @@ export default function ChatPanel({
   const { user } = useUser();
   const formRef = useRef<HTMLFormElement>(null);
   const { userData } = useUserData();
-  const searchParams = useSearchParams();
-  const chatId = searchParams.get("id");
   const { currentSearchResults, setCurrentSearchResults } =
     useCurrentSearchResults();
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
+  const { theme } = useTheme();
 
   const docTitles = useMemo(() => {
     return currentSearchResults.map((result) => result.docTitle);
@@ -213,7 +212,15 @@ export default function ChatPanel({
                 variant={message.role == "user" ? "sent" : "received"}
               >
                 <ChatBubbleAvatar
-                  src={message.role == "user" ? user?.imageUrl : undefined}
+                  src={
+                    message.role == "user"
+                      ? user?.imageUrl
+                      : message.role == "assistant"
+                      ? theme == "dark"
+                        ? `brand/icon-white-circle.png`
+                        : `brand/icon-black-circle.png`
+                      : undefined
+                  }
                   fallback={message.role == "user" ? "👤" : "👨‍⚖️"}
                 />
                 <ChatBubbleMessage>
@@ -303,7 +310,14 @@ export default function ChatPanel({
           {/* Loading */}
           {isGenerating && (
             <ChatBubble variant="received">
-              <ChatBubbleAvatar src="" fallback="👨‍⚖️" />
+              <ChatBubbleAvatar
+                src={
+                  theme == "dark"
+                    ? `brand/icon-white-circle.png`
+                    : `brand/icon-black-circle.png`
+                }
+                fallback="👨‍⚖️"
+              />
               <ChatBubbleMessage isLoading />
             </ChatBubble>
           )}
@@ -340,11 +354,7 @@ export default function ChatPanel({
               <span className="sr-only">Use Microphone</span>
             </Button> */}
 
-            <Filters
-              filters={filters}
-              setFilters={setFilters}
-              isCombinedButton={!!chatId}
-            />
+            <Filters filters={filters} setFilters={setFilters} />
 
             <Button
               disabled={!input || isLoading}

@@ -15,11 +15,11 @@ export const projectsTable = sqliteTable("projects", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  caseNumber: text("case_number").notNull(),
-  client: text("client").notNull(),
-  caseType: text("case_type").notNull(),
-  status: text("status").notNull(),
-  filingDate: text("filing_date").notNull(),
+  caseNumber: text("case_number"),
+  client: text("client"),
+  caseType: text("case_type"),
+  status: text("status"),
+  filingDate: text("filing_date"),
   nextDeadline: text("next_deadline"),
   court: text("court"),
   judge: text("judge"),
@@ -134,7 +134,7 @@ export const searchResultProjects = sqliteTable("search_result_projects", {
   searchResultId: integer("search_result_id")
     .notNull()
     .references(() => searchResultsTable.id, { onDelete: "cascade" }),
-  projectId: integer("case_id")
+  projectId: integer("project_id")
     .notNull()
     .references(() => projectsTable.id, { onDelete: "cascade" }),
   createdAt: text("created_at")
@@ -297,8 +297,6 @@ export type InsertProject = typeof projectsTable.$inferInsert;
 export type SelectProject = typeof projectsTable.$inferSelect;
 export type InsertNote = typeof notesTable.$inferInsert;
 export type SelectNote = typeof notesTable.$inferSelect;
-export type InsertCase = typeof projectsTable.$inferInsert;
-export type SelectCase = typeof projectsTable.$inferSelect;
 export type InsertChat = typeof chatsTable.$inferInsert;
 export type SelectChat = typeof chatsTable.$inferSelect;
 export type InsertMessage = typeof messagesTable.$inferInsert;

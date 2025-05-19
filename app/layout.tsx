@@ -21,7 +21,7 @@ const lora = Lora({
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "👨‍⚖️ Case Beam",
+  title: "Case Beam | Smarter Legal Research",
   description: "The AI-Powered Legal Assistant",
   icons: {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],

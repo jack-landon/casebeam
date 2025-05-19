@@ -149,7 +149,6 @@ export function NewProjectModal() {
                   id="caseNumber"
                   value={formData.caseNumber}
                   onChange={(e) => handleChange("caseNumber", e.target.value)}
-                  required
                 />
               </div>
               <div>
@@ -160,7 +159,6 @@ export function NewProjectModal() {
                   id="client"
                   value={formData.client}
                   onChange={(e) => handleChange("client", e.target.value)}
-                  required
                 />
               </div>
               <div>
@@ -170,7 +168,6 @@ export function NewProjectModal() {
                 <Select
                   value={formData.caseType}
                   onValueChange={(value) => handleChange("caseType", value)}
-                  required
                 >
                   <SelectTrigger className="cursor-pointer" id="caseType">
                     <SelectValue placeholder="Select case type" />
@@ -222,7 +219,6 @@ export function NewProjectModal() {
                 <Select
                   value={formData.status}
                   onValueChange={(value) => handleChange("status", value)}
-                  required
                 >
                   <SelectTrigger className="cursor-pointer" id="status">
                     <SelectValue placeholder="Select status" />

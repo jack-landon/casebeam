@@ -8,6 +8,20 @@ import { totalDocumentsCount } from "@/lib/utils";
 import { getMoreResults } from "@/lib/serverActions/getMoreResults";
 import { useState } from "react";
 import { toast } from "sonner";
+import dayjs from "dayjs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
+import { useCurrentArticle } from "./providers/CurrentArticleProvider";
+
+type SortingMethod = "relevance" | "date";
 
 type ResultsPanelProps = {
   isGettingSearchResults: boolean;
@@ -25,6 +39,9 @@ export default function ResultsPanel({
   const { currentSearchResults, setCurrentSearchResults } =
     useCurrentSearchResults();
   const [isLoadingMoreResults, setIsLoadingMoreResults] = useState(false);
+  const [sortingMethod, setSortingMethod] =
+    useState<SortingMethod>("relevance");
+  const { currentArticle } = useCurrentArticle();
 
   async function searchMore() {
     try {
@@ -63,10 +80,50 @@ export default function ResultsPanel({
           <p className="text-3xl font-bold group-hover:underline flex items-center">
             Results {isStreaming && <Loader className="ml-2" size="md" />}
           </p>
-          <p className="text-sm text-muted-foreground">
-            Showing best {currentSearchResults.length.toLocaleString()} of ~
-            {totalDocumentsCount.toLocaleString()} documents
-          </p>
+          <div className="text-sm text-muted-foreground">
+            <div className="flex items-center">
+              <span>Showing</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <span className="flex items-center whitespace-nowrap mx-1 underline cursor-pointer">
+                    {sortingMethod == "relevance"
+                      ? "most relevant"
+                      : sortingMethod == "date"
+                      ? "most recent"
+                      : "Best"}
+                    <ChevronDown className="ml-0.5 h-3 w-3" />
+                  </span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>Sort Results By</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup
+                    value={sortingMethod}
+                    onValueChange={(value) =>
+                      setSortingMethod(value as SortingMethod)
+                    }
+                  >
+                    <DropdownMenuRadioItem
+                      value="relevance"
+                      className="cursor-pointer"
+                    >
+                      Relevance
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem
+                      value="date"
+                      className="cursor-pointer"
+                    >
+                      Date
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {currentArticle
+                ? `${currentSearchResults.length.toLocaleString()} documents`
+                : `${currentSearchResults.length.toLocaleString()} of ~
+              ${totalDocumentsCount.toLocaleString()} documents`}
+            </div>
+          </div>
         </div>
 
         <Button
@@ -99,7 +156,12 @@ export default function ResultsPanel({
         )}
         <div className="relative min-h-full">
           {currentSearchResults
-            .sort((a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0))
+            .sort((a, b) =>
+              sortingMethod == "date"
+                ? dayjs(b.docDate ?? dayjs()).unix() -
+                  dayjs(a.docDate ?? dayjs()).unix()
+                : (b.similarityScore ?? 0) - (a.similarityScore ?? 0)
+            )
             .map((result, i) => (
               <SearchResult
                 key={i}

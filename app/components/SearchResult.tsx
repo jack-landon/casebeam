@@ -95,7 +95,7 @@ export default function SearchResult({
   }
 
   return (
-    <Card className="group gap-2 w-full max-w-3xl hover:bg-accent border-b rounded-none transition ease-in-out">
+    <Card className="group gap-2 w-full max-w-3xl hover:bg-accent dark:hover:bg-accent-foreground border-x-0 border-y rounded-none transition ease-in-out">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
@@ -106,7 +106,7 @@ export default function SearchResult({
             </div>
             <CardTitle
               onClick={handleSelectCurrentArticle}
-              className={`cursor-pointer group-hover:underline text-xl text-accent-foreground hover:underline`}
+              className={`cursor-pointer group-hover:underline text-xl text-accent-foreground dark:text-secondary-foreground hover:underline`}
             >
               {searchResult.docTitle}
             </CardTitle>
@@ -238,14 +238,14 @@ export default function SearchResult({
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2 mt-3">
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-accent-foreground">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent text-secondary-foreground bg-secondary dark:group-hover:bg-secondary group-hover:bg-accent-foreground">
             <BookText className="h-3 w-3 mr-2" />
             {searchResult.type}
           </span>
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-accent-foreground">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent text-secondary-foreground bg-secondary dark:group-hover:bg-secondary group-hover:bg-accent-foreground">
             <MapPin className="h-3 w-3 mr-2" /> {searchResult.jurisdiction}
           </span>
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground group-hover:bg-accent-foreground">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent text-secondary-foreground bg-secondary dark:group-hover:bg-secondary group-hover:bg-accent-foreground">
             <Landmark className="h-3 w-3 mr-2" /> {searchResult.source}
           </span>
         </div>
