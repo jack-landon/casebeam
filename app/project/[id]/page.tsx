@@ -306,15 +306,15 @@ export default function ProjectPage({ params }: PageProps) {
                               <div>{projectDetails.caseType}</div>
                             </div>
                           )}
-                          {projectDetails.filingDate && (
+                          {projectDetails.projectDates[0] && (
                             <div>
                               <div className="text-sm font-medium text-muted-foreground">
-                                Filing Date
+                                Upcoming: {projectDetails.projectDates[0].name}
                               </div>
                               <div>
-                                {dayjs(projectDetails.filingDate).format(
-                                  "MMM DD, YYYY"
-                                )}
+                                {dayjs(
+                                  projectDetails.projectDates[0].date
+                                ).format("MMM DD, YYYY")}
                               </div>
                             </div>
                           )}
@@ -371,59 +371,66 @@ export default function ProjectPage({ params }: PageProps) {
                       <CardContent className="space-y-4">
                         <div className="space-y-3 max-h-72 overflow-auto">
                           {projectDetails.projectDates.length > 0 ? (
-                            projectDetails.projectDates.map((projectDate) => (
-                              <div
-                                key={projectDate.id}
-                                className="flex items-start gap-3 rounded-md border p-3"
-                              >
-                                <CalendarIcon className="mt-2 h-5 w-5 text-muted-foreground" />
-                                <div className="w-full">
-                                  <div className="w-full flex items-center justify-between">
-                                    <div className="font-medium">
-                                      {projectDate.name}
-                                    </div>
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <Button className="cursor-pointer bg-transparent text-secondary">
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                        <DialogHeader>
-                                          <DialogTitle>
-                                            Are you absolutely sure?
-                                          </DialogTitle>
-                                          <DialogDescription>
-                                            Are you sure you want to delete the{" "}
-                                            {projectDate.name} date? This action
-                                            cannot be undone.
-                                          </DialogDescription>
-                                        </DialogHeader>
-                                        <DialogFooter>
-                                          <Button
-                                            onClick={() => {
-                                              deleteProjectDate(projectDate.id);
-                                            }}
-                                            type="submit"
-                                            className="cursor-pointer"
-                                          >
-                                            Confirm
+                            projectDetails.projectDates
+                              .sort(
+                                (a, b) =>
+                                  dayjs(a.date).unix() - dayjs(b.date).unix()
+                              )
+                              .map((projectDate) => (
+                                <div
+                                  key={projectDate.id}
+                                  className="flex items-start gap-3 rounded-md border p-3"
+                                >
+                                  <CalendarIcon className="mt-2 h-5 w-5 text-muted-foreground" />
+                                  <div className="w-full">
+                                    <div className="w-full flex items-center justify-between">
+                                      <div className="font-medium">
+                                        {projectDate.name}
+                                      </div>
+                                      <Dialog>
+                                        <DialogTrigger asChild>
+                                          <Button className="cursor-pointer bg-transparent text-secondary">
+                                            <X className="h-3 w-3" />
                                           </Button>
-                                        </DialogFooter>
-                                      </DialogContent>
-                                    </Dialog>
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {dayjs(projectDate.date).format(
-                                      "MMM DD, YYYY"
-                                    )}
-                                  </div>
-                                  <div className="mt-1 text-sm">
-                                    {projectDate.description}
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                          <DialogHeader>
+                                            <DialogTitle>
+                                              Are you absolutely sure?
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                              Are you sure you want to delete
+                                              the {projectDate.name} date? This
+                                              action cannot be undone.
+                                            </DialogDescription>
+                                          </DialogHeader>
+                                          <DialogFooter>
+                                            <Button
+                                              onClick={() => {
+                                                deleteProjectDate(
+                                                  projectDate.id
+                                                );
+                                              }}
+                                              type="submit"
+                                              className="cursor-pointer"
+                                            >
+                                              Confirm
+                                            </Button>
+                                          </DialogFooter>
+                                        </DialogContent>
+                                      </Dialog>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                      {dayjs(projectDate.date).format(
+                                        "MMM DD, YYYY"
+                                      )}
+                                    </div>
+                                    <div className="mt-1 text-sm">
+                                      {projectDate.description}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))
+                              ))
                           ) : (
                             <div className="text-center text-muted-foreground py-8">
                               No important dates added to this case yet.

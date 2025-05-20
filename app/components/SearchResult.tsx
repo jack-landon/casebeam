@@ -32,7 +32,7 @@ export default function SearchResult({
   const { currentSearchResults, setCurrentSearchResults } =
     useCurrentSearchResults();
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
-  const { userData } = useUserData();
+  const { userData, refreshUserData } = useUserData();
 
   async function handleSave(
     e: React.MouseEvent,
@@ -51,6 +51,7 @@ export default function SearchResult({
       projectIds: type == "project" ? [itemId] : [],
       categoryIds: type == "category" ? [itemId] : [],
     });
+    refreshUserData();
     toast(`Saved to ${type}`, {
       id: searchResult.docTitle,
       description: `"${searchResult.docTitle}" has been saved to ${type}`,
@@ -148,92 +149,6 @@ export default function SearchResult({
             handleSave={handleSave}
             isArticlePanel={false}
           />
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant={`ghost`}
-                size="icon"
-                className={`cursor-pointer hover:text-yellow-500 ${
-                  saved ? "text-yellow-500" : ""
-                }`}
-              >
-                <Star className="h-4 w-4" />
-                <span className="sr-only">Save</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="font-bold">
-                Save to project
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {userData?.projects && userData.projects.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-1">
-                  <p className="text-muted-foreground italic font-light text-sm mb-3">
-                    You have no projects
-                  </p>
-
-                  <Button
-                    onClick={() => setIsNewProjectModalOpen(true)}
-                    size="sm"
-                    className="h-8 gap-1 cursor-pointer"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">New Project</span>
-                  </Button>
-                </div>
-              ) : (
-                userData?.projects.map((project) => (
-                  <DropdownMenuItem
-                    key={project.id}
-                    onClick={(e) => handleSave(e, "project", project.id)}
-                    className="cursor-pointer font-normal hover:bg-neutral-800"
-                  >
-                    {project.name}
-                  </DropdownMenuItem>
-                ))
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="font-bold">
-                Save to category
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {userData && userData.categories.length == 0 ? (
-                <div className="flex flex-col items-center justify-center p-1">
-                  <p className="text-muted-foreground italic font-light text-sm mb-3">
-                    You have no categories
-                  </p>
-                  <Button
-                    onClick={() => setIsNewCategoryModalOpen(true)}
-                    size="sm"
-                    className="h-8 gap-1 cursor-pointer"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">New Category</span>
-                  </Button>
-                </div>
-              ) : (
-                userData &&
-                userData.categories.length > 0 && (
-                  <>
-                    {userData?.categories.map((category) => (
-                      <DropdownMenuItem
-                        key={category.id}
-                        onClick={(e) => handleSave(e, "category", category.id)}
-                        className="cursor-pointer font-normal hover:bg-neutral-800"
-                      >
-                        <div
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            colorList[category.id % colorList.length]
-                          }`}
-                        />
-                        {category.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </>
-                )
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu> */}
         </div>
       </CardHeader>
       <CardContent>

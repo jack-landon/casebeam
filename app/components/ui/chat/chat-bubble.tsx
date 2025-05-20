@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import MessageLoading from "./message-loading";
 import { Button, ButtonProps } from "../button";
+import { useInView } from "react-intersection-observer";
 
 // ChatBubble
 const chatBubbleVariant = cva(
@@ -28,28 +29,71 @@ const chatBubbleVariant = cva(
 
 interface ChatBubbleProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof chatBubbleVariant> {}
+    VariantProps<typeof chatBubbleVariant> {
+  messageId?: string;
+  isAssistant?: boolean;
+  onVisibilityChange?: (messageId: string, visible: boolean) => void;
+}
 
 const ChatBubble = React.forwardRef<HTMLDivElement, ChatBubbleProps>(
-  ({ className, variant, layout, children, ...props }, ref) => (
-    <div
-      className={cn(
-        chatBubbleVariant({ variant, layout, className }),
-        "relative group"
-      )}
-      ref={ref}
-      {...props}
-    >
-      {React.Children.map(children, (child) =>
-        React.isValidElement(child) && typeof child.type !== "string"
-          ? React.cloneElement(child, {
-              variant,
-              layout,
-            } as React.ComponentProps<typeof child.type>)
-          : child
-      )}
-    </div>
-  )
+  (
+    {
+      className,
+      variant,
+      layout,
+      children,
+      messageId,
+      isAssistant,
+      onVisibilityChange,
+      ...props
+    },
+    ref
+  ) => {
+    const { ref: inViewRef } = useInView({
+      threshold: 0.5,
+      rootMargin: "50px 0px",
+      onChange: (inView) => {
+        if (isAssistant && messageId && onVisibilityChange) {
+          onVisibilityChange(messageId, inView);
+        }
+      },
+    });
+
+    // Merge refs
+    const setRefs = React.useCallback(
+      (element: HTMLDivElement | null) => {
+        // Forward the ref if provided
+        if (typeof ref === "function") {
+          ref(element);
+        } else if (ref) {
+          ref.current = element;
+        }
+        inViewRef(element);
+      },
+      [ref, inViewRef]
+    );
+
+    return (
+      <div
+        className={cn(
+          chatBubbleVariant({ variant, layout, className }),
+          "relative group"
+        )}
+        // ref={ref}
+        ref={isAssistant ? setRefs : ref}
+        {...props}
+      >
+        {React.Children.map(children, (child) =>
+          React.isValidElement(child) && typeof child.type !== "string"
+            ? React.cloneElement(child, {
+                variant,
+                layout,
+              } as React.ComponentProps<typeof child.type>)
+            : child
+        )}
+      </div>
+    );
+  }
 );
 ChatBubble.displayName = "ChatBubble";
 

@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserData } from "./providers/UserDataProvider";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { capitalizeFirstLetter } from "@/lib/utils";
 
 export default function ProjectCard({
   caseItem,
@@ -49,7 +55,7 @@ export default function ProjectCard({
                   : "secondary"
               }
             >
-              {caseItem.status}
+              {capitalizeFirstLetter(caseItem.status)}
             </Badge>
           </div>
         </CardHeader>
@@ -75,10 +81,39 @@ export default function ProjectCard({
                     )}
                   </p>
                   {caseItem.projectDates.length > 1 && (
-                    <p className="text-muted-foreground">
-                      {" "}
-                      +{caseItem.projectDates.length - 1} upcoming dates
-                    </p>
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <p className="text-muted-foreground hover:underline">
+                          {" "}
+                          +{caseItem.projectDates.length - 1} other upcoming{" "}
+                          {caseItem.projectDates.length > 2 ? "dates" : "date"}
+                        </p>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div>
+                          <h4 className="font-medium leading-none underline mb-3">
+                            Upcoming Dates
+                          </h4>
+                          <div className="">
+                            {caseItem.projectDates
+                              .sort(
+                                (a, b) =>
+                                  dayjs(a.date).unix() - dayjs(b.date).unix()
+                              )
+                              .map((date) => (
+                                <div key={date.id}>
+                                  <span className="font-medium">
+                                    {date.name}:{" "}
+                                  </span>
+                                  <span className="font-normal text-muted-foreground">
+                                    {dayjs(date.date).format("ddd DD MMM YYYY")}
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
                   )}
                 </div>
               </div>

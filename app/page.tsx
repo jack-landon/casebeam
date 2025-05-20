@@ -1,14 +1,13 @@
 "use client";
 
 import { useChat } from "ai/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import ResultsPanel from "./components/ResultsPanel";
 import DetailsPanel from "./components/DetailsPanel";
 import ChatPanel from "./components/ChatPanel";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { getChat } from "./lib/db/queries/query";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ListCollapse } from "lucide-react";
 import {
@@ -22,6 +21,10 @@ import { useCurrentArticle } from "./components/providers/CurrentArticleProvider
 import { useCurrentModal } from "./components/providers/CurrentModalProvider";
 import { NewProjectModal } from "./components/NewProjectModal";
 import { NewCategoryModal } from "./components/NewCategoryModal";
+import {
+  CurrentChatProvider,
+  useCurrentChat,
+} from "./components/providers/CurrentChatProvider";
 
 export type View = "chat" | "results" | "details";
 
@@ -49,11 +52,11 @@ function HomeContent() {
   const [openViews, setOpenViews] = useState<View[]>(["chat"]);
   const [isGettingSearchResults, setIsGettingSearchResults] = useState(false);
   const [isShowingSearchResults, setIsShowingSearchResults] = useState(false);
-  const [chatName, setChatName] = useState<string | undefined>(undefined);
   const { currentSearchResults, setCurrentSearchResults } =
     useCurrentSearchResults();
   const { currentArticle } = useCurrentArticle();
   const { currentModal } = useCurrentModal();
+  const { currentChat, refreshCurrentChat } = useCurrentChat();
 
   const {
     id: generatedChatId,
@@ -91,19 +94,7 @@ function HomeContent() {
     async onFinish() {
       if (!chatId) return setIsGettingSearchResults(false);
 
-      const chat = await getChat(chatId);
-
-      if (chat) {
-        setChatName(chat.name);
-        setCurrentSearchResults(
-          chat.searchResults.map((result) => ({
-            ...result,
-            excerpts: JSON.parse(result.excerpts ?? "[]"),
-          }))
-        );
-      }
-
-      setIsGettingSearchResults(false);
+      await refreshCurrentChat(chatId);
     },
     onError(error) {
       if (error) {
@@ -112,6 +103,28 @@ function HomeContent() {
       }
     },
   });
+
+  useEffect(() => {
+    if (!currentChat) return;
+    const transformedMessages = currentChat.messages.map((msg) => ({
+      id: msg.id.toString(),
+      role: msg.role as "user" | "assistant",
+      content: msg.content,
+    }));
+
+    setMessages(transformedMessages);
+
+    if (currentChat) {
+      setCurrentSearchResults(
+        currentChat.searchResults.map((result) => ({
+          ...result,
+          excerpts: JSON.parse(result.excerpts ?? "[]"),
+        }))
+      );
+    }
+
+    setIsShowingSearchResults(true);
+  }, [currentChat]);
 
   useEffect(() => {
     console.log("The data has changed", data);
@@ -164,40 +177,6 @@ function HomeContent() {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages]);
-
-  const fetchMessages = useCallback(
-    async (chatId: string) => {
-      const chat = await getChat(chatId);
-
-      if (!chat) return;
-
-      setChatName(chat.name);
-
-      const transformedMessages = chat.messages.map((msg) => ({
-        id: msg.id.toString(),
-        role: msg.role as "user" | "assistant",
-        content: msg.content,
-      }));
-
-      setMessages(transformedMessages);
-      setCurrentSearchResults(
-        chat.searchResults.map((result) => ({
-          ...result,
-          excerpts: JSON.parse(result.excerpts ?? "[]"),
-        }))
-      );
-      setIsShowingSearchResults(true);
-    },
-    [setMessages]
-  );
-
-  useEffect(() => {
-    function fetchChat() {
-      if (!chatId) return;
-      fetchMessages(chatId);
-    }
-    fetchChat();
-  }, [chatId, fetchMessages]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -288,7 +267,6 @@ function HomeContent() {
                 onSubmit={onSubmit}
                 filters={filters}
                 setFilters={setFilters}
-                chatName={chatName}
               />
             </Panel>
             {isShowingSearchResults ? (
@@ -351,7 +329,9 @@ export default function Home() {
         </div>
       }
     >
-      <HomeContent />
+      <CurrentChatProvider>
+        <HomeContent />
+      </CurrentChatProvider>
     </Suspense>
   );
 }

@@ -10,7 +10,7 @@ export const systemMessageForTool = `You are a helpful legal assistant. You MUST
 Important: DO NOT generate any response before getting the tool results.`;
 
 export function streamTextSystemMessage(topFiveResults: string) {
-  return `You are a helpful legal assistant. I will give you some relavent excerpts, and you MUST answer the question using ONLY the information provided in the context. If you mention a source, you MUST include the title of your source. Space your response with paragraphs. These are the documents you may use: ${topFiveResults}. You MUST NOT use any Markdown in your response.`;
+  return `You are a helpful legal assistant. I will give you some relavent excerpts, and you MUST answer the question using ONLY the information provided in the context. If you mention a source, you MUST include the title of your source. Space your response with paragraphs. Give much more weight to the first excerpts that are presented. These are the documents you may use: ${topFiveResults}. You MUST NOT use any Markdown in your response.`;
 }
 
 export function searchResultSummarySystemPrompt(

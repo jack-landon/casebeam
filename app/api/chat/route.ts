@@ -88,7 +88,7 @@ export async function POST(req: Request) {
   console.log("Retrieved Excerpts: ", retrievedExcerpts);
 
   // Create a doc object but keep the excerpts empty
-  const docObject: {
+  const unsortedDocObject: {
     [key: string]: {
       doc_id: string;
       citation: string;
@@ -113,13 +113,19 @@ export async function POST(req: Request) {
     if (excerpts.length == 0) continue;
 
     const maxScore = Math.max(
-      ...excerpts.map((excerpt) => excerpt.$similarity ?? 0)
+      ...excerpts.map((excerpt) => {
+        if (!excerpt.$similarity) return 0;
+        if (excerpt.$similarity < 0) {
+          return 0.1 * Math.exp(excerpt.$similarity); // exponentially decay for negative values
+        }
+        return excerpt.$similarity;
+      })
     );
 
     // We use the first excerpt to get the document details
     const exampleExcerpt = excerpts[0];
 
-    docObject[docId] = {
+    unsortedDocObject[docId] = {
       doc_id: exampleExcerpt.doc_id,
       citation: exampleExcerpt.citation,
       jurisdiction: exampleExcerpt.jurisdiction ?? "",
@@ -145,7 +151,15 @@ export async function POST(req: Request) {
     };
   }
 
-  const topFiveResults = Object.values(docObject)
+  // Resort docObject by similarity score
+  // Sort the docObject by similarity score in descending order
+  const sortedDocObject = Object.fromEntries(
+    Object.entries(unsortedDocObject).sort(
+      ([, a], [, b]) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0)
+    )
+  );
+
+  const topFiveResults = Object.values(sortedDocObject)
     .sort((a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0))
     .slice(0, 5);
 
@@ -163,7 +177,7 @@ export async function POST(req: Request) {
   return createDataStreamResponse({
     execute: (dataStream) => {
       dataStream.writeData({
-        initialSearchResults: Object.values(docObject).map((result) => ({
+        initialSearchResults: Object.values(sortedDocObject).map((result) => ({
           ...result,
           date: result.date ?? null,
         })),
@@ -223,7 +237,7 @@ export async function POST(req: Request) {
           await savedMsgsInDbPromise;
 
           const newTransformedResults: InsertSearchResult[] = Object.values(
-            docObject
+            sortedDocObject
           ).map((doc) => {
             const searchResult = searchResults.find(
               (result) =>

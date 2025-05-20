@@ -34,6 +34,7 @@ import { InsertSearchResultWithExcerptsAndId } from "@/lib/types";
 import { toast } from "sonner";
 import { getDetailedSearchResult } from "@/lib/serverActions/getDetailedSearchResult";
 import { useTheme } from "next-themes";
+import { useCurrentChat } from "./providers/CurrentChatProvider";
 
 const ChatAiIcons = [
   {
@@ -63,7 +64,6 @@ type ChatPanelProps = {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   filters: FilterOption[];
   setFilters: React.Dispatch<React.SetStateAction<FilterOption[]>>;
-  chatName?: string;
 };
 
 declare global {
@@ -85,7 +85,6 @@ export default function ChatPanel({
   view,
   filters,
   setFilters,
-  chatName,
 }: ChatPanelProps) {
   const { user } = useUser();
   const formRef = useRef<HTMLFormElement>(null);
@@ -94,6 +93,8 @@ export default function ChatPanel({
     useCurrentSearchResults();
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
   const { theme } = useTheme();
+  const { currentChat, visibleMessageId, setVisibleMessageId } =
+    useCurrentChat();
 
   const docTitles = useMemo(() => {
     return currentSearchResults.map((result) => result.docTitle);
@@ -156,6 +157,24 @@ export default function ChatPanel({
     };
   }, [handleDocumentClickInChatBubble]);
 
+  useEffect(() => {
+    if (visibleMessageId !== null) {
+      console.log("Currently visible message ID:", visibleMessageId);
+      if (!currentChat) return;
+      const viewedMessageSearchResults = currentChat.messages.find(
+        (message) => message.id === visibleMessageId
+      )?.botSearchResults;
+      if (!viewedMessageSearchResults) return;
+
+      setCurrentSearchResults(
+        viewedMessageSearchResults?.map((result) => ({
+          ...result,
+          excerpts: JSON.parse(result.excerpts),
+        }))
+      );
+    }
+  }, [visibleMessageId]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -171,10 +190,10 @@ export default function ChatPanel({
         <div className="flex items-center justify-between p-4 border-b">
           <h2
             className={`${
-              chatName ? "text-xl" : "text-3xl"
+              currentChat?.name ? "text-xl" : "text-3xl"
             } font-bold font-lora`}
           >
-            {chatName ?? "Chat"}
+            {currentChat?.name ?? "Chat"}
           </h2>
         </div>
       )}
@@ -210,106 +229,124 @@ export default function ChatPanel({
 
           {/* Messages */}
           {messages &&
-            messages.map((message, index) => (
-              <ChatBubble
-                key={index}
-                variant={message.role == "user" ? "sent" : "received"}
-              >
-                <ChatBubbleAvatar
-                  src={
-                    message.role == "user"
-                      ? user?.imageUrl
-                      : message.role == "assistant"
-                      ? theme == "dark"
-                        ? `brand/icon-white-circle.png`
-                        : `brand/icon-black-circle.png`
-                      : undefined
-                  }
-                  fallback={message.role == "user" ? "👤" : "👨‍⚖️"}
-                />
-                <ChatBubbleMessage>
-                  {message.content
-                    .split("```") // Split by code blocks -> then process the normal text parts
-                    .map((part: string, index: number) => {
-                      if (index % 2 === 0) {
-                        // Process text parts (non-code blocks)
-                        let processedContent = part.replace(/\*/g, ""); // Strip all asterisks
+            messages.map((message, index) => {
+              return (
+                <ChatBubble
+                  key={index}
+                  variant={message.role == "user" ? "sent" : "received"}
+                  messageId={message.id}
+                  isAssistant={message.role === "assistant"}
+                  onVisibilityChange={(messageId, visible) => {
+                    if (visible) {
+                      setVisibleMessageId(messageId);
+                    }
+                  }}
+                  className={`${
+                    message.role === "assistant" &&
+                    visibleMessageId === message.id
+                      ? "bg-amber-300/20"
+                      : ""
+                  }`}
+                >
+                  <ChatBubbleAvatar
+                    src={
+                      message.role == "user"
+                        ? user?.imageUrl
+                        : message.role == "assistant"
+                        ? theme == "dark"
+                          ? `brand/icon-white-circle.png`
+                          : `brand/icon-black-circle.png`
+                        : undefined
+                    }
+                    fallback={message.role == "user" ? "👤" : "👨‍⚖️"}
+                  />
+                  <ChatBubbleMessage>
+                    {message.content
+                      .split("```") // Split by code blocks -> then process the normal text parts
+                      .map((part: string, index: number) => {
+                        if (index % 2 === 0) {
+                          // Process text parts (non-code blocks)
+                          let processedContent = part.replace(/\*/g, ""); // Strip all asterisks
 
-                        // Create regex pattern for all docTitles, escape special characters
-                        docTitles.forEach((title) => {
-                          const escapedTitle = title
-                            ?.replace(/\*/g, "")
-                            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                          const regex = new RegExp(`(${escapedTitle})`, "gi");
-                          processedContent = processedContent.replace(
-                            regex,
-                            `<span
-                            class="bg-amber-300/40 hover:bg-amber-300/80 hover:outline px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors"
-                            onclick="window.handleDocumentClickInChatBubble('${title?.replace(
-                              /'/g,
-                              "\\'"
-                            )}')"
-                          >$1</span>`
+                          // Create regex pattern for all docTitles, escape special characters
+                          docTitles.forEach((title) => {
+                            const escapedTitle = title
+                              ?.replace(/\*/g, "")
+                              .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                            const regex = new RegExp(`(${escapedTitle})`, "gi");
+                            processedContent = processedContent.replace(
+                              regex,
+                              `<span
+                             class="bg-amber-300/40 hover:bg-amber-300/80 hover:outline px-1.5 py-0.5 font-bold rounded-md cursor-pointer transition-colors"
+                             onclick="window.handleDocumentClickInChatBubble('${title?.replace(
+                               /'/g,
+                               "\\'"
+                             )}')"
+                           >$1</span>`
+                            );
+                          });
+
+                          return (
+                            <Markdown
+                              key={index}
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                p: ({ children }) => {
+                                  const content = Array.isArray(children)
+                                    ? children.join("")
+                                    : String(children || "");
+                                  return (
+                                    <p
+                                      dangerouslySetInnerHTML={{
+                                        __html: content,
+                                      }}
+                                    />
+                                  );
+                                },
+                              }}
+                            >
+                              {processedContent}
+                            </Markdown>
                           );
-                        });
-
-                        return (
-                          <Markdown
-                            key={index}
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              p: ({ children }) => {
-                                const content = Array.isArray(children)
-                                  ? children.join("")
-                                  : String(children || "");
+                        } else {
+                          // Code blocks remain unchanged
+                          return (
+                            <pre
+                              className="whitespace-pre-wrap pt-2"
+                              key={index}
+                            >
+                              <CodeDisplayBlock code={part} lang="" />
+                            </pre>
+                          );
+                        }
+                      })}
+                    {message.role === "assistant" &&
+                      messages.length - 1 === index && (
+                        <div className="flex items-center mt-1.5 gap-1">
+                          {!isGenerating && (
+                            <>
+                              {ChatAiIcons.map((icon, iconIndex) => {
+                                const Icon = icon.icon;
                                 return (
-                                  <p
-                                    dangerouslySetInnerHTML={{
-                                      __html: content,
-                                    }}
+                                  <ChatBubbleAction
+                                    variant="outline"
+                                    className="size-5 cursor-pointer"
+                                    key={iconIndex}
+                                    icon={<Icon className="size-3" />}
+                                    onClick={() =>
+                                      handleActionClick(icon.label, index)
+                                    }
                                   />
                                 );
-                              },
-                            }}
-                          >
-                            {processedContent}
-                          </Markdown>
-                        );
-                      } else {
-                        // Code blocks remain unchanged
-                        return (
-                          <pre className="whitespace-pre-wrap pt-2" key={index}>
-                            <CodeDisplayBlock code={part} lang="" />
-                          </pre>
-                        );
-                      }
-                    })}
-                  {message.role === "assistant" &&
-                    messages.length - 1 === index && (
-                      <div className="flex items-center mt-1.5 gap-1">
-                        {!isGenerating && (
-                          <>
-                            {ChatAiIcons.map((icon, iconIndex) => {
-                              const Icon = icon.icon;
-                              return (
-                                <ChatBubbleAction
-                                  variant="outline"
-                                  className="size-5 cursor-pointer"
-                                  key={iconIndex}
-                                  icon={<Icon className="size-3" />}
-                                  onClick={() =>
-                                    handleActionClick(icon.label, index)
-                                  }
-                                />
-                              );
-                            })}
-                          </>
-                        )}
-                      </div>
-                    )}
-                </ChatBubbleMessage>
-              </ChatBubble>
-            ))}
+                              })}
+                            </>
+                          )}
+                        </div>
+                      )}
+                  </ChatBubbleMessage>
+                </ChatBubble>
+              );
+            })}
 
           {/* Loading */}
           {isGenerating && (

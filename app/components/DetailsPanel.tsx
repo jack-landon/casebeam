@@ -18,7 +18,7 @@ type DetailsPanelProps = {
 };
 
 export default function DetailsPanel({ view }: DetailsPanelProps) {
-  const { userData } = useUserData();
+  const { userData, refreshUserData } = useUserData();
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +50,7 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
       projectIds: type == "project" ? [itemId] : [],
       categoryIds: type == "category" ? [itemId] : [],
     });
+    refreshUserData();
     toast(`Saved to ${type}`, {
       id: currentArticle.docTitle,
       description: `"${currentArticle.docTitle}" has been saved to ${type}`,
@@ -71,17 +72,6 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
           <p className="text-3xl font-bold group-hover:underline font-lora">
             Document Details
           </p>
-
-          <Button
-            onClick={() => {
-              setCurrentArticle(null);
-            }}
-            variant="outline"
-            size="sm"
-            className="cursor-pointer"
-          >
-            Hide Panel
-          </Button>
         </div>
 
         {currentArticle == "loading" ? (
@@ -155,8 +145,15 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
 
         {/* Fixed Bottom Bar */}
         <div className="border-t p-4 mt-auto flex justify-end gap-2">
-          <Button variant="outline" size="sm" className="cursor-pointer">
-            Download PDF
+          <Button
+            onClick={() => {
+              setCurrentArticle(null);
+            }}
+            variant="outline"
+            size="sm"
+            className="cursor-pointer"
+          >
+            Hide Panel
           </Button>
           {currentArticle != "loading" && currentArticle?.url && (
             <Button asChild size="sm" className="cursor-pointer">

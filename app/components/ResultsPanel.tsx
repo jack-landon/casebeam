@@ -125,17 +125,6 @@ export default function ResultsPanel({
             </div>
           </div>
         </div>
-
-        <Button
-          onClick={() => {
-            setIsShowingSearchResults(false);
-          }}
-          variant="outline"
-          size="sm"
-          className="cursor-pointer"
-        >
-          Hide Panel
-        </Button>
       </div>
 
       {/* Scrollable Results */}
@@ -186,8 +175,15 @@ export default function ResultsPanel({
 
       {/* Fixed Bottom Bar */}
       <div className="border-t p-4 mt-auto flex justify-end gap-2">
-        <Button variant="outline" size="sm" className="cursor-pointer">
-          Clear Results
+        <Button
+          onClick={() => {
+            setIsShowingSearchResults(false);
+          }}
+          variant="outline"
+          size="sm"
+          className="cursor-pointer"
+        >
+          Hide Panel
         </Button>
         <Button size="sm" className="cursor-pointer">
           Save All
