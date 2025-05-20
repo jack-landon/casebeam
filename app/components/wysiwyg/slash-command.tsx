@@ -23,7 +23,7 @@ export const suggestionItems = createSuggestionItems([
     icon: <MessageSquarePlus size={18} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).run();
-      window.open("/feedback", "_blank");
+      window.open("https://casebeam.ai/feedback", "_blank");
     },
   },
   {

@@ -10,6 +10,7 @@ import { ChatHistoryDrawer } from "./ChatHistoryDrawer";
 import { useUserData } from "./providers/UserDataProvider";
 import { useSearchParams } from "next/navigation";
 import DarkModeSwitch from "./DarkModeSwitch";
+import { HeartHandshake } from "lucide-react";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -80,7 +81,15 @@ export default function Header() {
           </div>
           <div className="ml-auto flex gap-2">
             <SignedIn>
-              <UserButton />
+              <UserButton>
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="Community and Support"
+                    labelIcon={<HeartHandshake className="h-4 w-4" />}
+                    href="https://casebeam.ai/feedback"
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
               <Button
                 variant="outline"
                 className="justify-self-end px-2 py-1 text-xs cursor-pointer"
