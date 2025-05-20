@@ -117,23 +117,6 @@ export async function createProjectInDbForm(formData: FormData) {
   });
 }
 
-export async function getProjectsFromDb() {
-  const { userId } = await auth();
-  if (!userId) throw new Error("User not found");
-
-  try {
-    const projects = await db
-      .select()
-      .from(projectsTable)
-      .where(eq(projectsTable.userId, userId))
-      .orderBy(projectsTable.updateAt);
-    return { success: true, data: projects };
-  } catch (error) {
-    console.error("Error fetching projects:", error);
-    return { success: false, error: "Problem getting projects" };
-  }
-}
-
 export async function getUserCategoriesFromDb() {
   const { userId } = await auth();
   if (!userId) throw new Error("User not found");

@@ -1,23 +1,18 @@
-import { SelectCategory } from "@/lib/db/schema";
 import { capitalizeFirstLetter, colorList } from "@/lib/utils";
 import { Folder, NotebookPen } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useUserData } from "./providers/UserDataProvider";
 
 const menuItems = [
   { name: "projects", icon: <Folder className="h-4 w-4" /> },
   { name: "notes", icon: <NotebookPen className="h-4 w-4" /> },
 ];
 
-type DashboardSidebarProps = {
-  userCategories: SelectCategory[];
-};
-
-export default function DashboardSidebar({
-  userCategories,
-}: DashboardSidebarProps) {
+export default function DashboardSidebar() {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab");
+  const { userData } = useUserData();
 
   return (
     <aside className="hidden border-r md:block sticky top-16 h-[calc(100vh-64px)]">
@@ -39,13 +34,13 @@ export default function DashboardSidebar({
           </Link>
         ))}
 
-        {userCategories.length > 0 && (
+        {userData && userData.categories.length > 0 && (
           <>
             <p className="mt-6 font-bold text-primary dark:text-secondary-foreground">
               Categories
             </p>
 
-            {userCategories.slice(0, 10).map((category) => (
+            {userData.categories.slice(0, 10).map((category) => (
               <Link
                 key={category.name}
                 href={`/dashboard?tab=${category.name}`}

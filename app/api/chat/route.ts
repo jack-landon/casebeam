@@ -132,7 +132,9 @@ export async function POST(req: Request) {
       excerpts: excerpts.map((excerpt) => ({
         caseName: exampleExcerpt.citation,
         title: exampleExcerpt.citation,
-        content: excerpt.$lexical,
+        content: excerpt.$lexical
+          .replace(`Document Name: ${exampleExcerpt.citation}`, "")
+          .trim(),
         url: !exampleExcerpt.url
           ? null
           : convertUrlToEmbeddedUrl(

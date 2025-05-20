@@ -14,6 +14,11 @@ export async function getUserData() {
       projects: {
         with: {
           searchResultProjects: true,
+          projectDates: {
+            orderBy(fields, operators) {
+              return operators.asc(fields.date);
+            },
+          },
         },
       },
       categories: {
