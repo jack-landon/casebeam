@@ -10,16 +10,63 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserData } from "./providers/UserDataProvider";
-import { generateText } from "@tiptap/core";
-import { allTipTapExtensions } from "@/lib/allTipTapExtensions";
 
 type Props = {
   note: NonNullable<UserData>["notes"][0];
 };
 
+type ContentNode = {
+  type: string;
+  text?: string;
+  content?: ContentNode[];
+};
+
 export default function NoteCard({ note }: Props) {
-  const text = generateText(JSON.parse(note.content), allTipTapExtensions);
-  const truncatedText = text.length > 100 ? `${text.slice(0, 100)}...` : text;
+  const parsedContent = JSON.parse(note.content) as {
+    type: "doc";
+    content?: Array<{
+      type: string;
+      content: Array<{
+        type: string;
+        text?: string;
+        content?: Array<{
+          type: string;
+          content: Array<{
+            type: string;
+            text?: string;
+          }>;
+        }>;
+      }>;
+    }>;
+  };
+
+  const getAllText = (
+    content: ContentNode | ContentNode[] | undefined
+  ): string[] => {
+    if (!content) return [];
+
+    if (Array.isArray(content)) {
+      return content.flatMap((item) => getAllText(item));
+    }
+
+    if (content.text) {
+      return [content.text];
+    }
+
+    if (content.content) {
+      return getAllText(content.content);
+    }
+
+    return [];
+  };
+
+  const text = getAllText(parsedContent.content).join(" ");
+
+  const truncatedText = !text
+    ? ""
+    : text.length > 100
+    ? `${text.slice(0, 100)}...`
+    : text;
 
   return (
     <Link href={`/note/${note.id}`} prefetch={false}>
