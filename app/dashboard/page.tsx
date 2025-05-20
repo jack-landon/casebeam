@@ -29,6 +29,7 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setCurrentModal } = useCurrentModal();
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -36,33 +37,19 @@ function DashboardContent() {
     if (!searchParams.get("tab")) router.push("?tab=projects");
   }, [searchParams, router]);
 
-  // const getProjects = useCallback(async () => {
-  //   try {
-  //     setIsLoadingProjects(true);
-  //     const { data: userProjects } = await getProjectsFromDb();
-  //     const { data: userCategories } = await getUserCategoriesFromDb();
-  //     if (!userProjects || !userCategories) return;
-  //     setProjects(userProjects);
-  //     setUserCategories(userCategories);
-  //   } catch (error) {
-  //     console.error("Error fetching user data:", error);
-  //   } finally {
-  //     setIsLoadingProjects(false);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   if (!user) return;
-  //   getProjects();
-  // }, [user, getProjects]);
-
   // Filter cases based on search query
-  const filteredCases = userData?.projects.filter(
-    (caseItem) =>
+  const filteredCases = userData?.projects.filter((caseItem) => {
+    const matchesSearch =
       caseItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       caseItem.client?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      caseItem.caseNumber?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      caseItem.caseNumber?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" ||
+      caseItem.status.toLowerCase() == statusFilter.toLowerCase();
+
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="flex min-h-screen flex-col border-t">
@@ -112,15 +99,23 @@ function DashboardContent() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-[160px]">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px] cursor-pointer">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Cases</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
+                  <SelectItem className="cursor-pointer" value="all">
+                    All Cases
+                  </SelectItem>
+                  <SelectItem className="cursor-pointer" value="active">
+                    Active
+                  </SelectItem>
+                  <SelectItem className="cursor-pointer" value="pending">
+                    Pending
+                  </SelectItem>
+                  <SelectItem className="cursor-pointer" value="closed">
+                    Closed
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
