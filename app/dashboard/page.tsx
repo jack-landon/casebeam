@@ -23,6 +23,7 @@ import { NewCategoryModal } from "@/components/NewCategoryModal";
 import dayjs from "dayjs";
 import { useCurrentModal } from "@/components/providers/CurrentModalProvider";
 import { useUserData } from "@/components/providers/UserDataProvider";
+import NoteCard from "@/components/NoteCard";
 
 function DashboardContent() {
   const { userData, isLoadingUserData } = useUserData();
@@ -50,6 +51,10 @@ function DashboardContent() {
 
     return matchesSearch && matchesStatus;
   });
+
+  const filteredNotes = userData?.notes.filter((note) =>
+    note.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="flex min-h-screen flex-col border-t">
@@ -93,102 +98,132 @@ function DashboardContent() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search cases..."
+                  placeholder={`Search ${
+                    searchParams.get("tab") == "projects"
+                      ? "projects"
+                      : searchParams.get("tab") == "notes"
+                      ? "notes"
+                      : ""
+                  }...`}
                   className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[160px] cursor-pointer">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem className="cursor-pointer" value="all">
-                    All Cases
-                  </SelectItem>
-                  <SelectItem className="cursor-pointer" value="active">
-                    Active
-                  </SelectItem>
-                  <SelectItem className="cursor-pointer" value="pending">
-                    Pending
-                  </SelectItem>
-                  <SelectItem className="cursor-pointer" value="closed">
-                    Closed
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              {searchParams.get("tab") == "projects" && (
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[160px] cursor-pointer">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="cursor-pointer" value="all">
+                      All Cases
+                    </SelectItem>
+                    <SelectItem className="cursor-pointer" value="active">
+                      Active
+                    </SelectItem>
+                    <SelectItem className="cursor-pointer" value="pending">
+                      Pending
+                    </SelectItem>
+                    <SelectItem className="cursor-pointer" value="closed">
+                      Closed
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
-          <Tabs defaultValue="all">
-            <TabsList>
-              <TabsTrigger value="all">All Cases</TabsTrigger>
-              <TabsTrigger value="recent">Recent</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming Deadlines</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all" className="mt-4">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {isLoadingUserData ? (
-                  Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="flex flex-col space-y-3">
-                      <Skeleton className="h-[125px] w-[250px] rounded-xl" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-[250px]" />
-                        <Skeleton className="h-4 w-[200px]" />
+          {searchParams.get("tab") === "projects" ? (
+            <Tabs defaultValue="all">
+              <TabsList>
+                <TabsTrigger value="all">All Cases</TabsTrigger>
+                <TabsTrigger value="recent">Recent</TabsTrigger>
+                <TabsTrigger value="upcoming">Upcoming Deadlines</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all" className="mt-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {isLoadingUserData ? (
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index} className="flex flex-col space-y-3">
+                        <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-[250px]" />
+                          <Skeleton className="h-4 w-[200px]" />
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : userData?.projects.length === 0 ? (
-                  <div className="sm:col-span-2 lg:col-span-3 flex flex-col justify-center items-center mt-8">
-                    <p>No Projects</p>
-                    <p className="text-sm text-muted-foreground">
-                      Create one to get started.
-                    </p>
+                    ))
+                  ) : userData?.projects.length === 0 ? (
+                    <div className="sm:col-span-2 lg:col-span-3 flex flex-col justify-center items-center mt-8">
+                      <p>No Projects</p>
+                      <p className="text-sm text-muted-foreground">
+                        Create one to get started.
+                      </p>
 
-                    <Button
-                      onClick={() => setCurrentModal("newProject")}
-                      variant="outline"
-                      className="mt-4 cursor-pointer"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create Project
-                    </Button>
-                  </div>
-                ) : (
-                  filteredCases?.map((caseItem) => (
-                    <ProjectCard key={caseItem.id} caseItem={caseItem} />
-                  ))
-                )}
+                      <Button
+                        onClick={() => setCurrentModal("newProject")}
+                        variant="outline"
+                        className="mt-4 cursor-pointer"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Create Project
+                      </Button>
+                    </div>
+                  ) : (
+                    filteredCases?.map((caseItem) => (
+                      <ProjectCard key={caseItem.id} caseItem={caseItem} />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="recent" className="mt-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredCases
+                    ?.filter(
+                      (caseItem) =>
+                        dayjs(caseItem.updateAt).unix() >
+                        Date.now() - 7 * 24 * 60 * 60 * 1000
+                    )
+                    .map((caseItem) => (
+                      <ProjectCard key={caseItem.id} caseItem={caseItem} />
+                    ))}
+                </div>
+              </TabsContent>
+              <TabsContent value="upcoming" className="mt-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredCases
+                    ?.filter(
+                      (caseItem) =>
+                        caseItem.projectDates[0] &&
+                        dayjs(caseItem.projectDates[0].date).unix() <
+                          dayjs().add(14, "days").unix()
+                    )
+                    .map((caseItem) => (
+                      <ProjectCard key={caseItem.id} caseItem={caseItem} />
+                    ))}
+                </div>
+              </TabsContent>
+            </Tabs>
+          ) : searchParams.get("tab") === "notes" ? (
+            userData?.notes.length === 0 ? (
+              <div className="flex flex-col justify-center items-center mt-8">
+                <p>No Notes</p>
+                <p className="text-sm text-muted-foreground">
+                  Create one to get started.
+                </p>
+
+                <Button variant="outline" className="mt-4 cursor-pointer">
+                  <Plus className="h-4 w-4" />
+                  Create Note
+                </Button>
               </div>
-            </TabsContent>
-            <TabsContent value="recent" className="mt-4">
+            ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredCases
-                  ?.filter(
-                    (caseItem) =>
-                      dayjs(caseItem.updateAt).unix() >
-                      Date.now() - 7 * 24 * 60 * 60 * 1000
-                  )
-                  .map((caseItem) => (
-                    <ProjectCard key={caseItem.id} caseItem={caseItem} />
-                  ))}
+                {filteredNotes?.map((note) => (
+                  <NoteCard key={note.id} note={note} />
+                ))}
               </div>
-            </TabsContent>
-            <TabsContent value="upcoming" className="mt-4">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredCases
-                  ?.filter(
-                    (caseItem) =>
-                      caseItem.projectDates[0] &&
-                      dayjs(caseItem.projectDates[0].date).unix() <
-                        dayjs().add(14, "days").unix()
-                  )
-                  .map((caseItem) => (
-                    <ProjectCard key={caseItem.id} caseItem={caseItem} />
-                  ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+            )
+          ) : null}
         </main>
       </div>
       <NewProjectModal />
