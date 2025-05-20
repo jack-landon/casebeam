@@ -111,14 +111,8 @@ export default function ProjectPage({ params }: PageProps) {
     try {
       if (!userData?.id) return;
 
-      // Format dates for database
-      const formattedData = {
-        ...dateFormData,
-        filingDate: dayjs(dateFormData.date).format("MMM DD YYYY"),
-      };
-
       await createProjectDate({
-        ...formattedData,
+        ...dateFormData,
         projectId: parseInt(resolvedParams.id),
         date: dayjs(dateFormData.date).format("YYYY-MM-DD"),
       });
@@ -553,9 +547,8 @@ export default function ProjectPage({ params }: PageProps) {
                                       Saving...
                                     </span>
                                   ) : (
-                                    "Save"
+                                    "Confirm"
                                   )}
-                                  Save changes
                                 </Button>
                               </DialogFooter>
                             </form>
@@ -801,9 +794,6 @@ export default function ProjectPage({ params }: PageProps) {
             caseNumber: projectDetails.caseNumber?.toString() || "",
             client: projectDetails.client || "",
             caseType: projectDetails.caseType || "",
-            filingDate: !projectDetails.filingDate
-              ? new Date()
-              : new Date(projectDetails.filingDate),
             court: projectDetails.court || "",
             judge: projectDetails.judge || "",
             description: projectDetails.description || "",

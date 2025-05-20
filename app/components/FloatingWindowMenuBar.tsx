@@ -61,12 +61,12 @@ export function NotepadMenuBar() {
                 <MenubarItem
                   key={`open-${note.id}`}
                   onClick={() => handleOpenNote(note.id)}
-                  className="flex items-center cursor-pointer"
+                  className="flex items-center cursor-pointer group"
                 >
                   <div className={`w-3 h-3 rounded-full mr-2 ${note.color}`} />
                   <div className="">
                     <p>{note.name}</p>
-                    <p className="text-xs font-extralight text-muted-foreground">
+                    <p className="text-xs font-extralight text-muted-foreground dark:group-hover:text-primary-foreground">
                       {dayjs(note.updatedAt).format("ddd D MMM YY")}
                     </p>
                   </div>

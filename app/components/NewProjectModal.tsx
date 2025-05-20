@@ -1,11 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createProjectInDb, updateProjectInDb } from "@/lib/actions";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -17,11 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -30,10 +23,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
-import dayjs from "dayjs";
-import { useAuth } from "@clerk/nextjs";
 import { useCurrentModal } from "./providers/CurrentModalProvider";
 import { ProjectStatus } from "@/lib/db/schema";
 import { useUserData } from "./providers/UserDataProvider";
@@ -44,7 +33,6 @@ type FormData = {
   client: string;
   caseType: string;
   status: ProjectStatus;
-  filingDate: Date;
   court: string;
   judge: string;
   description: string;
@@ -59,9 +47,7 @@ type Props = {
 
 export function NewProjectModal({ initialData, refreshPage }: Props) {
   const { currentModal, setCurrentModal } = useCurrentModal();
-  const { refreshUserData } = useUserData();
-  const { userId } = useAuth();
-  const router = useRouter();
+  const { userData, refreshUserData } = useUserData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>(
     initialData || {
@@ -70,7 +56,6 @@ export function NewProjectModal({ initialData, refreshPage }: Props) {
       client: "",
       caseType: "",
       status: "active",
-      filingDate: new Date(),
       court: "",
       judge: "",
       description: "",
@@ -89,19 +74,13 @@ export function NewProjectModal({ initialData, refreshPage }: Props) {
     setIsSubmitting(true);
 
     try {
-      if (!userId) return;
-
-      // Format dates for database
-      const formattedData = {
-        ...formData,
-        filingDate: formData.filingDate.toISOString().split("T")[0],
-      };
+      if (!userData?.id) return;
 
       if (initialData) {
         // Update existing project
         await updateProjectInDb(initialData.id, {
-          ...formattedData,
-          userId,
+          ...formData,
+          userId: userData.id,
         });
 
         if (refreshPage) refreshPage();
@@ -111,19 +90,17 @@ export function NewProjectModal({ initialData, refreshPage }: Props) {
         });
       } else {
         await createProjectInDb({
-          ...formattedData,
-          userId,
+          ...formData,
+          userId: userData.id,
         });
-
-        refreshUserData();
 
         toast("Project created", {
           description: "Your new case has been successfully created.",
         });
       }
 
+      refreshUserData();
       setCurrentModal(null);
-      await router.refresh();
     } catch (error) {
       console.error("Error creating case:", error);
       toast("Error", {
@@ -162,26 +139,6 @@ export function NewProjectModal({ initialData, refreshPage }: Props) {
                   value={formData.name}
                   onChange={(e) => handleChange("name", e.target.value)}
                   required
-                />
-              </div>
-              <div>
-                <Label className="mb-2" htmlFor="caseNumber">
-                  Case Number
-                </Label>
-                <Input
-                  id="caseNumber"
-                  value={formData.caseNumber}
-                  onChange={(e) => handleChange("caseNumber", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label className="mb-2" htmlFor="client">
-                  Client
-                </Label>
-                <Input
-                  id="client"
-                  value={formData.client}
-                  onChange={(e) => handleChange("client", e.target.value)}
                 />
               </div>
               <div>
@@ -260,37 +217,24 @@ export function NewProjectModal({ initialData, refreshPage }: Props) {
                 </Select>
               </div>
               <div>
-                <Label className="mb-2" htmlFor="filingDate">
-                  Filing Date
+                <Label className="mb-2" htmlFor="caseNumber">
+                  Case Number (Optional)
                 </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal cursor-pointer",
-                        !formData.filingDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.filingDate ? (
-                        dayjs(formData.filingDate).format("MMM D, YYYY")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={formData.filingDate}
-                      onSelect={(date) =>
-                        date && handleChange("filingDate", date)
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Input
+                  id="caseNumber"
+                  value={formData.caseNumber}
+                  onChange={(e) => handleChange("caseNumber", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="mb-2" htmlFor="client">
+                  Client (Optional)
+                </Label>
+                <Input
+                  id="client"
+                  value={formData.client}
+                  onChange={(e) => handleChange("client", e.target.value)}
+                />
               </div>
               <div>
                 <Label className="mb-2" htmlFor="court">

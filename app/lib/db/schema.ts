@@ -22,7 +22,6 @@ export const projectsTable = sqliteTable("projects", {
   client: text("client"),
   caseType: text("case_type"),
   status: text({ enum: projectStatusEnum }).notNull(),
-  filingDate: text("filing_date"),
   court: text("court"),
   judge: text("judge"),
   description: text("description"),

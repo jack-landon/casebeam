@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,10 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { useAuth } from "@clerk/nextjs";
 import { createCategory } from "@/lib/db/queries/insert";
 import { SelectCategory } from "@/lib/db/schema";
 import { useCurrentModal } from "./providers/CurrentModalProvider";
+import { useUserData } from "./providers/UserDataProvider";
 
 type FormData = {
   name: string;
@@ -29,8 +28,6 @@ type FormFields = keyof FormData;
 
 export function NewCategoryModal() {
   const { currentModal, setCurrentModal } = useCurrentModal();
-  const { userId } = useAuth();
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<
     Pick<SelectCategory, "name" | "description">
@@ -38,6 +35,7 @@ export function NewCategoryModal() {
     name: "",
     description: "",
   });
+  const { userData, refreshUserData } = useUserData();
 
   const handleChange = (field: string, value: FormData[FormFields]) => {
     setFormData((prev) => ({
@@ -51,7 +49,7 @@ export function NewCategoryModal() {
     setIsSubmitting(true);
 
     try {
-      if (!userId) return;
+      if (!userData?.id) return;
 
       await createCategory(formData);
 
@@ -65,7 +63,7 @@ export function NewCategoryModal() {
       });
 
       setCurrentModal(null);
-      await router.refresh();
+      refreshUserData();
     } catch (error) {
       console.error("Error creating category:", error);
       toast("Error", {
