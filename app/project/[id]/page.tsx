@@ -198,7 +198,9 @@ export default function ProjectPage({ params }: PageProps) {
                   </Link>
                 </Button>
                 <div>
-                  <h1 className="text-2xl font-bold">{projectDetails.name}</h1>
+                  <h1 className="text-2xl font-bold font-lora">
+                    {projectDetails.name}
+                  </h1>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     {projectDetails.caseNumber && (
                       <span>{projectDetails.caseNumber}</span>
@@ -282,7 +284,9 @@ export default function ProjectPage({ params }: PageProps) {
                   <div className="grid gap-6 md:grid-cols-2">
                     <Card>
                       <CardHeader>
-                        <CardTitle>Case Details</CardTitle>
+                        <CardTitle className="font-lora">
+                          Case Details
+                        </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -360,7 +364,9 @@ export default function ProjectPage({ params }: PageProps) {
 
                     <Card>
                       <CardHeader>
-                        <CardTitle>Important Dates</CardTitle>
+                        <CardTitle className="font-lora">
+                          Important Dates
+                        </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-3 max-h-72 overflow-auto">
@@ -438,7 +444,9 @@ export default function ProjectPage({ params }: PageProps) {
                           <DialogContent className="sm:max-w-[425px]">
                             <form onSubmit={handleNewDateSubmit}>
                               <DialogHeader>
-                                <DialogTitle>Add Important Date</DialogTitle>
+                                <DialogTitle className="font-lora">
+                                  Add Important Date
+                                </DialogTitle>
                                 <DialogDescription>
                                   Add a new important for the{" "}
                                   {projectDetails.name} project.
@@ -553,7 +561,7 @@ export default function ProjectPage({ params }: PageProps) {
                   {/* {associatedCases.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Associated Projects</CardTitle>
+                      <CardTitle className='font-lora'>Associated Projects</CardTitle>
                       <CardDescription>
                         Cases related to this matter or with the same client
                       </CardDescription>
@@ -599,7 +607,9 @@ export default function ProjectPage({ params }: PageProps) {
                     <Card>
                       <CardHeader className="flex flex-row items-center">
                         <div>
-                          <CardTitle>Saved Search Results</CardTitle>
+                          <CardTitle className="font-lora">
+                            Saved Search Results
+                          </CardTitle>
                           <CardDescription>
                             You added these search results to this project.
                           </CardDescription>
@@ -619,7 +629,9 @@ export default function ProjectPage({ params }: PageProps) {
                     <Card>
                       <CardHeader className="flex flex-row items-center">
                         <div>
-                          <CardTitle>Case Comments</CardTitle>
+                          <CardTitle className="font-lora">
+                            Case Comments
+                          </CardTitle>
                           <CardDescription>
                             Notes and updates about this case
                           </CardDescription>
@@ -695,7 +707,7 @@ export default function ProjectPage({ params }: PageProps) {
                 <TabsContent value="searchResults">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Case Sources</CardTitle>
+                      <CardTitle className="font-lora">Case Sources</CardTitle>
                       <CardDescription>
                         All documents related to this case
                       </CardDescription>
@@ -717,7 +729,7 @@ export default function ProjectPage({ params }: PageProps) {
                 <TabsContent value="timeline">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Case Timeline</CardTitle>
+                      <CardTitle className="font-lora">Case Timeline</CardTitle>
                       <CardDescription>
                         Chronological history of case events
                       </CardDescription>
@@ -733,7 +745,9 @@ export default function ProjectPage({ params }: PageProps) {
                 <TabsContent value="billing">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Billing Information</CardTitle>
+                      <CardTitle className="font-lora">
+                        Billing Information
+                      </CardTitle>
                       <CardDescription>
                         Invoices and payment history
                       </CardDescription>

@@ -23,7 +23,7 @@ export default function SearchResultsAccordion({ searchResults }: Props) {
         <AccordionItem key={`${result.id}-${i}`} value={`${result.id}-${i}`}>
           <AccordionTrigger className="cursor-pointer group">
             <div>
-              <CardTitle className="text-xl group-hover:underline mb-1">
+              <CardTitle className="text-xl group-hover:underline mb-1 font-lora">
                 {result.searchResult.docTitle}
               </CardTitle>
               <CardDescription className="hover:no-underline">

@@ -169,7 +169,11 @@ export default function ChatPanel({
     >
       {messages.length > 0 && (
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className={`${chatName ? "text-xl" : "text-3xl"} font-bold`}>
+          <h2
+            className={`${
+              chatName ? "text-xl" : "text-3xl"
+            } font-bold font-lora`}
+          >
             {chatName ?? "Chat"}
           </h2>
         </div>
@@ -182,7 +186,7 @@ export default function ChatPanel({
           {messages.length === 0 && (
             <div className="w-full bg-background shadow-sm border rounded-lg p-8 flex flex-col gap-2">
               <div className="flex items-center justify-between w-full pb-2">
-                <h1 className="font-bold">
+                <h1 className="font-bold font-lora">
                   {user && `Hey ${user.firstName}, `}
                   Welcome to Case Beam 🦅
                 </h1>

@@ -271,6 +271,7 @@
   --font-sans: DM Sans, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
+  --font-lora: Lora, serif;
   --radius: 0.5rem;
   --shadow-2xs: 2px 2px 0px 0px hsl(20 18% 51% / 0.06);
   --shadow-xs: 2px 2px 0px 0px hsl(20 18% 51% / 0.06);
@@ -323,6 +324,7 @@
   --font-sans: DM Sans, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
+  --font-lora: Lora, serif;
   --radius: 0.5rem;
   --shadow-2xs: 2px 2px 0px 0px hsl(20 18% 30% / 0.06);
   --shadow-xs: 2px 2px 0px 0px hsl(20 18% 30% / 0.06);
@@ -376,6 +378,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
+  --font-lora: var(--font-lora);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

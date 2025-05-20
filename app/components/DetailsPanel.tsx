@@ -68,7 +68,7 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
       >
         {/* Header */}
         <div className="p-4 border-b flex items-center justify-between">
-          <p className="text-3xl font-bold group-hover:underline">
+          <p className="text-3xl font-bold group-hover:underline font-lora">
             Document Details
           </p>
 
@@ -116,19 +116,21 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
                   handleSave={handleSave}
                   isArticlePanel
                 />
-                <CardTitle className="text-xl font-bold">
+                <CardTitle className="text-xl font-bold font-lora">
                   {currentArticle.docTitle}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium mb-2">In A Nutshell</h4>
+                  <h4 className="font-medium mb-2 font-lora">In A Nutshell</h4>
                   <p className="text-sm text-muted-foreground">
                     {currentArticle.shortSummary}
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-medium mb-2">How It Is Relevant</h4>
+                  <h4 className="font-medium mb-2 font-lora">
+                    How It Is Relevant
+                  </h4>
                   <p className="text-sm text-muted-foreground">
                     {currentArticle.extendedSummary}
                   </p>
@@ -137,7 +139,9 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
                 <Separator className="my-4" />
 
                 <div>
-                  <h3 className="text-lg font-bold">Relevant Excerpts</h3>
+                  <h3 className="text-lg font-bold font-lora">
+                    Relevant Excerpts
+                  </h3>
                   <p className="text-sm text-muted-foreground mb-2">
                     Click on the title to expand the excerpt
                   </p>

@@ -25,7 +25,7 @@ export default function ProjectCard({
         <CardHeader className="">
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle>{caseItem.name}</CardTitle>
+              <CardTitle className="font-lora">{caseItem.name}</CardTitle>
               {(caseItem.client || caseItem.caseNumber) && (
                 <CardDescription className="mt-1">
                   {caseItem.client}{" "}

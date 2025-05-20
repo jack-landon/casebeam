@@ -106,7 +106,7 @@ export default function SearchResult({
             </div>
             <CardTitle
               onClick={handleSelectCurrentArticle}
-              className={`cursor-pointer group-hover:underline text-xl text-accent-foreground dark:text-secondary-foreground hover:underline`}
+              className={`cursor-pointer group-hover:underline text-xl text-accent-foreground dark:text-secondary-foreground hover:underline font-lora`}
             >
               {searchResult.docTitle}
             </CardTitle>

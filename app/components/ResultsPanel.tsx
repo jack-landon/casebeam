@@ -77,7 +77,7 @@ export default function ResultsPanel({
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between">
         <div>
-          <p className="text-3xl font-bold group-hover:underline flex items-center">
+          <p className="text-3xl font-bold group-hover:underline flex items-center font-lora">
             Results {isStreaming && <Loader className="ml-2" size="md" />}
           </p>
           <div className="text-sm text-muted-foreground">
