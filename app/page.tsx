@@ -59,7 +59,7 @@ function HomeContent() {
   const { currentArticle } = useCurrentArticle();
   const { currentModal } = useCurrentModal();
   const { currentChat, refreshCurrentChat } = useCurrentChat();
-  const { isMobile, isTablet, isDesktop } = useDeviceType();
+  const { isDesktop } = useDeviceType();
 
   const [selectedTab, setSelectedTab] = useState<
     (typeof bottomMenuTabs)[number]["name"]
@@ -258,7 +258,7 @@ function HomeContent() {
     <>
       <main
         className={`flex ${
-          isMobile || isTablet ? "h-[calc(100vh-7rem)]" : "h-[calc(100vh-4rem)]"
+          isDesktop ? "h-[calc(100vh-4rem)]" : "h-[calc(100vh-7rem)]"
         } w-full max-w-7xl flex-col items-center mx-auto`}
       >
         {isDesktop ? (

@@ -29,7 +29,7 @@ export default function BottomMenuBar({ selectedTab, setSelectedTab }: Props) {
 
   return (
     <div
-      className={`fixed border-secondary border-opacity-80 border-t-[1px] shadow flex items-center justify-evenly bg-primary w-full bottom-0 md:hidden z-30`}
+      className={`fixed border-secondary border-opacity-80 h-12 border-t-[1px] shadow flex items-center justify-evenly bg-primary w-full bottom-0 md:hidden z-30`}
     >
       {bottomMenuTabs.map((item, index) => {
         if (
