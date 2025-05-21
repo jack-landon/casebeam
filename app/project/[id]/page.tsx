@@ -64,6 +64,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { ConfirmDeleteDateDialog } from "./ConfirmDeleteDateDialog";
 
 interface PageProps {
   params: Promise<{
@@ -153,6 +154,7 @@ export default function ProjectPage({ params }: PageProps) {
   }, [userData, fetchProject]);
 
   async function handleAddComment() {
+    if (commentInput == "") return;
     const projectId = parseInt(resolvedParams.id);
 
     await addProjectComment(projectId, commentInput);
@@ -185,14 +187,19 @@ export default function ProjectPage({ params }: PageProps) {
           {projectDetails ? (
             <>
               <div className="mb-6 flex items-center">
-                <Button variant="ghost" size="icon" asChild className="mr-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  className="hidden lg:block mr-2"
+                >
                   <Link href="/dashboard?tab=projects" prefetch={false}>
                     <ArrowLeft className="h-4 w-4" />
                     <span className="sr-only">Back</span>
                   </Link>
                 </Button>
                 <div>
-                  <h1 className="text-2xl font-bold font-lora">
+                  <h1 className="text-xl md:text-2xl font-bold font-lora">
                     {projectDetails.name}
                   </h1>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -218,7 +225,7 @@ export default function ProjectPage({ params }: PageProps) {
                     </Badge>
                   </div>
                 </div>
-                <div className="ml-auto flex gap-2">
+                <div className="hidden lg:flex ml-auto gap-2">
                   <Button
                     onClick={() => window.print()}
                     variant="outline"
@@ -381,38 +388,17 @@ export default function ProjectPage({ params }: PageProps) {
                                       <div className="font-medium">
                                         {projectDate.name}
                                       </div>
-                                      <Dialog>
-                                        <DialogTrigger asChild>
-                                          <Button className="cursor-pointer bg-transparent text-secondary">
-                                            <X className="h-3 w-3" />
-                                          </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                          <DialogHeader>
-                                            <DialogTitle>
-                                              Are you absolutely sure?
-                                            </DialogTitle>
-                                            <DialogDescription>
-                                              Are you sure you want to delete
-                                              the {projectDate.name} date? This
-                                              action cannot be undone.
-                                            </DialogDescription>
-                                          </DialogHeader>
-                                          <DialogFooter>
-                                            <Button
-                                              onClick={() => {
-                                                deleteProjectDate(
-                                                  projectDate.id
-                                                );
-                                              }}
-                                              type="submit"
-                                              className="cursor-pointer"
-                                            >
-                                              Confirm
-                                            </Button>
-                                          </DialogFooter>
-                                        </DialogContent>
-                                      </Dialog>
+                                      <ConfirmDeleteDateDialog
+                                        title="Are you absolutely sure?"
+                                        description={`Are you sure you want to delete the ${projectDate.name} date? This action cannot be undone.`}
+                                        confirmDelete={() => {
+                                          deleteProjectDate(projectDate.id);
+                                        }}
+                                      >
+                                        <Button className="cursor-pointer bg-transparent text-secondary">
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      </ConfirmDeleteDateDialog>
                                     </div>
                                     <div className="text-sm text-muted-foreground">
                                       {dayjs(projectDate.date).format(

@@ -79,16 +79,16 @@ function DashboardContent() {
                 size="sm"
                 className="h-8 gap-1 cursor-pointer"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">New Project</span>
+                <Plus className="hidden sm:inline h-3.5 w-3.5" />
+                <span className="">New Project</span>
               </Button>
               <Button
                 onClick={() => setCurrentModal("newCategory")}
                 size="sm"
                 className="h-8 gap-1 cursor-pointer"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">New Category</span>
+                <Plus className="hidden sm:inline h-3.5 w-3.5" />
+                <span className="">New Category</span>
               </Button>
             </div>
           </div>

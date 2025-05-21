@@ -47,7 +47,7 @@ export default function SearchResultsAccordion({ searchResults }: Props) {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 px-4 md:px-6">
               <div>
                 <h3 className="text-lg font-semibold">Case Summary</h3>
                 <p className="text-sm text-muted-foreground">
