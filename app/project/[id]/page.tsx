@@ -225,11 +225,11 @@ export default function ProjectPage({ params }: PageProps) {
                     </Badge>
                   </div>
                 </div>
-                <div className="hidden lg:flex ml-auto gap-2">
+                <div className="ml-auto gap-2">
                   <Button
                     onClick={() => window.print()}
                     variant="outline"
-                    className="gap-1 cursor-pointer"
+                    className="hidden lg:flex gap-1 cursor-pointer"
                   >
                     <Printer className="h-4 w-4" />
                     <span>Print</span>
@@ -237,8 +237,8 @@ export default function ProjectPage({ params }: PageProps) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button className="cursor-pointer">
-                        <span>Actions</span>
-                        <MoreHorizontal className="ml-2 h-4 w-4" />
+                        <span className="text-xs md:text-base">Actions</span>
+                        <MoreHorizontal className="ml-1 lg:ml-2 h-2 w-2 md:h-4 md:w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -250,12 +250,6 @@ export default function ProjectPage({ params }: PageProps) {
                       >
                         Edit Case
                       </DropdownMenuItem>
-                      {/* <DropdownMenuItem className="cursor-pointer">
-                      Add Document
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer">
-                      Schedule Hearing
-                    </DropdownMenuItem> */}
                       <DropdownMenuItem
                         onClick={toggleCaseState}
                         className="cursor-pointer"
@@ -263,6 +257,12 @@ export default function ProjectPage({ params }: PageProps) {
                         {projectDetails.status === "closed"
                           ? "Reopen Case"
                           : "Close Case"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => window.print()}
+                        className="lg:hidden cursor-pointer"
+                      >
+                        Print
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -290,7 +290,7 @@ export default function ProjectPage({ params }: PageProps) {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm md:text-base">
                           {projectDetails.client && (
                             <div>
                               <div className="text-sm font-medium text-muted-foreground">

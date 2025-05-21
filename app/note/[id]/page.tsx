@@ -47,8 +47,22 @@ export default function NotePage({ params }: PageProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="container mx-auto max-w-6xl py-6 px-4">
-        <div className="mb-6 flex items-center">
+        <div className="lg:hidden flex items-center">
           <Button variant="ghost" size="icon" asChild className="mr-2">
+            <Link href="/dashboard?tab=notes" prefetch={false}>
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Back</span>
+            </Link>
+          </Button>
+          <Badge variant={"secondary"}>Note</Badge>
+        </div>
+        <div className="mb-6 flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="hidden lg:flex mr-2"
+          >
             <Link href="/dashboard?tab=notes" prefetch={false}>
               <ArrowLeft className="h-4 w-4" />
               <span className="sr-only">Back</span>
@@ -60,9 +74,11 @@ export default function NotePage({ params }: PageProps) {
                 <h1 className="text-2xl font-bold font-lora">
                   {currentNote.name}
                 </h1>
-                <Badge variant={"secondary"}>Note</Badge>
+                <Badge variant={"secondary"} className="hidden lg:flex">
+                  Note
+                </Badge>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mr-2">
                 <span className="mr-2">
                   Last Updated{" "}
                   {dayjs(currentNote.updatedAt).format("DD MMM YYYY")}
@@ -75,7 +91,7 @@ export default function NotePage({ params }: PageProps) {
             <Button
               onClick={() => window.print()}
               variant="outline"
-              className="gap-1 cursor-pointer"
+              className="hidden lg:flex gap-1 cursor-pointer"
             >
               <Printer className="h-4 w-4" />
               <span>Print</span>
@@ -83,8 +99,8 @@ export default function NotePage({ params }: PageProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="cursor-pointer">
-                  <span>Actions</span>
-                  <MoreHorizontal className="ml-2 h-4 w-4" />
+                  <span className="text-xs lg:text-base">Actions</span>
+                  <MoreHorizontal className="ml-1 h-2 w-2 lg:ml-2 lg:h-4 lg:w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -113,6 +129,12 @@ export default function NotePage({ params }: PageProps) {
                   }}
                 >
                   Copy Note To Clipboard
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="lg:hidden cursor-pointer"
+                  onClick={() => window.print()}
+                >
+                  Print
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

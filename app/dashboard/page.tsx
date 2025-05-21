@@ -24,6 +24,14 @@ import dayjs from "dayjs";
 import { useCurrentModal } from "@/components/providers/CurrentModalProvider";
 import { useUserData } from "@/components/providers/UserDataProvider";
 import NoteCard from "@/components/NoteCard";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useDeviceType } from "@/lib/deviceTypeHook";
+import Link from "next/link";
 
 function DashboardContent() {
   const { userData, isLoadingUserData } = useUserData();
@@ -31,6 +39,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const { setCurrentModal } = useCurrentModal();
   const [statusFilter, setStatusFilter] = useState("all");
+  const { isDesktop } = useDeviceType();
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -74,22 +83,49 @@ function DashboardContent() {
                 <Filter className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Filter</span>
               </Button>
-              <Button
-                onClick={() => setCurrentModal("newProject")}
-                size="sm"
-                className="h-8 gap-1 cursor-pointer"
-              >
-                <Plus className="hidden sm:inline h-3.5 w-3.5" />
-                <span className="">New Project</span>
-              </Button>
-              <Button
-                onClick={() => setCurrentModal("newCategory")}
-                size="sm"
-                className="h-8 gap-1 cursor-pointer"
-              >
-                <Plus className="hidden sm:inline h-3.5 w-3.5" />
-                <span className="">New Category</span>
-              </Button>
+              {isDesktop ? (
+                <>
+                  <Button
+                    onClick={() => setCurrentModal("newProject")}
+                    size="sm"
+                    className="h-8 gap-1 cursor-pointer"
+                  >
+                    <Plus className="hidden sm:inline h-3.5 w-3.5" />
+                    <span className="">New Project</span>
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentModal("newCategory")}
+                    size="sm"
+                    className="h-8 gap-1 cursor-pointer"
+                  >
+                    <Plus className="hidden sm:inline h-3.5 w-3.5" />
+                    <span className="">New Category</span>
+                  </Button>
+                </>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="cursor-pointer">
+                      <Plus className="mr-2 h-4 w-4" />
+                      <span>Create</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => setCurrentModal("newProject")}
+                      className="cursor-pointer"
+                    >
+                      New Project
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setCurrentModal("newCategory")}
+                      className="cursor-pointer"
+                    >
+                      New Category
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -133,13 +169,39 @@ function DashboardContent() {
               )}
             </div>
           </div>
+          <div className="md:hidden flex items-center gap-2">
+            <Link
+              key={"projects"}
+              href={`/dashboard?tab=projects`}
+              className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
+                searchParams.get("tab") == "projects"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              <span className="text-sm font-medium">Projects</span>
+            </Link>
+            <Link
+              key={"notes"}
+              href={`/dashboard?tab=notes`}
+              className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition ease-in-out ${
+                searchParams.get("tab") == "notes"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              <span className="text-sm font-medium">Notes</span>
+            </Link>
+          </div>
           {searchParams.get("tab") === "projects" ? (
             <Tabs defaultValue="all">
-              <TabsList>
-                <TabsTrigger value="all">All Cases</TabsTrigger>
-                <TabsTrigger value="recent">Recent</TabsTrigger>
-                <TabsTrigger value="upcoming">Upcoming Deadlines</TabsTrigger>
-              </TabsList>
+              {isDesktop && (
+                <TabsList>
+                  <TabsTrigger value="all">All Cases</TabsTrigger>
+                  <TabsTrigger value="recent">Recent</TabsTrigger>
+                  <TabsTrigger value="upcoming">Upcoming Deadlines</TabsTrigger>
+                </TabsList>
+              )}
               <TabsContent value="all" className="mt-4">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {isLoadingUserData ? (
