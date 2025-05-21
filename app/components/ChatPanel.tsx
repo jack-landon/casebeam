@@ -107,7 +107,6 @@ export default function ChatPanel({
       );
       if (resultArticle) {
         handleSelectCurrentArticle(resultArticle);
-        // setCurrentArticle(resultArticle);
       }
     },
     [currentSearchResults, setCurrentArticle]
@@ -241,12 +240,6 @@ export default function ChatPanel({
                       setVisibleMessageId(messageId);
                     }
                   }}
-                  className={`${
-                    message.role === "assistant" &&
-                    visibleMessageId === message.id
-                      ? "bg-amber-300/20"
-                      : ""
-                  }`}
                 >
                   <ChatBubbleAvatar
                     src={
@@ -260,7 +253,11 @@ export default function ChatPanel({
                     }
                     fallback={message.role == "user" ? "👤" : "👨‍⚖️"}
                   />
-                  <ChatBubbleMessage>
+                  <ChatBubbleMessage
+                    isAssistant={message.role === "assistant"}
+                    messageId={message.id}
+                    visibleMessageId={visibleMessageId ?? undefined}
+                  >
                     {message.content
                       .split("```") // Split by code blocks -> then process the normal text parts
                       .map((part: string, index: number) => {

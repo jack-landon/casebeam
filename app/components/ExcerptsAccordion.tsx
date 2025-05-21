@@ -13,16 +13,24 @@ import { InsertSearchResultWithExcerpts } from "@/lib/types";
 
 type ExcerptsAccordionProps = {
   excerpts: InsertSearchResultWithExcerpts["excerpts"] | string;
+  isDownloadable?: boolean;
 };
 
-export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
+export function ExcerptsAccordion({
+  excerpts,
+  isDownloadable = false,
+}: ExcerptsAccordionProps) {
   const parsedExcerpts =
     typeof excerpts === "string"
       ? (JSON.parse(excerpts) as InsertSearchResultWithExcerpts["excerpts"])
       : excerpts;
 
   return (
-    <Accordion type="multiple" defaultValue={["0"]} className="w-full">
+    <Accordion
+      type="multiple"
+      defaultValue={parsedExcerpts.map((_, key) => key.toString())}
+      className="w-full"
+    >
       {parsedExcerpts.map((excerpt, i) => (
         <AccordionItem key={i} value={i.toString()}>
           <AccordionTrigger
@@ -57,7 +65,8 @@ export function ExcerptsAccordion({ excerpts }: ExcerptsAccordionProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      View Excerpt <ExternalLink className="ml-1 h-3 w-3" />
+                      {isDownloadable ? "Download" : "View"} Excerpt{" "}
+                      <ExternalLink className="ml-1 h-3 w-3" />
                     </Link>
                   </Button>
                 )}

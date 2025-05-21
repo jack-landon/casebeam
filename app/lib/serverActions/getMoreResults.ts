@@ -104,7 +104,10 @@ export async function getMoreResults({
           ? null
           : convertUrlToEmbeddedUrl(
               exampleExcerpt.url,
-              exampleExcerpt.$lexical
+              exampleExcerpt.$lexical.replace(
+                `Document Name: ${exampleExcerpt.citation}`,
+                ""
+              )
             ),
       })),
     };

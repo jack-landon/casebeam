@@ -168,3 +168,20 @@ export function getInitials(name: string) {
     .join("")
     .toUpperCase();
 }
+
+export function isDownloadableSource(url: string) {
+  return (
+    url.endsWith(".pdf") ||
+    url.endsWith(".docx") ||
+    url.endsWith(".doc") ||
+    url.endsWith(".pptx") ||
+    url.endsWith(".ppt") ||
+    url.endsWith(".txt") ||
+    url.endsWith(".csv") ||
+    url.endsWith(".xlsx") ||
+    url.endsWith(".xls") ||
+    url.endsWith(".zip") ||
+    url.endsWith(".rar") ||
+    url.endsWith(".7z")
+  );
+}

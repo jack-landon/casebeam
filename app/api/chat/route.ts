@@ -145,7 +145,10 @@ export async function POST(req: Request) {
           ? null
           : convertUrlToEmbeddedUrl(
               exampleExcerpt.url,
-              exampleExcerpt.$lexical
+              exampleExcerpt.$lexical.replace(
+                `Document Name: ${exampleExcerpt.citation}`,
+                ""
+              )
             ),
       })),
     };

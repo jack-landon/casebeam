@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
 import { useDeviceType } from "@/lib/deviceTypeHook";
 import { bottomMenuTabs } from "./BottomMenuBar";
+import { isDownloadableSource } from "@/lib/utils";
 
 type DetailsPanelProps = {
   view: View;
@@ -143,7 +144,10 @@ export default function DetailsPanel({
                     Click on the title to expand the excerpt
                   </p>
 
-                  <ExcerptsAccordion excerpts={currentArticle.excerpts} />
+                  <ExcerptsAccordion
+                    excerpts={currentArticle.excerpts}
+                    isDownloadable={isDownloadableSource(currentArticle.url)}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -180,7 +184,8 @@ export default function DetailsPanel({
           {currentArticle != "loading" && currentArticle?.url && (
             <Button asChild size="sm" className="cursor-pointer">
               <Link href={currentArticle.url ?? "#"} target="_blank">
-                View Full Document
+                {isDownloadableSource(currentArticle.url) ? "Download" : "View"}{" "}
+                Full Document
               </Link>
             </Button>
           )}

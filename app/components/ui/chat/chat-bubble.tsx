@@ -79,7 +79,6 @@ const ChatBubble = React.forwardRef<HTMLDivElement, ChatBubbleProps>(
           chatBubbleVariant({ variant, layout, className }),
           "relative group"
         )}
-        // ref={ref}
         ref={isAssistant ? setRefs : ref}
         {...props}
       >
@@ -119,9 +118,8 @@ const ChatBubbleAvatar: React.FC<ChatBubbleAvatarProps> = ({
 const chatBubbleMessageVariants = cva("p-3", {
   variants: {
     variant: {
-      received:
-        "bg-secondary/50 text-secondary-foreground rounded-r-lg rounded-tl-lg",
-      sent: "bg-primary/50 text-primary-foreground rounded-l-lg rounded-tr-lg",
+      received: `bg-secondary/50 text-secondary-foreground rounded-r-lg rounded-tl-lg `,
+      sent: `bg-primary/50 text-primary-foreground rounded-l-lg rounded-tr-lg`,
     },
     layout: {
       default: "",
@@ -138,6 +136,9 @@ interface ChatBubbleMessageProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof chatBubbleMessageVariants> {
   isLoading?: boolean;
+  isAssistant?: boolean;
+  visibleMessageId?: string;
+  messageId?: string;
 }
 
 const ChatBubbleMessage = React.forwardRef<
@@ -145,14 +146,28 @@ const ChatBubbleMessage = React.forwardRef<
   ChatBubbleMessageProps
 >(
   (
-    { className, variant, layout, isLoading = false, children, ...props },
+    {
+      className,
+      variant,
+      layout,
+      isLoading = false,
+      isAssistant,
+      messageId,
+      visibleMessageId,
+      children,
+      ...props
+    },
     ref
   ) => (
     <div
-      className={cn(
+      className={`${cn(
         chatBubbleMessageVariants({ variant, layout, className }),
         "break-words text-foreground text-sm max-w-full whitespace-pre-wrap"
-      )}
+      )} ${
+        isAssistant && visibleMessageId === messageId
+          ? "outline-2 outline-amber-500/60"
+          : ""
+      }`}
       ref={ref}
       {...props}
     >
