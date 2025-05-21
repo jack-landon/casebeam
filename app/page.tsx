@@ -25,6 +25,8 @@ import {
   CurrentChatProvider,
   useCurrentChat,
 } from "./components/providers/CurrentChatProvider";
+import BottomMenuBar, { bottomMenuTabs } from "./components/BottomMenuBar";
+import { useDeviceType } from "./lib/deviceTypeHook";
 
 export type View = "chat" | "results" | "details";
 
@@ -57,6 +59,11 @@ function HomeContent() {
   const { currentArticle } = useCurrentArticle();
   const { currentModal } = useCurrentModal();
   const { currentChat, refreshCurrentChat } = useCurrentChat();
+  const { isMobile, isTablet, isDesktop } = useDeviceType();
+
+  const [selectedTab, setSelectedTab] = useState<
+    (typeof bottomMenuTabs)[number]["name"]
+  >(bottomMenuTabs[0].name);
 
   const {
     id: generatedChatId,
@@ -249,67 +256,108 @@ function HomeContent() {
 
   return (
     <>
-      <main className="flex h-[calc(100vh-4rem)] w-full max-w-7xl flex-col items-center mx-auto">
-        <AnimatePresence>
-          <PanelGroup direction="horizontal">
-            <Panel defaultSize={30} minSize={20}>
-              <ChatPanel
-                key={"chat"}
-                openViews={openViews}
-                messages={messages}
-                input={input}
-                view={"chat"}
-                handleActionClick={handleActionClick}
-                handleInputChange={handleInputChange}
-                isGenerating={isGenerating}
-                isLoading={isLoading}
-                onKeyDown={onKeyDown}
-                onSubmit={onSubmit}
-                filters={filters}
-                setFilters={setFilters}
-              />
-            </Panel>
-            {isShowingSearchResults ? (
-              <>
-                <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
-                <Panel defaultSize={30} minSize={20}>
-                  <ResultsPanel
-                    key={"results"}
-                    view={"results"}
-                    isGettingSearchResults={isGettingSearchResults}
-                    setIsShowingSearchResults={setIsShowingSearchResults}
-                    isStreaming={status == "streaming"}
-                  />
-                </Panel>
-              </>
-            ) : currentSearchResults.length > 0 ? (
-              <Panel
-                className="bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer"
-                onClick={() => {
-                  setIsShowingSearchResults(true);
-                }}
-                defaultSize={5}
-                minSize={5}
-                maxSize={5}
-              >
-                <div className="flex items-center justify-center h-full">
-                  <p className="flex items-center gap-4 transform rotate-90 origin-center whitespace-nowrap font-medium">
-                    <ListCollapse />
-                    Show Search Results
-                  </p>
-                </div>
+      <main
+        className={`flex ${
+          isMobile || isTablet ? "h-[calc(100vh-7rem)]" : "h-[calc(100vh-4rem)]"
+        } w-full max-w-7xl flex-col items-center mx-auto`}
+      >
+        {isDesktop ? (
+          <AnimatePresence>
+            <PanelGroup direction="horizontal">
+              <Panel defaultSize={30} minSize={20}>
+                <ChatPanel
+                  key={"chat"}
+                  openViews={openViews}
+                  messages={messages}
+                  input={input}
+                  view={"chat"}
+                  handleActionClick={handleActionClick}
+                  handleInputChange={handleInputChange}
+                  isGenerating={isGenerating}
+                  isLoading={isLoading}
+                  onKeyDown={onKeyDown}
+                  onSubmit={onSubmit}
+                  filters={filters}
+                  setFilters={setFilters}
+                />
               </Panel>
-            ) : null}
-            {currentArticle && (
-              <>
-                <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
-                <Panel defaultSize={30} minSize={20}>
-                  <DetailsPanel key={"details"} view={"details"} />
+              {isShowingSearchResults ? (
+                <>
+                  <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
+                  <Panel defaultSize={30} minSize={20}>
+                    <ResultsPanel
+                      key={"results"}
+                      view={"results"}
+                      isGettingSearchResults={isGettingSearchResults}
+                      setIsShowingSearchResults={setIsShowingSearchResults}
+                      isStreaming={status == "streaming"}
+                    />
+                  </Panel>
+                </>
+              ) : currentSearchResults.length > 0 ? (
+                <Panel
+                  className="bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setIsShowingSearchResults(true);
+                  }}
+                  defaultSize={5}
+                  minSize={5}
+                  maxSize={5}
+                >
+                  <div className="flex items-center justify-center h-full">
+                    <p className="flex items-center gap-4 transform rotate-90 origin-center whitespace-nowrap font-medium">
+                      <ListCollapse />
+                      Show Search Results
+                    </p>
+                  </div>
                 </Panel>
-              </>
-            )}
-          </PanelGroup>
-        </AnimatePresence>
+              ) : null}
+              {currentArticle && (
+                <>
+                  <PanelResizeHandle className="bg-gray-200 hover:bg-blue-400 transition-colors" />
+                  <Panel defaultSize={30} minSize={20}>
+                    <DetailsPanel key={"details"} view={"details"} />
+                  </Panel>
+                </>
+              )}
+            </PanelGroup>
+          </AnimatePresence>
+        ) : selectedTab == "chat" ? (
+          <ChatPanel
+            key={"chat"}
+            openViews={openViews}
+            messages={messages}
+            input={input}
+            view={"chat"}
+            handleActionClick={handleActionClick}
+            handleInputChange={handleInputChange}
+            isGenerating={isGenerating}
+            isLoading={isLoading}
+            onKeyDown={onKeyDown}
+            onSubmit={onSubmit}
+            filters={filters}
+            setFilters={setFilters}
+          />
+        ) : selectedTab == "results" ? (
+          <ResultsPanel
+            key={"results"}
+            view={"results"}
+            isGettingSearchResults={isGettingSearchResults}
+            setIsShowingSearchResults={setIsShowingSearchResults}
+            isStreaming={status == "streaming"}
+            setSelectedTab={setSelectedTab}
+          />
+        ) : selectedTab == "article" ? (
+          <DetailsPanel
+            key={"details"}
+            view={"details"}
+            setSelectedTab={setSelectedTab}
+          />
+        ) : null}
+        <BottomMenuBar
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
+        />
       </main>
       {currentModal == "newProject" ? (
         <NewProjectModal />

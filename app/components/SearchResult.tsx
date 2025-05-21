@@ -19,15 +19,18 @@ import { Skeleton } from "./ui/skeleton";
 import { getDetailedSearchResult } from "@/lib/serverActions/getDetailedSearchResult";
 import { useCurrentSearchResults } from "./providers/CurrentSearchResultsProvider";
 import SaveResultDropdown from "./SaveResultDropdown";
+import { bottomMenuTabs } from "./BottomMenuBar";
 
 type SearchResultProps = {
   searchResult: InsertSearchResultWithExcerptsAndId;
   isStreaming?: boolean;
+  setSelectedTab?: (tab: (typeof bottomMenuTabs)[number]["name"]) => void;
 };
 
 export default function SearchResult({
   searchResult,
   isStreaming = false,
+  setSelectedTab,
 }: SearchResultProps) {
   const { currentSearchResults, setCurrentSearchResults } =
     useCurrentSearchResults();
@@ -65,6 +68,8 @@ export default function SearchResult({
       currentArticle.id == searchResult.id
     )
       return;
+
+    if (setSelectedTab) setSelectedTab("article");
 
     if (searchResult.extendedSummary) {
       setCurrentArticle(searchResult);

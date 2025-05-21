@@ -12,15 +12,22 @@ import SaveResultDropdown from "./SaveResultDropdown";
 import { useUserData } from "./providers/UserDataProvider";
 import { toast } from "sonner";
 import { saveSearchResultWithAssociations } from "@/lib/db/queries/insert";
+import { useDeviceType } from "@/lib/deviceTypeHook";
+import { bottomMenuTabs } from "./BottomMenuBar";
 
 type DetailsPanelProps = {
   view: View;
+  setSelectedTab?: (tab: (typeof bottomMenuTabs)[number]["name"]) => void;
 };
 
-export default function DetailsPanel({ view }: DetailsPanelProps) {
+export default function DetailsPanel({
+  view,
+  setSelectedTab,
+}: DetailsPanelProps) {
   const { userData, refreshUserData } = useUserData();
   const { currentArticle, setCurrentArticle } = useCurrentArticle();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { isDesktop } = useDeviceType();
 
   useEffect(() => {
     console.log("User Data", userData);
@@ -145,16 +152,31 @@ export default function DetailsPanel({ view }: DetailsPanelProps) {
 
         {/* Fixed Bottom Bar */}
         <div className="border-t p-4 mt-auto flex justify-end gap-2">
-          <Button
-            onClick={() => {
-              setCurrentArticle(null);
-            }}
-            variant="outline"
-            size="sm"
-            className="cursor-pointer"
-          >
-            Hide Panel
-          </Button>
+          {isDesktop ? (
+            <Button
+              onClick={() => {
+                setCurrentArticle(null);
+              }}
+              variant="outline"
+              size="sm"
+              className="cursor-pointer"
+            >
+              Hide Panel
+            </Button>
+          ) : (
+            setSelectedTab && (
+              <Button
+                onClick={() => {
+                  setSelectedTab("results");
+                }}
+                size="sm"
+                variant={"outline"}
+                className="cursor-pointer"
+              >
+                Return To Results
+              </Button>
+            )
+          )}
           {currentArticle != "loading" && currentArticle?.url && (
             <Button asChild size="sm" className="cursor-pointer">
               <Link href={currentArticle.url ?? "#"} target="_blank">

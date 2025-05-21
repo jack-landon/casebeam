@@ -26,6 +26,7 @@ import {
 import { FilterOption } from "@/page";
 import { Badge } from "./ui/badge";
 import { useCurrentArticle } from "./providers/CurrentArticleProvider";
+import { useDeviceType } from "@/lib/deviceTypeHook";
 
 export const filterIcons = {
   types: BookText,
@@ -40,8 +41,9 @@ type FilterProps = {
 
 export default function Filters({ filters, setFilters }: FilterProps) {
   const { currentArticle } = useCurrentArticle();
+  const { isMobile } = useDeviceType();
 
-  return currentArticle ? (
+  return isMobile || currentArticle ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="cursor-pointer">

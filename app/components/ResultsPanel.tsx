@@ -20,6 +20,8 @@ import {
 } from "./ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { useCurrentArticle } from "./providers/CurrentArticleProvider";
+import { useDeviceType } from "@/lib/deviceTypeHook";
+import { bottomMenuTabs } from "./BottomMenuBar";
 
 type SortingMethod = "relevance" | "date";
 
@@ -28,6 +30,7 @@ type ResultsPanelProps = {
   view: View;
   setIsShowingSearchResults: (isHShowing: boolean) => void;
   isStreaming?: boolean;
+  setSelectedTab?: (tab: (typeof bottomMenuTabs)[number]["name"]) => void;
 };
 
 export default function ResultsPanel({
@@ -35,6 +38,7 @@ export default function ResultsPanel({
   view,
   setIsShowingSearchResults,
   isStreaming = false,
+  setSelectedTab,
 }: ResultsPanelProps) {
   const { currentSearchResults, setCurrentSearchResults } =
     useCurrentSearchResults();
@@ -42,6 +46,7 @@ export default function ResultsPanel({
   const [sortingMethod, setSortingMethod] =
     useState<SortingMethod>("relevance");
   const { currentArticle } = useCurrentArticle();
+  const { isMobile, isTablet, isDesktop } = useDeviceType();
 
   async function searchMore() {
     try {
@@ -77,7 +82,7 @@ export default function ResultsPanel({
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between">
         <div>
-          <p className="text-3xl font-bold group-hover:underline flex items-center font-lora">
+          <p className="text-2xl md:text-3xl font-bold group-hover:underline flex items-center font-lora">
             Results {isStreaming && <Loader className="ml-2" size="md" />}
           </p>
           <div className="text-sm text-muted-foreground">
@@ -90,7 +95,7 @@ export default function ResultsPanel({
                       ? "most relevant"
                       : sortingMethod == "date"
                       ? "most recent"
-                      : "Best"}
+                      : "best"}
                     <ChevronDown className="ml-0.5 h-3 w-3" />
                   </span>
                 </DropdownMenuTrigger>
@@ -118,7 +123,7 @@ export default function ResultsPanel({
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
-              {currentArticle
+              {currentArticle || isMobile
                 ? `${currentSearchResults.length.toLocaleString()} documents`
                 : `${currentSearchResults.length.toLocaleString()} of ~
               ${totalDocumentsCount.toLocaleString()} documents`}
@@ -156,6 +161,7 @@ export default function ResultsPanel({
                 key={i}
                 searchResult={result}
                 isStreaming={isStreaming}
+                setSelectedTab={setSelectedTab}
               />
             ))}
           <div className="flex justify-center items-center my-2">
@@ -175,19 +181,30 @@ export default function ResultsPanel({
 
       {/* Fixed Bottom Bar */}
       <div className="border-t p-4 mt-auto flex justify-end gap-2">
-        <Button
-          onClick={() => {
-            setIsShowingSearchResults(false);
-          }}
-          variant="outline"
-          size="sm"
-          className="cursor-pointer"
-        >
-          Hide Panel
-        </Button>
-        <Button size="sm" className="cursor-pointer">
-          Save All
-        </Button>
+        {isDesktop && (
+          <Button
+            onClick={() => {
+              setIsShowingSearchResults(false);
+            }}
+            variant="outline"
+            size="sm"
+            className="cursor-pointer"
+          >
+            Hide Panel
+          </Button>
+        )}
+        {(isMobile || isTablet) && setSelectedTab && (
+          <Button
+            onClick={() => {
+              setSelectedTab("chat");
+            }}
+            size="sm"
+            variant={"outline"}
+            className="cursor-pointer"
+          >
+            Return To Chat
+          </Button>
+        )}
       </div>
     </motion.div>
   );
