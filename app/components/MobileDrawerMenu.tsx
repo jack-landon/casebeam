@@ -40,11 +40,13 @@ export default function MobileDrawerMenu() {
 
         <div className="my-3">
           <SignedIn>
-            <div className="flex flex-col justify-center items-center gap-2 px-4">
+            <div className="flex flex-col justify-center items-center gap-4 px-4">
               <div className="w-full grid grid-cols-2 gap-2">
                 <Button
                   asChild
-                  size="sm"
+                  onClick={() => {
+                    document.getElementById("close-mobile-drawer")?.click();
+                  }}
                   variant="link"
                   className="px-2 py-1 cursor-pointer"
                 >
@@ -55,7 +57,9 @@ export default function MobileDrawerMenu() {
                 </Button>
                 <Button
                   asChild
-                  size="sm"
+                  onClick={() => {
+                    document.getElementById("close-mobile-drawer")?.click();
+                  }}
                   variant="link"
                   className="px-2 py-1 cursor-pointer"
                 >
@@ -74,7 +78,7 @@ export default function MobileDrawerMenu() {
           </SignedIn>
 
           <SignedOut>
-            <div className="flex flex-col justify-center items-center gap-2 px-4">
+            <div className="flex flex-col justify-center items-center gap-4 px-4">
               <div className="w-full grid grid-cols-2 gap-2">
                 <Button
                   asChild

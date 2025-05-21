@@ -259,7 +259,7 @@ function HomeContent() {
       <main
         className={`flex ${
           isDesktop ? "h-[calc(100vh-4rem)]" : "h-[calc(100vh-7rem)]"
-        } w-full max-w-7xl flex-col items-center mx-auto`}
+        } w-full max-w-7xl flex-col items-center mx-auto pb-12 md:pb-0`}
       >
         {isDesktop ? (
           <AnimatePresence>
