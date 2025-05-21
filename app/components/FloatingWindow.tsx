@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { Minus } from "lucide-react";
 import { NotepadMenuBar } from "./FloatingWindowMenuBar";
 import { useCurrentNote } from "./providers/CurrentNoteProvider";
+import { useDeviceType } from "@/lib/deviceTypeHook";
 
 type FloatingWindowProps = {
   children: React.ReactNode;
@@ -21,10 +22,11 @@ const FloatingWindow = ({
   isNotepadOpen,
   setIsNotepadOpen,
 }: FloatingWindowProps) => {
+  const { isMobile } = useDeviceType();
   const [position, setPosition] = useState({ x: 100, y: 100 });
   const [size, setSize] = useState({
-    width: initialWidth,
-    height: initialHeight,
+    width: isMobile ? window.innerWidth : initialWidth,
+    height: isMobile ? window.innerHeight : initialHeight,
   });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -142,20 +144,31 @@ const FloatingWindow = ({
       return (
         <div
           ref={windowRef}
-          className="absolute bg-card border border-neutral-500/20 rounded shadow-lg overflow-hidden flex flex-col"
+          className={`absolute bg-card border ${
+            isMobile
+              ? "fixed inset-0 w-full h-full border-none"
+              : "border-neutral-500/20 rounded shadow-lg"
+          } overflow-hidden flex flex-col`}
+          // className="absolute bg-card border border-neutral-500/20 rounded shadow-lg overflow-hidden flex flex-col"
           style={{
-            left: position.x,
-            top: position.y,
-            width: size.width,
-            height: size.height,
+            ...(isMobile
+              ? {}
+              : {
+                  left: position.x,
+                  top: position.y,
+                  width: size.width,
+                  height: size.height,
+                }),
           }}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
+          onMouseMove={isMobile ? undefined : handleMouseMove}
+          onMouseUp={isMobile ? undefined : handleMouseUp}
           //   onMouseLeave={handleMouseUp}
         >
           <div
-            className="drag-handle p-2 cursor-move border-b border-neutral-700/20 select-none"
-            onMouseDown={handleMouseDown}
+            className={`p-2 border-b border-neutral-700/20 select-none ${
+              isMobile ? "" : "drag-handle cursor-move"
+            }`}
+            onMouseDown={isMobile ? undefined : handleMouseDown}
           >
             <div className="px-2 flex items-center justify-between">
               <div className="relative flex space-x-2">
@@ -188,14 +201,16 @@ const FloatingWindow = ({
           </div>
           <div className="flex-1 overflow-y-auto p-2.5">{children}</div>
 
-          <div
-            className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize"
-            onMouseDown={handleResizeMouseDown}
-            style={{
-              background:
-                "linear-gradient(135deg, transparent 50%, rgb(75 85 99) 50%)",
-            }}
-          />
+          {!isMobile && (
+            <div
+              className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize"
+              onMouseDown={handleResizeMouseDown}
+              style={{
+                background:
+                  "linear-gradient(135deg, transparent 50%, rgb(75 85 99) 50%)",
+              }}
+            />
+          )}
         </div>
       );
     }

@@ -17,16 +17,31 @@ import {
   LogIn,
   Menu,
   MessageSquare,
+  NotebookPen,
   UserRoundPlus,
 } from "lucide-react";
+import { useDeviceType } from "@/lib/deviceTypeHook";
 
-export default function MobileDrawerMenu() {
+type Props = {
+  isNotepadOpen: boolean;
+  setIsNotepadOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export default function MobileDrawerMenu({
+  isNotepadOpen,
+  setIsNotepadOpen,
+}: Props) {
   const [open, setOpen] = useState(false);
+  const { isMobile } = useDeviceType();
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="cursor-pointer">
+        <Button
+          size={isMobile ? "sm" : "default"}
+          variant="outline"
+          className="cursor-pointer"
+        >
           <Menu className="h-4 w-4" />
         </Button>
       </DrawerTrigger>
@@ -38,14 +53,14 @@ export default function MobileDrawerMenu() {
           </DrawerDescription> */}
         </DrawerHeader>
 
-        <div className="my-3">
+        <div className="my-3 px-4 grid grid-cols-1 gap-2">
           <SignedIn>
-            <div className="flex flex-col justify-center items-center gap-4 px-4">
+            <div className="flex flex-col justify-center items-center gap-4">
               <div className="w-full grid grid-cols-2 gap-2">
                 <Button
                   asChild
                   onClick={() => {
-                    document.getElementById("close-mobile-drawer")?.click();
+                    setOpen(false);
                   }}
                   variant="link"
                   className="px-2 py-1 cursor-pointer"
@@ -58,7 +73,7 @@ export default function MobileDrawerMenu() {
                 <Button
                   asChild
                   onClick={() => {
-                    document.getElementById("close-mobile-drawer")?.click();
+                    setOpen(false);
                   }}
                   variant="link"
                   className="px-2 py-1 cursor-pointer"
@@ -69,21 +84,16 @@ export default function MobileDrawerMenu() {
                   </Link>
                 </Button>
               </div>
-              <Button asChild className="w-full py-1 cursor-pointer">
-                <Link href="https://casebeam.ai/feedback" target="_blank">
-                  <HeartHandshake className="h-4 w-4 mr-2" /> Feedback
-                </Link>
-              </Button>
             </div>
           </SignedIn>
 
           <SignedOut>
-            <div className="flex flex-col justify-center items-center gap-4 px-4">
+            <div className="flex flex-col justify-center items-center gap-4">
               <div className="w-full grid grid-cols-2 gap-2">
                 <Button
                   asChild
                   onClick={() => {
-                    document.getElementById("close-mobile-drawer")?.click();
+                    setOpen(false);
                   }}
                   variant={"link"}
                   className="py-1 cursor-pointer"
@@ -94,7 +104,7 @@ export default function MobileDrawerMenu() {
                 </Button>
                 <Button
                   onClick={() => {
-                    document.getElementById("close-mobile-drawer")?.click();
+                    setOpen(false);
                   }}
                   asChild
                   variant="link"
@@ -105,21 +115,35 @@ export default function MobileDrawerMenu() {
                   </Link>
                 </Button>
               </div>
-              <Button asChild className="w-full py-1 cursor-pointer">
-                <Link href="https://casebeam.ai/feedback" target="_blank">
-                  <HeartHandshake className="h-4 w-4 mr-2" /> Feedback
-                </Link>
-              </Button>
             </div>
           </SignedOut>
+
+          <div>
+            <Button
+              asChild
+              variant="secondary"
+              className="w-full py-1 cursor-pointer mb-2"
+              onClick={() => {
+                setIsNotepadOpen(!isNotepadOpen);
+                setOpen(false);
+              }}
+            >
+              <span>
+                <NotebookPen className="h-4 w-4 mr-2" />
+                {isNotepadOpen ? "Hide Notepad" : "Open Notepad"}
+              </span>
+            </Button>
+
+            <Button asChild className="w-full py-1 cursor-pointer">
+              <Link href="https://casebeam.ai/feedback" target="_blank">
+                <HeartHandshake className="h-4 w-4 mr-2" /> Feedback
+              </Link>
+            </Button>
+          </div>
         </div>
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
-            <Button
-              id="close-mobile-drawer"
-              variant="outline"
-              className="cursor-pointer"
-            >
+            <Button variant="outline" className="cursor-pointer">
               Cancel
             </Button>
           </DrawerClose>

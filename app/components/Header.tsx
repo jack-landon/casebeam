@@ -40,7 +40,7 @@ export default function Header() {
       }`}
     >
       <div className=" container mx-auto px-4 md:px-6 lg:px-8">
-        <header className="flex h-16 w-full shrink-0 items-center px-4 md:px-6">
+        <header className="flex h-16 w-full shrink-0 items-center">
           <div className="flex items-center gap-4">
             <Link href="/" className="mr-6 flex shrink-0" prefetch={false}>
               {/* <Bird className="h-6 w-6" /> */}
@@ -141,7 +141,10 @@ export default function Header() {
                     />
                   </UserButton.MenuItems>
                 </UserButton>
-                <MobileDrawerMenu />
+                <MobileDrawerMenu
+                  isNotepadOpen={isNotepadOpen}
+                  setIsNotepadOpen={setIsNotepadOpen}
+                />
               </>
             )}
 

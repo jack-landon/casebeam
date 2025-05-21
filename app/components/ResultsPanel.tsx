@@ -46,7 +46,7 @@ export default function ResultsPanel({
   const [sortingMethod, setSortingMethod] =
     useState<SortingMethod>("relevance");
   const { currentArticle } = useCurrentArticle();
-  const { isMobile, isTablet, isDesktop } = useDeviceType();
+  const { isMobile, isDesktop } = useDeviceType();
 
   async function searchMore() {
     try {
@@ -193,7 +193,7 @@ export default function ResultsPanel({
             Hide Panel
           </Button>
         )}
-        {(isMobile || isTablet) && setSelectedTab && (
+        {!isDesktop && setSelectedTab && (
           <Button
             onClick={() => {
               setSelectedTab("chat");

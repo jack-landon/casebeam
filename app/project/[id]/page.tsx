@@ -186,6 +186,25 @@ export default function ProjectPage({ params }: PageProps) {
         <div className="container mx-auto max-w-6xl py-6 px-4">
           {projectDetails ? (
             <>
+              <div className="lg:hidden flex items-center">
+                <Button variant="ghost" size="icon" asChild className="mr-2">
+                  <Link href="/dashboard?tab=projects" prefetch={false}>
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">Back</span>
+                  </Link>
+                </Button>
+                <Badge
+                  variant={
+                    projectDetails.status === "active"
+                      ? "default"
+                      : projectDetails.status === "pending"
+                      ? "outline"
+                      : "secondary"
+                  }
+                >
+                  {capitalizeFirstLetter(projectDetails.status)}
+                </Badge>
+              </div>
               <div className="mb-6 flex items-center">
                 <Button
                   variant="ghost"
@@ -220,12 +239,13 @@ export default function ProjectPage({ params }: PageProps) {
                           ? "outline"
                           : "secondary"
                       }
+                      className="hidden lg:flex"
                     >
                       {capitalizeFirstLetter(projectDetails.status)}
                     </Badge>
                   </div>
                 </div>
-                <div className="ml-auto gap-2">
+                <div className="ml-auto gap-2 flex items-center">
                   <Button
                     onClick={() => window.print()}
                     variant="outline"
@@ -237,7 +257,7 @@ export default function ProjectPage({ params }: PageProps) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button className="cursor-pointer">
-                        <span className="text-xs md:text-base">Actions</span>
+                        <span className="text-xs md:text-sm">Actions</span>
                         <MoreHorizontal className="ml-1 lg:ml-2 h-2 w-2 md:h-4 md:w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -749,7 +769,7 @@ export default function ProjectPage({ params }: PageProps) {
             </>
           ) : (
             <div>
-              <div className="mt-20 mb-28 w-full">
+              <div className="mt-6 mb-12 lg:mt-16 lg:mb-20 w-full">
                 <div className="flex items-center space-x-4">
                   <Skeleton className="h-12 w-12 rounded-full" />
                   <div className="space-y-2">

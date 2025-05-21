@@ -99,7 +99,7 @@ export default function NotePage({ params }: PageProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="cursor-pointer">
-                  <span className="text-xs lg:text-base">Actions</span>
+                  <span className="text-xs lg:text-sm">Actions</span>
                   <MoreHorizontal className="ml-1 h-2 w-2 lg:ml-2 lg:h-4 lg:w-4" />
                 </Button>
               </DropdownMenuTrigger>
