@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { createNewNote } from "@/lib/db/queries/insert";
 import { ColorPickerDropdown } from "./ColorPickerDropdown";
 import Loader from "./Loader";
+import { useUserData } from "./providers/UserDataProvider";
 
 type Props = {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export default function NewNoteModal({
   setIsNewNoteModalOpen,
 }: Props) {
   const { setCurrentNote, setSaveStatus, editorRef } = useCurrentNote();
+  const { refreshUserData } = useUserData();
 
   const [newNoteNameInput, setNewNoteNameInput] = useState("");
   const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
@@ -78,6 +80,7 @@ export default function NewNoteModal({
       setNewNoteNameInput("");
       setIsNewNoteModalOpen(false);
       setSaveStatus("Saved");
+      refreshUserData();
     } catch (error) {
       console.error("Error creating note:", error);
       toast.error("Error creating note");
