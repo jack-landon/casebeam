@@ -136,7 +136,7 @@ export default function Notepad() {
                 <EditorCommandItem
                   value={item.title}
                   onCommand={(val) => item.command && item.command(val)}
-                  className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
+                  className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent dark:hover:bg-secondary aria-selected:bg-accent dark:aria-selected:bg-secondary cursor-pointer"
                   key={item.title}
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
