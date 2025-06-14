@@ -69,9 +69,16 @@ export async function POST(req: Request) {
           .map((msg) => `[${msg.role.toUpperCase()} MESSAGE]: ${msg.content}`)
           .join();
 
+  const optimizedQuery = await generateText({
+    model: google("gemini-2.0-flash-lite-preview-02-05"),
+    prompt: `Consider this chat: [CHAT START] ${contextWindow} [CHAT END]. Take the last message and produce a query optimized for a RAG system. You can just return keywords if necessary, for example the message was "what is the meaning of social licence in the nsw land and environment court?", you would return QUERY: Social Licence, COURT: NSW Land and Environment Court. Only use earlier messages for context if you need to. The query should be concise and relevant to the last message. Do not include any additional information or context.`,
+  });
+
+  console.log("Optimized Query: ", optimizedQuery.text);
+
   // Start Getting the relevant content ~ 5 seconds
   const retrievedExcerptsPromise = findRelevantContent(
-    contextWindow,
+    optimizedQuery.text, //contextWindow,
     filters,
     25
   );
@@ -84,8 +91,6 @@ export async function POST(req: Request) {
   }
 
   const retrievedExcerpts = await retrievedExcerptsPromise;
-
-  console.log("Retrieved Excerpts: ", retrievedExcerpts);
 
   // Create a doc object but keep the excerpts empty
   const unsortedDocObject: {
@@ -103,6 +108,26 @@ export async function POST(req: Request) {
     };
   } = {};
 
+  // First, collect all similarity scores and find min/max
+  const allScores = retrievedExcerpts
+    .map((excerpt) => excerpt.$similarity)
+    .filter((score) => score !== null && score !== undefined) as number[];
+
+  if (allScores.length === 0) {
+    // Handle case where no similarity scores exist
+    // ...existing code continues...
+  }
+
+  const minScore = Math.min(...allScores);
+  const maxScore = Math.max(...allScores);
+  const scoreRange = maxScore - minScore;
+
+  // Function to normalize a score to [0, 1]
+  const normalizeScore = (score: number): number => {
+    if (scoreRange === 0) return 1; // All scores are the same
+    return (score - minScore) / scoreRange;
+  };
+
   // Unique doc_ids
   for (const docId of [
     ...new Set(retrievedExcerpts.map((doc) => doc.doc_id)),
@@ -115,12 +140,19 @@ export async function POST(req: Request) {
     const maxScore = Math.max(
       ...excerpts.map((excerpt) => {
         if (!excerpt.$similarity) return 0;
-        if (excerpt.$similarity < 0) {
-          return 0.1 * Math.exp(excerpt.$similarity); // exponentially decay for negative values
-        }
-        return excerpt.$similarity;
+        return normalizeScore(excerpt.$similarity);
       })
     );
+
+    // const maxScore = Math.max(
+    //   ...excerpts.map((excerpt) => {
+    //     if (!excerpt.$similarity) return 0;
+    //     if (excerpt.$similarity < 0) {
+    //       return 0.1 * Math.exp(excerpt.$similarity); // exponentially decay for negative values
+    //     }
+    //     return excerpt.$similarity;
+    //   })
+    // );
 
     // We use the first excerpt to get the document details
     const exampleExcerpt = excerpts[0];

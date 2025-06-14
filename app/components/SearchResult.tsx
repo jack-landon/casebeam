@@ -106,9 +106,7 @@ export default function SearchResult({
         <div className="flex items-start justify-between">
           <div>
             <div className="mb-3">
-              {searchResult.similarityScore && (
-                <RelevanceIndicator score={searchResult.similarityScore} />
-              )}
+              <RelevanceIndicator score={searchResult.similarityScore ?? 0} />
             </div>
             <CardTitle
               onClick={handleSelectCurrentArticle}

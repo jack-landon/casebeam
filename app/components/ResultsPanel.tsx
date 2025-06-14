@@ -150,6 +150,11 @@ export default function ResultsPanel({
         )}
         <div className="relative min-h-full">
           {currentSearchResults
+            .sort(
+              (a, b) =>
+                (b.extendedSummary?.length ?? 0) -
+                (a.extendedSummary?.length ?? 0)
+            )
             .sort((a, b) =>
               sortingMethod == "date"
                 ? dayjs(b.docDate ?? dayjs()).unix() -
